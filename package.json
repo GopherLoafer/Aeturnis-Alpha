@@ -3,7 +3,15 @@
   "version": "1.0.0",
   "main": "auto-organize.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "cd server && jest --coverage --verbose",
+    "test:watch": "cd server && jest --watch",
+    "test:ci": "cd server && jest --coverage --ci --watchAll=false --maxWorkers=2",
+    "lint:ts": "tsc --noEmit",
+    "lint:ts:watch": "tsc --noEmit --watch",
+    "build": "tsc",
+    "dev": "cd server && tsx src/index.ts",
+    "start": "cd server && node dist/index.js",
+    "ci": "npm run lint:ts && npm run test:ci"
   },
   "keywords": [],
   "author": "",

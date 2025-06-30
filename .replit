@@ -6,3 +6,23 @@ channel = "stable-24_05"
 [[ports]]
 localPort = 3000
 externalPort = 80
+
+[workflows]
+
+[[workflows.workflow]]
+name = "Test with Coverage"
+author = 44147256
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "cd server && npm test"
+
+[[workflows.workflow]]
+name = "TypeScript Check"
+author = 44147256
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run lint:ts"

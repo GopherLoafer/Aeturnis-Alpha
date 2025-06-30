@@ -12,6 +12,9 @@
     "strictNullChecks": true,
     "noImplicitReturns": true,
     "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+    "exactOptionalPropertyTypes": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
@@ -37,7 +40,8 @@
     "emitDecoratorMetadata": true
   },
   "include": [
-    "server/src/**/*"
+    "server/src/**/*",
+    "server/test/**/*"
   ],
   "exclude": [
     "node_modules",

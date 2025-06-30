@@ -293,5 +293,123 @@ describe('AuthService', () => {
       expect(mockRedis.setex).toHaveBeenCalled(); // Access token blacklisted
       expect(mockRedis.del).toHaveBeenCalled(); // Refresh token removed
     });
+
+    it('should handle expired refresh tokens', async () => {
+      const expiredToken = jwt.sign(
+        { userId: 1, type: 'refresh' },
+        process.env.JWT_REFRESH_SECRET || 'test-refresh-secret',
+        { expiresIn: '-1h' }
+      );
+
+      const result = await authService.refreshToken(expiredToken);
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Invalid refresh token');
+    });
+
+    it('should handle refresh token with wrong type', async () => {
+      const wrongTypeToken = jwt.sign(
+        { userId: 1, type: 'access' },
+        process.env.JWT_REFRESH_SECRET || 'test-refresh-secret',
+        { expiresIn: '7d' }
+      );
+
+      const result = await authService.refreshToken(wrongTypeToken);
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Invalid token type');
+    });
+
+    it('should handle refresh token for non-existent user', async () => {
+      const validToken = jwt.sign(
+        { userId: 999, type: 'refresh' },
+        process.env.JWT_REFRESH_SECRET || 'test-refresh-secret',
+        { expiresIn: '7d' }
+      );
+
+      mockRedis.get.mockResolvedValue(validToken);
+      mockDb.query.mockResolvedValue({ rows: [] });
+
+      const result = await authService.refreshToken(validToken);
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('User not found');
+    });
+  });
+
+  describe('Account Locking', () => {
+    it('should lock account after 5 failed attempts', async () => {
+      mockDb.query
+        .mockResolvedValueOnce({ rows: [mockUser] }) // Find user
+        .mockResolvedValueOnce({ rows: [{ failed_login_attempts: 5 }] }) // Update failed attempts
+        .mockResolvedValueOnce({ rows: [] }); // Lock account
+
+      jest.spyOn(authService as any, 'verifyPassword').mockResolvedValue(false);
+
+      const result = await authService.login('test@example.com', 'wrongpassword', '127.0.0.1');
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Invalid credentials');
+    });
+
+    it('should prevent login for locked account', async () => {
+      const lockedUser = {
+        ...mockUser,
+        locked_until: new Date(Date.now() + 10 * 60 * 1000) // 10 minutes in future
+      };
+
+      mockDb.query.mockResolvedValueOnce({ rows: [lockedUser] });
+
+      const result = await authService.login('test@example.com', 'password123', '127.0.0.1');
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Account is temporarily locked due to multiple failed attempts');
+    });
+  });
+
+  describe('Password Reset Edge Cases', () => {
+    it('should handle expired reset token', async () => {
+      const expiredResetData = {
+        token: 'expired-token',
+        userId: 1,
+        expiry: new Date(Date.now() - 60 * 60 * 1000).toISOString() // 1 hour ago
+      };
+
+      mockRedis.keys.mockResolvedValue(['reset:test@example.com']);
+      mockRedis.get.mockResolvedValue(JSON.stringify(expiredResetData));
+
+      const result = await authService.resetPassword('expired-token', 'newpassword123');
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Reset token has expired');
+      expect(mockRedis.del).toHaveBeenCalledWith('reset:test@example.com');
+    });
+
+    it('should handle invalid reset token', async () => {
+      mockRedis.keys.mockResolvedValue(['reset:test@example.com']);
+      mockRedis.get.mockResolvedValue(JSON.stringify({
+        token: 'different-token',
+        userId: 1,
+        expiry: new Date(Date.now() + 60 * 60 * 1000).toISOString()
+      }));
+
+      const result = await authService.resetPassword('invalid-token', 'newpassword123');
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Invalid or expired reset token');
+    });
+  });
+
+  describe('Token Verification Edge Cases', () => {
+    it('should handle malformed access token', async () => {
+      const result = await authService.verifyAccessToken('invalid.token.format');
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Invalid access token');
+    });
+
+    it('should handle access token with wrong secret', async () => {
+      const wrongSecretToken = jwt.sign(
+        { userId: 1, type: 'access' },
+        'wrong-secret',
+        { expiresIn: '15m' }
+      );
+
+      const result = await authService.verifyAccessToken(wrongSecretToken);
+      expect(result.success).toBe(false);
+      expect(result.error).toBe('Invalid access token');
+    });
   });
 });

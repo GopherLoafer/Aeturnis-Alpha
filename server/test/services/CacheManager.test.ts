@@ -32,7 +32,7 @@ describe('CacheManager', () => {
   beforeEach(() => {
     // Reset mocks
     jest.clearAllMocks();
-    
+
     // Create mock Redis client
     mockRedisClient = {
       get: jest.fn(),
@@ -63,7 +63,7 @@ describe('CacheManager', () => {
 
     // Mock redisService.getClient to return our mock
     jest.mocked(redisService.getClient).mockReturnValue(mockRedisClient);
-    
+
     cacheManager = CacheManager.getInstance();
   });
 
@@ -281,7 +281,7 @@ describe('CacheManager', () => {
       mockRedisClient.scan
         .mockResolvedValueOnce(['100', ['cache:test:1', 'cache:test:2']])
         .mockResolvedValueOnce(['0', ['cache:test:3']]);
-      
+
       mockRedisClient.del.mockResolvedValueOnce(2).mockResolvedValueOnce(1);
 
       const result = await cacheManager.deletePattern('test:*');
@@ -301,6 +301,127 @@ describe('CacheManager', () => {
         totalKeys: 2,
         memoryUsage: '100M'
       });
+    });
+  });
+
+  describe('Statistics', () => {
+    it('should get cache statistics', async () => {
+      mockRedisClient.keys.mockResolvedValue(['cache:key1', 'cache:key2']);
+      mockRedisClient.info.mockResolvedValue('used_memory_human:45MB\nother_info:value');
+
+      const stats = await cacheManager.getStats();
+      expect(stats.totalKeys).toBe(2);
+      expect(stats.memoryUsage).toBe('45MB');
+    });
+
+    it('should handle stats errors gracefully', async () => {
+      mockRedisClient.keys.mockRejectedValue(new Error('Redis connection error'));
+
+      const stats = await cacheManager.getStats();
+      expect(stats.totalKeys).toBe(0);
+      expect(stats.memoryUsage).toBe('unknown');
+    });
+  });
+
+  describe('Bulk Operations Edge Cases', () => {
+    it('should handle mget with empty array', async () => {
+      const result = await cacheManager.mget([]);
+      expect(result).toEqual([]);
+    });
+
+    it('should handle mset with empty array', async () => {
+      const result = await cacheManager.mset([]);
+      expect(result).toBe(true);
+    });
+
+    it('should handle mget with mixed JSON and string values', async () => {
+      mockRedisClient.mget.mockResolvedValue(['{"name":"test"}', 'plain-string', null]);
+
+      const result = await cacheManager.mget(['key1', 'key2', 'key3']);
+      expect(result).toEqual([{ name: 'test' }, 'plain-string', null]);
+    });
+
+    it('should handle mset pipeline failure', async () => {
+      const mockPipeline = {
+        setex: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockResolvedValue([
+          [null, 'OK'],
+          [new Error('Redis error'), null]
+        ])
+      };
+      mockRedisClient.pipeline.mockReturnValue(mockPipeline);
+
+      const result = await cacheManager.mset([
+        { key: 'key1', value: 'value1' },
+        { key: 'key2', value: 'value2' }
+      ]);
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('Pattern Deletion Edge Cases', () => {
+    it('should handle large batch deletion', async () => {
+      const largeKeySet = Array.from({ length: 250 }, (_, i) => `cache:key${i}`);
+
+      mockRedisClient.scan
+        .mockResolvedValueOnce(['100', largeKeySet.slice(0, 100)])
+        .mockResolvedValueOnce(['200', largeKeySet.slice(100, 200)])
+        .mockResolvedValueOnce(['0', largeKeySet.slice(200)]);
+
+      mockRedisClient.del
+        .mockResolvedValueOnce(100)
+        .mockResolvedValueOnce(100)
+        .mockResolvedValueOnce(50);
+
+      const deletedCount = await cacheManager.deletePattern('key*');
+      expect(deletedCount).toBe(250);
+      expect(mockRedisClient.del).toHaveBeenCalledTimes(3);
+    });
+
+    it('should handle scan with no matching keys', async () => {
+      mockRedisClient.scan.mockResolvedValue(['0', []]);
+
+      const deletedCount = await cacheManager.deletePattern('nonexistent*');
+      expect(deletedCount).toBe(0);
+      expect(mockRedisClient.del).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Cache Warming', () => {
+    it('should execute all warming functions', async () => {
+      const fn1 = jest.fn().mockResolvedValue(undefined);
+      const fn2 = jest.fn().mockResolvedValue(undefined);
+      const fn3 = jest.fn().mockRejectedValue(new Error('Warming error'));
+
+      await cacheManager.warmCache([fn1, fn2, fn3]);
+
+      expect(fn1).toHaveBeenCalled();
+      expect(fn2).toHaveBeenCalled();
+      expect(fn3).toHaveBeenCalled();
+    });
+  });
+
+  describe('Data Structure Operations', () => {
+    it('should handle set operations with complex objects', async () => {
+      const complexObject = { id: 1, nested: { array: [1, 2, 3] } };
+      mockRedisClient.sadd.mockResolvedValue(1);
+
+      const result = await cacheManager.addToSet('test-set', complexObject);
+      expect(result).toBe(true);
+      expect(mockRedisClient.sadd).toHaveBeenCalledWith(
+        'cache:test-set',
+        JSON.stringify(complexObject)
+      );
+    });
+
+    it('should handle list operations with mixed data types', async () => {
+      mockRedisClient.lpush.mockResolvedValue(2);
+      mockRedisClient.lrange.mockResolvedValue(['{"id":1}', 'string-value']);
+
+      await cacheManager.pushToList('test-list', { id: 1 });
+      const result = await cacheManager.getList('test-list');
+
+      expect(result).toEqual([{ id: 1 }, 'string-value']);
     });
   });
 });

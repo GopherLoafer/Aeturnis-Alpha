@@ -506,8 +506,7 @@ export class AuthService {
 
   private async storeRefreshToken(userId: number, token: string): Promise<void> {
     const expiry = this.parseTimeToSeconds(this.jwtRefreshExpiry);
-    await this.redis.setex(`refresh:${userId  return;
-}`, expiry, token);
+    await this.redis.setex(`refresh:${userId}`, expiry, token);
   }
 
   private async verifyPassword(password: string, hash: string): Promise<boolean> {
@@ -520,8 +519,7 @@ export class AuthService {
   }
 
   private async incrementLoginAttempts(clientIp: string): Promise<void> {
-    const key = `login_attempts:${clientIp  return;
-}`;
+    const key = `login_attempts:${clientIp}`;
     const ttl = 15 * 60; // 15 minutes
     await this.redis.incr(key);
     await this.redis.expire(key, ttl);
@@ -542,8 +540,7 @@ export class AuthService {
         'UPDATE users SET locked_until = $1 WHERE id = $2',
         [lockUntil, userId]
       );
-      return;
-}
+    }
   }
 
   private async resetUserFailedAttempts(userId: number): Promise<void> {
@@ -551,8 +548,7 @@ export class AuthService {
       'UPDATE users SET failed_login_attempts = 0, locked_until = NULL WHERE id = $1',
       [userId]
     );
-    return;
-}
+  }
 
   private parseTimeToSeconds(timeString: string): number {
     const unit = timeString.slice(-1);
