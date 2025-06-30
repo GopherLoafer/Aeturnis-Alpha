@@ -1,0 +1,107 @@
+# 🗺️ Step 2.4 – Zone and Movement System
+
+**Prompt ID:** `zone-movement-v1`  
+**From:** Claude  
+**To:** Replit Agent AI  
+**Purpose:** Implement the zone, exits, and character movement system for Aeturnis Online
+
+---
+
+## 📘 Overview
+
+This step defines the movement system for navigating the game world through interconnected zones. Players move between zones using exits, receive feedback from look commands, and trigger real-time events. All movement should be rate-limited and broadcast to nearby characters.
+
+---
+
+## 📦 Requirements
+
+### 1. Zone System (Schema + API)
+**Table:** `zones`
+- id, internal_name, display_name, description
+- zone_type: normal, dungeon, city, etc.
+- level_range (int4range), pvp_enabled, safe_zone
+- climate, terrain, lighting, features (JSONB)
+- map_x, map_y, layer (for global world map)
+- monster_spawn_rate, ambient_sounds
+- created_at, updated_at
+
+**Table:** `zone_exits`
+- from_zone_id, to_zone_id, direction
+- exit_type (normal, door, portal)
+- is_visible, is_locked, lock_type
+- required_level, required_item_id
+- travel_message, reverse_direction
+- UNIQUE (from_zone_id, direction)
+
+---
+
+### 2. Character Location Tracking
+**Table:** `character_locations`
+- character_id (PK, FK)
+- zone_id (FK), instance_id (nullable)
+- x, y, last_movement (timestamp)
+- total_zones_visited, distance_traveled, unique_zones_visited (text[])
+
+---
+
+### 3. Movement Logic (CharacterService or MovementService)
+```ts
+moveCharacter(characterId: string, direction: string): Promise<MoveResult>
+```
+
+- Validate direction and exit availability
+- Check if exit is locked or requires item/level
+- Enforce 1-second cooldown between moves
+- Update character's zone and position
+- Broadcast exit to old zone, entry to new zone via Socket.io
+- Log movement and distance
+
+---
+
+### 4. Zone Service
+```ts
+getZone(zoneId: string): Promise<ZoneInfo>
+getPlayersInZone(zoneId: string): Promise<Character[]>
+look(zoneId, direction): Promise<LookResponse>
+```
+
+- Cacheable zone data
+- Load exits, players, NPCs, items
+- Return descriptions, ambient features, and players present
+
+---
+
+### 5. Movement Controller
+| Method | Route                    | Description                     |
+|--------|--------------------------|---------------------------------|
+| POST   | `/api/game/move`         | Move in a cardinal direction    |
+| GET    | `/api/game/zone/:zoneId` | Get zone info                   |
+| GET    | `/api/game/look/:dir`    | Peek in a direction             |
+
+- Use validation middleware
+- Require JWT auth and active character session
+
+---
+
+## 🔐 Best Practices
+
+- Sanitize direction inputs (N/S/E/W/etc.)
+- Use Redis rate limiter (1 move/sec)
+- Join/leave `zone:{zoneName}` room on zone change
+- Debounce frequent look/move requests
+- Use typed responses
+
+---
+
+## 📎 Output Files
+
+- `src/services/ZoneService.ts`
+- `src/services/MovementService.ts`
+- `src/controllers/MovementController.ts`
+- `src/database/migrations/008_create_zones.sql`
+- `src/database/migrations/009_create_zone_exits.sql`
+- `src/database/migrations/010_create_character_locations.sql`
+
+---
+
+Return an implementation report when complete.
