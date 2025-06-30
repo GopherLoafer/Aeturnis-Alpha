@@ -1,59 +1,28 @@
 /**
- * Character Repository
- * Database operations for character management in MMORPG
+ * Character Repository - Step 2.1 Implementation
+ * Database operations for character and race management in Aeturnis Online MMORPG
  */
 
 import { Pool, PoolClient } from 'pg';
 import { logger } from '../../utils/logger';
+import { 
+  Character, 
+  Race, 
+  CharacterStats, 
+  CreateCharacterInput, 
+  UpdateCharacterStatsInput, 
+  UpdateCharacterResourcesInput, 
+  UpdateCharacterLocationInput,
+  CharacterCreationData,
+  CHARACTER_CONSTANTS
+} from '../../types/character.types';
 
-export interface Character {
-  id: number;
-  user_id: string;
-  name: string;
-  class: string;
-  level: number;
-  experience: bigint;
-  zone_id: string;
-  position_x: number;
-  position_y: number;
-  position_z: number;
-  rotation: number;
-  health: number;
-  max_health: number;
-  mana: number;
-  max_mana: number;
-  strength: number;
-  agility: number;
-  intelligence: number;
-  status: string;
-  last_activity: Date;
-  created_at: Date;
-  updated_at: Date;
+export interface CreateCharacterData extends CreateCharacterInput {
+  // Additional database-specific properties can be added here
 }
 
-export interface CreateCharacterData {
-  user_id: string;
-  name: string;
-  class?: string;
-  zone_id?: string;
-}
-
-export interface UpdateCharacterPosition {
-  zone_id?: string;
-  position_x?: number;
-  position_y?: number;
-  position_z?: number;
-  rotation?: number;
-}
-
-export interface UpdateCharacterStats {
-  health?: number;
-  max_health?: number;
-  mana?: number;
-  max_mana?: number;
-  strength?: number;
-  agility?: number;
-  intelligence?: number;
+export interface UpdateCharacterPosition extends UpdateCharacterLocationInput {
+  // Legacy compatibility
 }
 
 export class CharacterRepository {
@@ -64,15 +33,38 @@ export class CharacterRepository {
   }
 
   /**
-   * Get character by ID with ownership verification
+   * Get all available races
    */
-  async getCharacterByIdAndUserId(characterId: number, userId: string): Promise<Character | null> {
+  async getAllRaces(): Promise<Race[]> {
     try {
       const client = await this.db.connect();
       try {
         const result = await client.query(
-          'SELECT * FROM characters WHERE id = $1 AND user_id = $2',
-          [characterId, userId]
+          'SELECT * FROM races ORDER BY name ASC'
+        );
+        
+        return result.rows;
+      } finally {
+        client.release();
+      }
+    } catch (error) {
+      logger.error('Failed to get races', {
+        error: error instanceof Error ? error.message : error,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Get race by ID
+   */
+  async getRaceById(raceId: string): Promise<Race | null> {
+    try {
+      const client = await this.db.connect();
+      try {
+        const result = await client.query(
+          'SELECT * FROM races WHERE id = $1',
+          [raceId]
         );
         
         return result.rows[0] || null;
@@ -80,9 +72,112 @@ export class CharacterRepository {
         client.release();
       }
     } catch (error) {
-      logger.error('Failed to get character by ID and user ID', {
-        characterId,
+      logger.error('Failed to get race by ID', {
+        raceId,
+        error: error instanceof Error ? error.message : error,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Create a new character with race bonuses applied
+   */
+  async create(userId: string, data: CreateCharacterData): Promise<Character> {
+    try {
+      const client = await this.db.connect();
+      
+      try {
+        await client.query('BEGIN');
+
+        // Get race data to apply bonuses
+        const raceResult = await client.query(
+          'SELECT * FROM races WHERE id = $1',
+          [data.race_id]
+        );
+        
+        if (raceResult.rows.length === 0) {
+          throw new Error(`Race with ID ${data.race_id} not found`);
+        }
+        
+        const race = raceResult.rows[0];
+        
+        // Calculate starting stats with race bonuses
+        const startingStats = {
+          strength: CHARACTER_CONSTANTS.DEFAULT_STATS.strength + race.strength_modifier,
+          vitality: CHARACTER_CONSTANTS.DEFAULT_STATS.vitality + race.vitality_modifier,
+          dexterity: CHARACTER_CONSTANTS.DEFAULT_STATS.dexterity + race.dexterity_modifier,
+          intelligence: CHARACTER_CONSTANTS.DEFAULT_STATS.intelligence + race.intelligence_modifier,
+          wisdom: CHARACTER_CONSTANTS.DEFAULT_STATS.wisdom + race.wisdom_modifier,
+        };
+        
+        // Calculate starting resources based on vitality and intelligence
+        const startingHealth = race.starting_health + (startingStats.vitality * 5);
+        const startingMana = race.starting_mana + (startingStats.intelligence * 3);
+        
+        const result = await client.query(
+          `INSERT INTO characters (
+            user_id, race_id, name, gender, 
+            strength, vitality, dexterity, intelligence, wisdom,
+            health, max_health, mana, max_mana,
+            current_zone, spawn_zone, gold, appearance, settings
+          ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+          RETURNING *`,
+          [
+            userId, data.race_id, data.name, data.gender,
+            startingStats.strength, startingStats.vitality, startingStats.dexterity,
+            startingStats.intelligence, startingStats.wisdom,
+            startingHealth, startingHealth, startingMana, startingMana,
+            race.starting_zone, race.starting_zone, race.starting_gold,
+            JSON.stringify(data.appearance || {}), JSON.stringify(data.settings || {})
+          ]
+        );
+        
+        await client.query('COMMIT');
+        
+        logger.info('Character created successfully', {
+          characterId: result.rows[0].id,
+          userId: userId,
+          name: data.name,
+          race: race.name,
+        });
+        
+        return result.rows[0];
+      } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+      } finally {
+        client.release();
+      }
+    } catch (error) {
+      logger.error('Failed to create character', {
         userId,
+        data,
+        error: error instanceof Error ? error.message : error,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Get character by ID
+   */
+  async findById(id: string): Promise<Character | null> {
+    try {
+      const client = await this.db.connect();
+      try {
+        const result = await client.query(
+          'SELECT * FROM characters WHERE id = $1 AND deleted_at IS NULL',
+          [id]
+        );
+        
+        return result.rows[0] || null;
+      } finally {
+        client.release();
+      }
+    } catch (error) {
+      logger.error('Failed to get character by ID', {
+        id,
         error: error instanceof Error ? error.message : error,
       });
       throw error;
@@ -92,12 +187,12 @@ export class CharacterRepository {
   /**
    * Get all characters for a user
    */
-  async getCharactersByUserId(userId: string): Promise<Character[]> {
+  async findByUserId(userId: string): Promise<Character[]> {
     try {
       const client = await this.db.connect();
       try {
         const result = await client.query(
-          'SELECT * FROM characters WHERE user_id = $1 ORDER BY created_at DESC',
+          'SELECT * FROM characters WHERE user_id = $1 AND deleted_at IS NULL ORDER BY last_active DESC',
           [userId]
         );
         
@@ -115,80 +210,15 @@ export class CharacterRepository {
   }
 
   /**
-   * Create a new character
+   * Get character with race stats calculated (using view)
    */
-  async createCharacter(data: CreateCharacterData): Promise<Character> {
+  async getCharacterStats(id: string): Promise<CharacterStats | null> {
     try {
       const client = await this.db.connect();
       try {
         const result = await client.query(
-          `INSERT INTO characters (user_id, name, class, zone_id)
-           VALUES ($1, $2, $3, $4)
-           RETURNING *`,
-          [data.user_id, data.name, data.class || 'warrior', data.zone_id || 'starter_zone']
-        );
-        
-        logger.info('Character created successfully', {
-          characterId: result.rows[0].id,
-          userId: data.user_id,
-          name: data.name,
-        });
-        
-        return result.rows[0];
-      } finally {
-        client.release();
-      }
-    } catch (error) {
-      logger.error('Failed to create character', {
-        data,
-        error: error instanceof Error ? error.message : error,
-      });
-      throw error;
-    }
-  }
-
-  /**
-   * Update character position
-   */
-  async updateCharacterPosition(characterId: number, position: UpdateCharacterPosition): Promise<Character | null> {
-    try {
-      const client = await this.db.connect();
-      try {
-        const setClauses: string[] = [];
-        const values: any[] = [];
-        let paramIndex = 1;
-
-        if (position.zone_id !== undefined) {
-          setClauses.push(`zone_id = $${paramIndex++}`);
-          values.push(position.zone_id);
-        }
-        if (position.position_x !== undefined) {
-          setClauses.push(`position_x = $${paramIndex++}`);
-          values.push(position.position_x);
-        }
-        if (position.position_y !== undefined) {
-          setClauses.push(`position_y = $${paramIndex++}`);
-          values.push(position.position_y);
-        }
-        if (position.position_z !== undefined) {
-          setClauses.push(`position_z = $${paramIndex++}`);
-          values.push(position.position_z);
-        }
-        if (position.rotation !== undefined) {
-          setClauses.push(`rotation = $${paramIndex++}`);
-          values.push(position.rotation);
-        }
-
-        if (setClauses.length === 0) {
-          throw new Error('No position data provided for update');
-        }
-
-        setClauses.push(`last_activity = CURRENT_TIMESTAMP`);
-        values.push(characterId);
-
-        const result = await client.query(
-          `UPDATE characters SET ${setClauses.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
-          values
+          'SELECT * FROM character_stats WHERE id = $1',
+          [id]
         );
         
         return result.rows[0] || null;
@@ -196,9 +226,8 @@ export class CharacterRepository {
         client.release();
       }
     } catch (error) {
-      logger.error('Failed to update character position', {
-        characterId,
-        position,
+      logger.error('Failed to get character stats', {
+        id,
         error: error instanceof Error ? error.message : error,
       });
       throw error;
@@ -208,7 +237,7 @@ export class CharacterRepository {
   /**
    * Update character stats
    */
-  async updateCharacterStats(characterId: number, stats: UpdateCharacterStats): Promise<Character | null> {
+  async updateStats(id: string, partialStats: UpdateCharacterStatsInput): Promise<Character | null> {
     try {
       const client = await this.db.connect();
       try {
@@ -216,7 +245,7 @@ export class CharacterRepository {
         const values: any[] = [];
         let paramIndex = 1;
 
-        Object.entries(stats).forEach(([key, value]) => {
+        Object.entries(partialStats).forEach(([key, value]) => {
           if (value !== undefined) {
             setClauses.push(`${key} = $${paramIndex++}`);
             values.push(value);
@@ -227,11 +256,11 @@ export class CharacterRepository {
           throw new Error('No stats data provided for update');
         }
 
-        setClauses.push(`last_activity = CURRENT_TIMESTAMP`);
-        values.push(characterId);
+        setClauses.push(`last_active = CURRENT_TIMESTAMP`);
+        values.push(id);
 
         const result = await client.query(
-          `UPDATE characters SET ${setClauses.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
+          `UPDATE characters SET ${setClauses.join(', ')} WHERE id = $${paramIndex} AND deleted_at IS NULL RETURNING *`,
           values
         );
         
@@ -241,8 +270,8 @@ export class CharacterRepository {
       }
     } catch (error) {
       logger.error('Failed to update character stats', {
-        characterId,
-        stats,
+        id,
+        partialStats,
         error: error instanceof Error ? error.message : error,
       });
       throw error;
@@ -250,15 +279,18 @@ export class CharacterRepository {
   }
 
   /**
-   * Update character status
+   * Update character location
    */
-  async updateCharacterStatus(characterId: number, status: string): Promise<Character | null> {
+  async updateLocation(id: string, zone: string, x: number, y: number): Promise<Character | null> {
     try {
       const client = await this.db.connect();
       try {
         const result = await client.query(
-          `UPDATE characters SET status = $1, last_activity = CURRENT_TIMESTAMP WHERE id = $2 RETURNING *`,
-          [status, characterId]
+          `UPDATE characters SET 
+           current_zone = $1, position_x = $2, position_y = $3, last_active = CURRENT_TIMESTAMP 
+           WHERE id = $4 AND deleted_at IS NULL 
+           RETURNING *`,
+          [zone, x, y, id]
         );
         
         return result.rows[0] || null;
@@ -266,9 +298,108 @@ export class CharacterRepository {
         client.release();
       }
     } catch (error) {
-      logger.error('Failed to update character status', {
-        characterId,
-        status,
+      logger.error('Failed to update character location', {
+        id,
+        zone,
+        x,
+        y,
+        error: error instanceof Error ? error.message : error,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Update character resources (health, mana)
+   */
+  async updateResources(id: string, health?: number, mana?: number): Promise<Character | null> {
+    try {
+      const client = await this.db.connect();
+      try {
+        const setClauses: string[] = [];
+        const values: any[] = [];
+        let paramIndex = 1;
+
+        if (health !== undefined) {
+          setClauses.push(`health = $${paramIndex++}`);
+          values.push(health);
+        }
+        if (mana !== undefined) {
+          setClauses.push(`mana = $${paramIndex++}`);
+          values.push(mana);
+        }
+
+        if (setClauses.length === 0) {
+          throw new Error('No resource data provided for update');
+        }
+
+        setClauses.push(`last_active = CURRENT_TIMESTAMP`);
+        values.push(id);
+
+        const result = await client.query(
+          `UPDATE characters SET ${setClauses.join(', ')} WHERE id = $${paramIndex} AND deleted_at IS NULL RETURNING *`,
+          values
+        );
+        
+        return result.rows[0] || null;
+      } finally {
+        client.release();
+      }
+    } catch (error) {
+      logger.error('Failed to update character resources', {
+        id,
+        health,
+        mana,
+        error: error instanceof Error ? error.message : error,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Soft delete a character
+   */
+  async softDelete(id: string): Promise<boolean> {
+    try {
+      const client = await this.db.connect();
+      try {
+        const result = await client.query(
+          `UPDATE characters SET deleted_at = CURRENT_TIMESTAMP WHERE id = $1 AND deleted_at IS NULL`,
+          [id]
+        );
+        
+        return result.rowCount > 0;
+      } finally {
+        client.release();
+      }
+    } catch (error) {
+      logger.error('Failed to soft delete character', {
+        id,
+        error: error instanceof Error ? error.message : error,
+      });
+      throw error;
+    }
+  }
+
+  /**
+   * Check if character name is available
+   */
+  async isNameAvailable(name: string): Promise<boolean> {
+    try {
+      const client = await this.db.connect();
+      try {
+        const result = await client.query(
+          'SELECT COUNT(*) FROM characters WHERE LOWER(name) = LOWER($1) AND deleted_at IS NULL',
+          [name]
+        );
+        
+        return parseInt(result.rows[0].count) === 0;
+      } finally {
+        client.release();
+      }
+    } catch (error) {
+      logger.error('Failed to check character name availability', {
+        name,
         error: error instanceof Error ? error.message : error,
       });
       throw error;
@@ -278,12 +409,12 @@ export class CharacterRepository {
   /**
    * Get characters in a specific zone
    */
-  async getCharactersInZone(zoneId: string): Promise<Character[]> {
+  async getCharactersInZone(zoneId: string): Promise<CharacterStats[]> {
     try {
       const client = await this.db.connect();
       try {
         const result = await client.query(
-          `SELECT * FROM characters WHERE zone_id = $1 AND status = 'online' ORDER BY last_activity DESC`,
+          `SELECT * FROM character_stats WHERE current_zone = $1 AND status IN ('normal', 'combat') ORDER BY last_active DESC`,
           [zoneId]
         );
         
@@ -301,24 +432,25 @@ export class CharacterRepository {
   }
 
   /**
-   * Check if character name is available
+   * Update character status
    */
-  async isNameAvailable(name: string): Promise<boolean> {
+  async updateStatus(id: string, status: string): Promise<Character | null> {
     try {
       const client = await this.db.connect();
       try {
         const result = await client.query(
-          'SELECT COUNT(*) FROM characters WHERE LOWER(name) = LOWER($1)',
-          [name]
+          `UPDATE characters SET status = $1, last_active = CURRENT_TIMESTAMP WHERE id = $2 AND deleted_at IS NULL RETURNING *`,
+          [status, id]
         );
         
-        return parseInt(result.rows[0].count) === 0;
+        return result.rows[0] || null;
       } finally {
         client.release();
       }
     } catch (error) {
-      logger.error('Failed to check character name availability', {
-        name,
+      logger.error('Failed to update character status', {
+        id,
+        status,
         error: error instanceof Error ? error.message : error,
       });
       throw error;
