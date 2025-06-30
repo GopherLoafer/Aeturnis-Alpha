@@ -8,6 +8,7 @@ import { SocketWithAuth } from '../middleware/auth';
 import { RoomManager } from '../rooms/RoomManager';
 import { PresenceManager } from '../presence/PresenceManager';
 import { logger } from '../../utils/logger';
+import { repositories } from '../../database/repositories';
 
 const roomManager = new RoomManager();
 const presenceManager = new PresenceManager();

@@ -8,6 +8,7 @@ import { SocketWithAuth } from '../middleware/auth';
 import { PresenceManager } from '../presence/PresenceManager';
 import { getRedis } from '../../config/database';
 import { logger } from '../../utils/logger';
+import { repositories } from '../../database/repositories';
 
 const presenceManager = new PresenceManager();
 

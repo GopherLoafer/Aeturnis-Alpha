@@ -8,6 +8,7 @@ import { SocketWithAuth } from '../middleware/auth';
 import { RoomManager } from '../rooms/RoomManager';
 import { PresenceManager } from '../presence/PresenceManager';
 import { logger } from '../../utils/logger';
+import { repositories } from '../../database/repositories';
 
 const roomManager = new RoomManager();
 const presenceManager = new PresenceManager();
@@ -54,7 +55,7 @@ export function registerCharacterHandlers(io: SocketIOServer, socket: SocketWith
       }
 
       // Load character data from database
-      const characterData = await loadCharacterData(data.characterId);
+      const characterData = await loadCharacterData(data.characterId, socket.userId);
       if (!characterData) {
         socket.emit('character:error', {
           code: 'CHARACTER_NOT_FOUND',
@@ -309,25 +310,79 @@ export function registerCharacterHandlers(io: SocketIOServer, socket: SocketWith
 // Helper functions
 
 async function validateCharacterOwnership(userId: string, characterId: string): Promise<boolean> {
-  // TODO: Implement database query to verify character ownership
-  return true; // Placeholder
+  try {
+    const character = await repositories.characters.getCharacterByIdAndUserId(
+      parseInt(characterId), 
+      userId
+    );
+    return character !== null;
+  } catch (error) {
+    logger.error('Failed to validate character ownership', {
+      userId,
+      characterId,
+      error: error instanceof Error ? error.message : error,
+    });
+    return false;
+  }
 }
 
-async function loadCharacterData(characterId: string): Promise<any> {
-  // TODO: Implement database query to load character data
-  return {
-    id: characterId,
-    name: 'Test Character',
-    level: 1,
-    currentZone: 'starting_village',
-    position: { x: 0, y: 0, z: 0 },
-    appearance: {},
-  }; // Placeholder
+async function loadCharacterData(characterId: string, userId: string): Promise<any> {
+  try {
+    const character = await repositories.characters.getCharacterByIdAndUserId(parseInt(characterId), userId);
+    if (!character) {
+      return null;
+    }
+    
+    return {
+      id: character.id,
+      name: character.name,
+      class: character.class,
+      level: character.level,
+      currentZone: character.zone_id,
+      position: { 
+        x: character.position_x, 
+        y: character.position_y, 
+        z: character.position_z 
+      },
+      rotation: character.rotation,
+      health: character.health,
+      maxHealth: character.max_health,
+      mana: character.mana,
+      maxMana: character.max_mana,
+      stats: {
+        strength: character.strength,
+        agility: character.agility,
+        intelligence: character.intelligence,
+      },
+      status: character.status,
+    };
+  } catch (error) {
+    logger.error('Failed to load character data', {
+      characterId,
+      error: error instanceof Error ? error.message : error,
+    });
+    return null;
+  }
 }
 
 async function updateCharacterPosition(characterId: string, movement: MovementData): Promise<void> {
-  // TODO: Implement database update for character position
-  logger.debug('Character position updated', { characterId, position: movement });
+  try {
+    await repositories.characters.updateCharacterPosition(parseInt(characterId), {
+      position_x: movement.x,
+      position_y: movement.y,
+      position_z: movement.z || 0,
+      rotation: movement.direction || 0,
+    });
+    
+    logger.debug('Character position updated', { characterId, position: movement });
+  } catch (error) {
+    logger.error('Failed to update character position', {
+      characterId,
+      movement,
+      error: error instanceof Error ? error.message : error,
+    });
+    throw error;
+  }
 }
 
 async function getCharacterZone(characterId: string): Promise<string | null> {
