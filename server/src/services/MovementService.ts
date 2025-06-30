@@ -7,14 +7,7 @@ import { Pool } from 'pg';
 import { logger } from '../utils/logger';
 import { ZoneService } from './ZoneService';
 import { CacheManager } from './CacheManager';
-// import { RealtimeService } from '../sockets/RealtimeService'; // TODO: Import when RealtimeService is available
-
-// Temporary interface for RealtimeService
-interface RealtimeService {
-  broadcastToZone(zoneId: string, event: string, data: any): void;
-  joinZoneRoom(characterId: string, zoneId: string): void;
-  leaveZoneRoom(characterId: string, zoneId: string): void;
-}
+import { RealtimeService } from '../services/RealtimeService';
 import {
   MoveResult,
   Direction,
@@ -210,13 +203,38 @@ export class MovementService {
         };
       }
 
-      // Get character level for exit validation
-      const characterLevel = await this.getCharacterLevel(characterId);
-      if (characterLevel === null) {
+      // Get character data for validation
+      const characterData = await this.getCharacterData(characterId);
+      if (!characterData) {
         return {
           canMove: false,
           errorCode: MovementErrorCode.CHARACTER_NOT_FOUND,
           errorMessage: 'Character not found.'
+        };
+      }
+
+      // Check character status - cannot move if in combat, busy, or dead
+      if (characterData.status === 'combat') {
+        return {
+          canMove: false,
+          errorCode: MovementErrorCode.CHARACTER_IN_COMBAT,
+          errorMessage: 'Cannot move while in combat.'
+        };
+      }
+
+      if (characterData.status === 'busy') {
+        return {
+          canMove: false,
+          errorCode: MovementErrorCode.CHARACTER_BUSY,
+          errorMessage: 'Cannot move while busy.'
+        };
+      }
+
+      if (characterData.status === 'dead') {
+        return {
+          canMove: false,
+          errorCode: MovementErrorCode.CHARACTER_DEAD,
+          errorMessage: 'Cannot move while dead.'
         };
       }
 
@@ -242,7 +260,7 @@ export class MovementService {
       }
 
       // Check level requirements
-      if (exit.requiredLevel > characterLevel) {
+      if (exit.requiredLevel > characterData.level) {
         return {
           canMove: false,
           errorCode: MovementErrorCode.LEVEL_TOO_LOW,
@@ -326,6 +344,26 @@ export class MovementService {
       );
 
       return result.rows.length > 0 ? result.rows[0].level : null;
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * Get character data for validation
+   */
+  async getCharacterData(characterId: string): Promise<{ level: number; status: string } | null> {
+    const client = await this.db.connect();
+    try {
+      const result = await client.query(
+        'SELECT level, status FROM characters WHERE id = $1 AND deleted_at IS NULL',
+        [characterId]
+      );
+
+      return result.rows.length > 0 ? {
+        level: result.rows[0].level,
+        status: result.rows[0].status
+      } : null;
     } finally {
       client.release();
     }
@@ -435,13 +473,23 @@ export class MovementService {
    */
   private async updateZoneRoomMembership(characterId: string, fromZoneId: string, toZoneId: string): Promise<void> {
     try {
-      // Leave old zone room
-      if (fromZoneId) {
-        this.realtimeService.leaveZoneRoom(characterId, fromZoneId);
+      // Broadcast zone exit if leaving a zone
+      if (fromZoneId && fromZoneId !== toZoneId) {
+        await this.realtimeService.broadcastToZone(fromZoneId, 'character_exit', {
+          characterId,
+          message: `A character has left the area.`,
+          timestamp: Date.now()
+        });
       }
 
-      // Join new zone room
-      this.realtimeService.joinZoneRoom(characterId, toZoneId);
+      // Broadcast zone entry to new zone
+      if (toZoneId && fromZoneId !== toZoneId) {
+        await this.realtimeService.broadcastToZone(toZoneId, 'character_enter', {
+          characterId,
+          message: `A character has entered the area.`,
+          timestamp: Date.now()
+        });
+      }
     } catch (error) {
       logger.error('Failed to update zone room membership', {
         characterId,

@@ -5,21 +5,22 @@
 
 import { Router } from 'express';
 import { MovementController } from '../controllers/MovementController';
-import { authenticateJWT } from '../middleware/auth';
-import { rateLimitRedis } from '../middleware/rateLimitRedis';
+import { AuthMiddleware } from '../middleware/auth';
+import { movementRateLimit, apiRateLimit } from '../middleware/rateLimitRedis';
 
 export function createMovementRoutes(movementController: MovementController): Router {
   const router = Router();
+  const authMiddleware = new AuthMiddleware();
 
   // Apply authentication to all movement routes
-  router.use(authenticateJWT);
+  router.use(authMiddleware.authenticate);
 
   /**
    * POST /api/game/move
    * Move character in a cardinal direction
    */
   router.post('/move',
-    rateLimitRedis('movement', 1, 2), // 2 moves per second max
+    movementRateLimit, // Built-in movement rate limiting
     MovementController.moveValidation,
     movementController.moveCharacter.bind(movementController)
   );
@@ -29,7 +30,7 @@ export function createMovementRoutes(movementController: MovementController): Ro
    * Get zone information including exits and characters
    */
   router.get('/zone/:zoneId',
-    rateLimitRedis('api', 10, 60), // 10 requests per minute
+    apiRateLimit, // Standard API rate limiting
     MovementController.zoneIdValidation,
     movementController.getZoneInfo.bind(movementController)
   );
@@ -39,7 +40,7 @@ export function createMovementRoutes(movementController: MovementController): Ro
    * Look in a specific direction to see what's there
    */
   router.get('/look/:direction',
-    rateLimitRedis('api', 20, 60), // 20 look commands per minute
+    apiRateLimit, // Standard API rate limiting
     MovementController.lookValidation,
     movementController.lookDirection.bind(movementController)
   );
@@ -49,7 +50,7 @@ export function createMovementRoutes(movementController: MovementController): Ro
    * Search zones with filters
    */
   router.get('/zones',
-    rateLimitRedis('api', 10, 60), // 10 requests per minute
+    apiRateLimit, // Standard API rate limiting
     movementController.searchZones.bind(movementController)
   );
 
@@ -58,7 +59,7 @@ export function createMovementRoutes(movementController: MovementController): Ro
    * Get character's movement history
    */
   router.get('/movement/history',
-    rateLimitRedis('api', 5, 60), // 5 requests per minute
+    apiRateLimit, // Standard API rate limiting
     movementController.getMovementHistory.bind(movementController)
   );
 
@@ -67,7 +68,7 @@ export function createMovementRoutes(movementController: MovementController): Ro
    * Get character's current location
    */
   router.get('/location',
-    rateLimitRedis('api', 30, 60), // 30 requests per minute
+    apiRateLimit, // Standard API rate limiting
     movementController.getCurrentLocation.bind(movementController)
   );
 
@@ -76,7 +77,7 @@ export function createMovementRoutes(movementController: MovementController): Ro
    * Teleport character to a specific zone (Admin/System endpoint)
    */
   router.post('/teleport',
-    rateLimitRedis('admin', 5, 60), // 5 teleports per minute
+    apiRateLimit, // Standard API rate limiting for now
     // TODO: Add admin authentication middleware
     movementController.teleportCharacter.bind(movementController)
   );

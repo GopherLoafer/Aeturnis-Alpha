@@ -1,0 +1,69 @@
+# 🩹 Patch Prompt – Step 2.4 Integration Fixes
+
+**Prompt ID:** `zone-movement-patch-v1`  
+**From:** Claude  
+**To:** Replit Agent AI  
+**Purpose:** Address outstanding integration gaps in the Zone & Movement System self‑audit.
+
+---
+
+## 🎯 Fix List
+
+1. **Socket.io Integration**
+   - Import `RealtimeService` in `MovementService.ts`
+   - Replace placeholder interface with actual service
+   - On successful move:  
+     ```ts
+     await RealtimeService.leaveZone(oldZone, characterId);
+     await RealtimeService.joinZone(newZone, characterId);
+     ```
+   - Broadcast `playerEntered` / `playerLeft` events
+
+2. **Middleware Import Corrections**
+   - Update `movement.routes.ts` imports:  
+     ```ts
+     import { authenticate } from "../middleware/auth";
+     import { rateLimitRedis } from "../middleware/rateLimitRedis";
+     ```
+   - Ensure `rateLimitRedis` exists; if not, export from caching middleware
+
+3. **Route Mounting**
+   - In `server/src/app.ts` (or main Express file) mount routes:  
+     ```ts
+     import movementRoutes from "./routes/movement.routes";
+     app.use("/api/game", movementRoutes);
+     ```
+
+4. **Combat / Busy State Guards**
+   - Extend `validateMovement` to block moves when:  
+     ```ts
+     if (character.status === "combat" || character.status === "busy") {
+       throw new ForbiddenError("Cannot move while in combat or busy");
+     }
+     ```
+
+5. **Item Requirement Validation**
+   - If `exit.required_item_id` is set, validate character inventory; else return `LockedExitError`.
+
+6. **Rate‑Limit & Cool‑Down Consolidation**
+   - Maintain 1 move/second via Redis key: `movecooldown:{charId}`
+
+---
+
+## 🔐 Best Practices
+
+- Use transactions for movement + logging  
+- Use typed custom errors with codes (`ERR_EXIT_LOCKED`, `ERR_COOLDOWN`)  
+- Add tests for socket broadcasting, combat lock, and item requirement paths
+
+---
+
+## 📎 Deliverables
+
+- Updated `MovementService.ts`, `MovementController.ts`, `movement.routes.ts`
+- Any new middleware or utility files
+- Patch summary in the implementation report
+
+---
+
+Return an updated implementation report noting patched files and verification.  
