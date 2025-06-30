@@ -42,7 +42,7 @@ export class AffinityService {
       level: 'info',
       format: winston.format.combine(
         winston.format.timestamp(),
-        winston.format.json()
+        winston.format.json();
       ),
       defaultMeta: { service: 'AffinityService' }
     });
@@ -51,13 +51,7 @@ export class AffinityService {
   /**
    * Award affinity experience to a character
    */
-  async awardAffinityExp(
-    characterId: string,
-    affinityName: string,
-    amount: bigint,
-    source: string = 'combat',
-    sessionId?: string
-  ): Promise<AffinityResult> {
+  async awardAffinityExp(req: Request, res: Response): Promise<void> {
     // Max experience guard
     if (amount > BigInt(AFFINITY_CONSTANTS.MAX_EXP_AWARD)) {
       throw new AffinityError(
@@ -73,7 +67,7 @@ export class AffinityService {
       {
         windowSize: AFFINITY_CONSTANTS.SLIDING_WINDOW_DURATION,
         maxRequests: AFFINITY_CONSTANTS.SLIDING_WINDOW_LIMIT
-      }
+      };
     );
 
     if (!slidingWindowResult.allowed) {
@@ -107,7 +101,7 @@ export class AffinityService {
       // Get affinity by name
       const affinityResult = await client.query(
         'SELECT * FROM affinities WHERE name = $1',
-        [affinityName]
+        [affinityName];
       );
 
       if (affinityResult.rows.length === 0) {
@@ -123,7 +117,7 @@ export class AffinityService {
       // Get or create character affinity
       let characterAffinityResult = await client.query(
         'SELECT * FROM character_affinities WHERE character_id = $1 AND affinity_id = $2',
-        [characterId, affinity.id]
+        [characterId, affinity.id];
       );
 
       let characterAffinity: CharacterAffinity;
@@ -131,8 +125,8 @@ export class AffinityService {
 
       if (characterAffinityResult.rows.length === 0) {
         // Create new character affinity record
-        const insertResult = await client.query(`
-          INSERT INTO character_affinities (character_id, affinity_id, experience, tier)
+        const insertResult = await client.query(`;
+          INSERT INTO character_affinities (character_id, affinity_id, experience, tier);
           VALUES ($1, $2, $3, 1)
           RETURNING *
         `, [characterId, affinity.id, amount]);
@@ -150,7 +144,7 @@ export class AffinityService {
           UPDATE character_affinities 
           SET experience = $1, last_updated = CURRENT_TIMESTAMP
           WHERE character_id = $2 AND affinity_id = $3
-          RETURNING *
+          RETURNING *;
         `, [newExperience.toString(), characterId, affinity.id]);
 
         characterAffinity = updateResult.rows[0];
@@ -220,7 +214,7 @@ export class AffinityService {
   /**
    * Get all character affinities with progression data
    */
-  async getCharacterAffinities(characterId: string): Promise<CharacterAffinity[]> {
+  async getCharacterAffinities(req: Request, res: Response): Promise<void> {
     const cacheKey = `character:affinities:${characterId}`;
     const cached = await this.cacheManager.get(cacheKey);
     
@@ -246,14 +240,14 @@ export class AffinityService {
       FROM character_affinities ca
       JOIN affinities a ON ca.affinity_id = a.id
       WHERE ca.character_id = $2
-      ORDER BY a.type, a.name
+      ORDER BY a.type, a.name;
     `, [AFFINITY_CONSTANTS.BONUS_PER_TIER, characterId]);
 
     const affinities = result.rows.map(row => ({
       ...row,
       experience: BigInt(row.experience),
-      next_tier_experience: BigInt(row.next_tier_experience),
-      experience_to_next_tier: BigInt(row.experience_to_next_tier)
+      next_tier_experience: BigInt(row.next_tier_experience),;
+      experience_to_next_tier: BigInt(row.experience_to_next_tier);
     }));
 
     // Cache for 5 minutes
@@ -272,7 +266,7 @@ export class AffinityService {
   /**
    * Get affinity bonus percentage for a specific affinity
    */
-  async getAffinityBonus(characterId: string, affinityName: string): Promise<number> {
+  async getAffinityBonus(req: Request, res: Response): Promise<void> {
     const cacheKey = `affinity:bonus:${characterId}:${affinityName}`;
     const cached = await this.cacheManager.get(cacheKey);
     
@@ -284,7 +278,7 @@ export class AffinityService {
       SELECT ca.tier
       FROM character_affinities ca
       JOIN affinities a ON ca.affinity_id = a.id
-      WHERE ca.character_id = $1 AND a.name = $2
+      WHERE ca.character_id = $1 AND a.name = $2;
     `, [characterId, affinityName]);
 
     let bonus = 0;
@@ -301,7 +295,7 @@ export class AffinityService {
   /**
    * Get a single affinity by name
    */
-  async getAffinityByName(affinityName: string): Promise<Affinity | null> {
+  async getAffinityByName(req: Request, res: Response): Promise<void> {
     const cacheKey = `affinity:${affinityName}`;
     const cached = await this.cacheManager.get(cacheKey);
     
@@ -311,7 +305,7 @@ export class AffinityService {
 
     const result = await this.db.query(
       'SELECT * FROM affinities WHERE name = $1',
-      [affinityName]
+      [affinityName];
     );
 
     if (result.rows.length === 0) {
@@ -329,7 +323,7 @@ export class AffinityService {
   /**
    * Get all available affinities
    */
-  async getAllAffinities(): Promise<Affinity[]> {
+  async getAllAffinities(req: Request, res: Response): Promise<void> {
     const cacheKey = 'affinities:all';
     const cached = await this.cacheManager.get(cacheKey);
     
@@ -339,7 +333,7 @@ export class AffinityService {
 
     const result = await this.db.query(`
       SELECT * FROM affinities 
-      ORDER BY type, name
+      ORDER BY type, name;
     `);
 
     const affinities = result.rows;
@@ -353,13 +347,7 @@ export class AffinityService {
   /**
    * Award experience for a combat action
    */
-  async awardCombatAffinityExp(
-    characterId: string,
-    actionName: string,
-    damage: number,
-    isCritical: boolean,
-    sessionId?: string
-  ): Promise<AffinityResult[]> {
+  async awardCombatAffinityExp(req: Request, res: Response): Promise<void> {
     const results: AffinityResult[] = [];
 
     // Determine affinity type from action
@@ -385,7 +373,7 @@ export class AffinityService {
           weaponAffinity,
           baseExp,
           'combat',
-          sessionId
+          sessionId;
         );
         results.push(result);
       } catch (error) {
@@ -413,7 +401,7 @@ export class AffinityService {
           magicAffinity,
           magicExp,
           'combat',
-          sessionId
+          sessionId;
         );
         results.push(result);
       } catch (error) {
@@ -467,14 +455,7 @@ export class AffinityService {
   /**
    * Broadcast tier up event
    */
-  private async broadcastTierUp(
-    characterId: string,
-    affinityName: string,
-    affinityType: 'weapon' | 'magic',
-    previousTier: number,
-    newTier: number,
-    result: AffinityResult
-  ): Promise<void> {
+  private async broadcastTierUp(req: Request, res: Response): Promise<void> {
     const event: AffinityLevelUpEvent = {
       character_id: characterId,
       affinity_name: affinityName,
@@ -485,8 +466,7 @@ export class AffinityService {
       bonus_percentage: result.bonus_percentage,
       total_experience: result.total_experience,
       experience_to_next_tier: result.experience_to_next_tier,
-      timestamp: new Date()
-      return;
+      timestamp: new Date()`
 };
 
     // Broadcast to character's socket rooms
@@ -503,8 +483,7 @@ export class AffinityService {
     experienceAwarded: bigint,
     result: AffinityResult,
     source: string
-  ): Promise<void> {
-    const event: AffinityExpGainEvent = {
+  ): Promise<void> { const event: AffinityExpGainEvent = {
       character_id: characterId,
       affinity_name: affinityName,
       experience_awarded: experienceAwarded,
@@ -512,8 +491,7 @@ export class AffinityService {
       current_tier: result.new_tier,
       bonus_percentage: result.bonus_percentage,
       source,
-      timestamp: new Date()
-      return;
+      timestamp: new Date() }
 };
 
     this.realtimeService.broadcastToUser(characterId, 'affinity:exp_gain', event);
@@ -522,11 +500,10 @@ export class AffinityService {
   /**
    * Invalidate affinity-related cache entries
    */
-  private async invalidateAffinityCache(characterId: string): Promise<void> {
+  private async invalidateAffinityCache(req: Request, res: Response): Promise<void> {
     const patterns = [
-      `character:affinities:${characterId  return;
-}`,
-      `affinity:bonus:${characterId}:*`
+      `character:affinities:${characterId}`,
+      `affinity:bonus:${characterId}:*`;
     ];
 
     for (const pattern of patterns) {

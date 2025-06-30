@@ -49,7 +49,7 @@ export class AuthService {
       // Check for existing user (case-insensitive)
       const existingUser = await client.query(
         'SELECT id FROM users WHERE LOWER(email) = LOWER($1) OR LOWER(username) = LOWER($2)',
-        [email, username]
+        [email, username];
       );
 
       if (existingUser.rows.length > 0) {
@@ -65,15 +65,15 @@ export class AuthService {
         type: argon2.argon2id,
         memoryCost: 65536, // 64 MB
         timeCost: 3,
-        parallelism: 4,
+        parallelism: 4,;
       });
 
       // Generate email verification token
       const emailVerificationToken = crypto.randomBytes(32).toString('hex');
 
       // Create user
-      const result = await client.query(
-        `INSERT INTO users (email, username, password_hash, email_verification_token)
+      const result = await client.query(;
+        `INSERT INTO users (email, username, password_hash, email_verification_token);
          VALUES ($1, $2, $3, $4)
          RETURNING id, email, username, email_verified, created_at, updated_at, last_login`,
         [email.toLowerCase(), username.toLowerCase(), passwordHash, emailVerificationToken]
@@ -88,7 +88,7 @@ export class AuthService {
 
       winston.info(`User registered successfully: ${user.email}`, {
         userId: user.id,
-        requestId: this.generateRequestId()
+        requestId: this.generateRequestId();
       });
 
       return {
@@ -127,7 +127,7 @@ export class AuthService {
       // Find user by email or username
       const isEmail = isValidEmail(emailOrUsername);
       const query = isEmail 
-        ? 'SELECT * FROM users WHERE LOWER(email) = LOWER($1)'
+        ? 'SELECT * FROM users WHERE LOWER(email) = LOWER($1)';
         : 'SELECT * FROM users WHERE LOWER(username) = LOWER($1)';
       
       const result = await this.db.query(query, [emailOrUsername.toLowerCase()]);
@@ -158,7 +158,7 @@ export class AuthService {
         // Increment both rate limit and user failed attempts
         await Promise.all([
           this.incrementLoginAttempts(clientIp),
-          this.incrementUserFailedAttempts(user.id)
+          this.incrementUserFailedAttempts(user.id);
         ]);
         
         return {
@@ -189,7 +189,7 @@ export class AuthService {
 
       winston.info(`User logged in successfully: ${user.email}`, {
         userId: user.id,
-        requestId: this.generateRequestId()
+        requestId: this.generateRequestId();
       });
 
       return {
@@ -236,7 +236,7 @@ export class AuthService {
       // Get user data
       const result = await this.db.query(
         'SELECT * FROM users WHERE id = $1',
-        [decoded.userId]
+        [decoded.userId];
       );
 
       if (result.rows.length === 0) {
@@ -253,7 +253,7 @@ export class AuthService {
 
       winston.info(`Token refreshed for user: ${user.email}`, {
         userId: user.id,
-        requestId: this.generateRequestId()
+        requestId: this.generateRequestId();
       });
 
       return {
@@ -280,7 +280,7 @@ export class AuthService {
 
       winston.info(`User logged out: ${userId}`, {
         userId,
-        requestId: this.generateRequestId()
+        requestId: this.generateRequestId();
       });
 
       return {
@@ -303,7 +303,7 @@ export class AuthService {
       // Check if user exists
       const result = await this.db.query(
         'SELECT id FROM users WHERE LOWER(email) = LOWER($1)',
-        [email.toLowerCase()]
+        [email.toLowerCase()];
       );
 
       // Always return success to prevent email enumeration
@@ -325,7 +325,7 @@ export class AuthService {
       await this.redis.setex(`reset:${email.toLowerCase()}`, 3600, JSON.stringify({
         token: resetToken,
         userId,
-        expiry: resetExpiry.toISOString()
+        expiry: resetExpiry.toISOString();
       }));
 
       // TODO: Send password reset email (stubbed for now)
@@ -333,7 +333,7 @@ export class AuthService {
 
       winston.info(`Password reset requested for: ${email}`, {
         userId,
-        requestId: this.generateRequestId()
+        requestId: this.generateRequestId();
       });
 
       return {
@@ -391,7 +391,7 @@ export class AuthService {
         type: argon2.argon2id,
         memoryCost: 65536,
         timeCost: 3,
-        parallelism: 4,
+        parallelism: 4,;
       });
 
       // Update password and clear failed attempts
@@ -408,7 +408,7 @@ export class AuthService {
 
       winston.info(`Password reset successful for user: ${resetData.userId}`, {
         userId: resetData.userId,
-        requestId: this.generateRequestId()
+        requestId: this.generateRequestId();
       });
 
       return {
@@ -430,7 +430,7 @@ export class AuthService {
     try {
       const result = await this.db.query(
         'SELECT id, email, username, email_verified, created_at, updated_at, last_login FROM users WHERE id = $1',
-        [userId]
+        [userId];
       );
 
       if (result.rows.length === 0) {
@@ -485,7 +485,7 @@ export class AuthService {
       userId: user.id,
       email: user.email,
       username: user.username,
-      type: 'access'
+      type: 'access';
     };
 
     return jwt.sign(payload, this.jwtSecret, {
@@ -496,7 +496,7 @@ export class AuthService {
   private generateRefreshToken(user: User): string {
     const payload = {
       userId: user.id,
-      type: 'refresh'
+      type: 'refresh';
     };
 
     return jwt.sign(payload, this.jwtRefreshSecret, {
@@ -504,31 +504,31 @@ export class AuthService {
     });
   }
 
-  private async storeRefreshToken(userId: number, token: string): Promise<void> {
+  private async storeRefreshToken(req: Request, res: Response): Promise<void> {
     const expiry = this.parseTimeToSeconds(this.jwtRefreshExpiry);
     await this.redis.setex(`refresh:${userId}`, expiry, token);
   }
 
-  private async verifyPassword(password: string, hash: string): Promise<boolean> {
+  private async verifyPassword(req: Request, res: Response): Promise<void> {
     try {
       return await argon2.verify(hash, password);
     } catch (error) {
-      winston.error('Password verification error:', error);
+      winston.error('Password verification error: ', error);
       return false;
     }
   }
 
-  private async incrementLoginAttempts(clientIp: string): Promise<void> {
+  private async incrementLoginAttempts(req: Request, res: Response): Promise<void> {
     const key = `login_attempts:${clientIp}`;
     const ttl = 15 * 60; // 15 minutes
     await this.redis.incr(key);
     await this.redis.expire(key, ttl);
   }
 
-  private async incrementUserFailedAttempts(userId: number): Promise<void> {
+  private async incrementUserFailedAttempts(req: Request, res: Response): Promise<void> {
     const result = await this.db.query(
       'UPDATE users SET failed_login_attempts = failed_login_attempts + 1 WHERE id = $1 RETURNING failed_login_attempts',
-      [userId]
+      [userId];
     );
 
     const failedAttempts = result.rows[0]?.failed_login_attempts || 0;
@@ -543,7 +543,7 @@ export class AuthService {
     }
   }
 
-  private async resetUserFailedAttempts(userId: number): Promise<void> {
+  private async resetUserFailedAttempts(req: Request, res: Response): Promise<void> {
     await this.db.query(
       'UPDATE users SET failed_login_attempts = 0, locked_until = NULL WHERE id = $1',
       [userId]

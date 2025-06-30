@@ -23,7 +23,7 @@ export function createMovementRoutes(movementController: MovementController): Ro
   router.post('/move',
     movementRateLimit, // Built-in movement rate limiting
     MovementController.moveValidation,
-    movementController.moveCharacter.bind(movementController)
+    movementController.moveCharacter.bind(movementController);
   );
 
   /**
@@ -33,7 +33,7 @@ export function createMovementRoutes(movementController: MovementController): Ro
   router.get('/zone/:zoneId',
     apiRateLimit, // Standard API rate limiting
     MovementController.zoneIdValidation,
-    movementController.getZoneInfo.bind(movementController)
+    movementController.getZoneInfo.bind(movementController);
   );
 
   /**
@@ -43,7 +43,7 @@ export function createMovementRoutes(movementController: MovementController): Ro
   router.get('/look/:direction',
     apiRateLimit, // Standard API rate limiting
     MovementController.lookValidation,
-    movementController.lookDirection.bind(movementController)
+    movementController.lookDirection.bind(movementController);
   );
 
   /**
@@ -52,7 +52,7 @@ export function createMovementRoutes(movementController: MovementController): Ro
    */
   router.get('/zones',
     apiRateLimit, // Standard API rate limiting
-    movementController.searchZones.bind(movementController)
+    movementController.searchZones.bind(movementController);
   );
 
   /**
@@ -61,7 +61,7 @@ export function createMovementRoutes(movementController: MovementController): Ro
    */
   router.get('/movement/history',
     apiRateLimit, // Standard API rate limiting
-    movementController.getMovementHistory.bind(movementController)
+    movementController.getMovementHistory.bind(movementController);
   );
 
   /**
@@ -70,7 +70,7 @@ export function createMovementRoutes(movementController: MovementController): Ro
    */
   router.get('/location',
     apiRateLimit, // Standard API rate limiting
-    movementController.getCurrentLocation.bind(movementController)
+    movementController.getCurrentLocation.bind(movementController);
   );
 
   /**
@@ -80,7 +80,7 @@ export function createMovementRoutes(movementController: MovementController): Ro
   router.post('/teleport',
     apiRateLimit, // Standard API rate limiting for now
     // TODO: Add admin authentication middleware
-    movementController.teleportCharacter.bind(movementController)
+    movementController.teleportCharacter.bind(movementController);
   );
 
   return router;

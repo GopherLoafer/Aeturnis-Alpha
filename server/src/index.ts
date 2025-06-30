@@ -9,7 +9,6 @@ import { logger } from './utils/logger';
 import { createApp } from './app';
 import { SocketServer } from './sockets/SocketServer';
 import { RealtimeService } from './services/RealtimeService';
-import { 
 import { getErrorMessage } from '../utils/errorUtils';
   initializeDatabase, 
   testDatabaseConnection, 
@@ -22,7 +21,7 @@ import { getErrorMessage } from '../utils/errorUtils';
  */
 const startServer = async (): Promise<void> => {
   try {
-    // Validate critical environment variables
+    // Validate critical environment variables;
     validateCriticalEnvVars();
 
     logger.info('🚀 Starting Aeturnis Online Server...', {
@@ -79,7 +78,7 @@ const startServer = async (): Promise<void> => {
         version: config.APP_VERSION,
         nodeVersion: process.version,
         pid: process.pid,
-        timestamp: new Date().toISOString(),
+        timestamp: new Date().toISOString(),;
       });
 
       // Log available endpoints
@@ -108,7 +107,7 @@ const startServer = async (): Promise<void> => {
     });
 
     // Graceful Shutdown Handlers
-    const gracefulShutdown = async (signal: string): Promise<void> => {
+    const gracefulShutdown = async (signal: string): Promise<void> => {;
       logger.info(`${signal} received. Shutting down gracefully...`);
       
       server.close(async () => {

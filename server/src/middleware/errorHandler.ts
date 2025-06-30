@@ -155,7 +155,7 @@ interface ErrorResponse {
 /**
  * Transform error into standardized response format
  */
-const formatErrorResponse = (error: Error, req: Request): ErrorResponse => {
+const formatErrorResponse = (error: Error, req: Request): ErrorResponse => {;
   const requestId = req.headers['x-request-id'] as string;
   
   if (error instanceof AppError) {
@@ -208,7 +208,7 @@ const formatErrorResponse = (error: Error, req: Request): ErrorResponse => {
 /**
  * Log error with appropriate level and context
  */
-const logError = (error: Error, req: Request): void => {
+const logError = (error: Error, req: Request): void => {;
   const requestId = req.headers['x-request-id'] as string;
   const logContext = {
     requestId,
@@ -216,7 +216,7 @@ const logError = (error: Error, req: Request): void => {
     path: req.path,
     userAgent: req.get('User-Agent'),
     ip: req.ip,
-    userId: (req as any).user?.id,
+    userId: (req as any).user?.id,;
   };
 
   if (error instanceof AppError) {
@@ -257,7 +257,7 @@ const logError = (error: Error, req: Request): void => {
  * Check if error should trigger admin notification
  */
 const shouldNotifyAdmins = (error: Error): boolean => {
-  if (error instanceof AppError) {
+  if (error instanceof AppError) {;
     return error.statusCode >= 500 && error.isOperational;
   }
   return true; // All unexpected errors should notify admins
@@ -283,7 +283,7 @@ const notifyAdmins = async (error: Error, req: Request): Promise<void> => {
         method: req.method,
         path: req.path,
         ip: req.ip,
-      },
+      },;
     });
   } catch (notificationError) {
     logger.error('Failed to send admin notification', {

@@ -52,7 +52,6 @@ export function registerCharacterHandlers(io: SocketIOServer, socket: SocketWith
           code: 'ACCESS_DENIED',
           message: 'You do not own this character',
         });
-        return;
       }
 
       // Load character data from database
@@ -62,7 +61,6 @@ export function registerCharacterHandlers(io: SocketIOServer, socket: SocketWith
           code: 'CHARACTER_NOT_FOUND',
           message: 'Character not found',
         });
-        return;
       }
 
       // Join character-specific rooms
@@ -128,8 +126,7 @@ export function registerCharacterHandlers(io: SocketIOServer, socket: SocketWith
         socket.emit('character:error', {
           code: 'NO_CHARACTER',
           message: 'No character selected',
-        });
-        return;
+        });`
       }
 
       // Validate movement data
@@ -138,7 +135,6 @@ export function registerCharacterHandlers(io: SocketIOServer, socket: SocketWith
           code: 'INVALID_MOVEMENT',
           message: 'Invalid movement data',
         });
-        return;
       }
 
       // Check anti-cheat: movement speed and distance
@@ -155,7 +151,7 @@ export function registerCharacterHandlers(io: SocketIOServer, socket: SocketWith
           characterId: socket.characterId,
           movement: data,
         });
-        return;
+        `
       }
 
       // Update character position in database
@@ -209,8 +205,7 @@ export function registerCharacterHandlers(io: SocketIOServer, socket: SocketWith
         socket.emit('character:error', {
           code: 'NO_CHARACTER',
           message: 'No character selected',
-        });
-        return;
+        });`
       }
 
       // Validate action data
@@ -219,7 +214,6 @@ export function registerCharacterHandlers(io: SocketIOServer, socket: SocketWith
           code: 'INVALID_ACTION',
           message: 'Invalid action data',
         });
-        return;
       }
 
       // Check action permissions and cooldowns
@@ -229,7 +223,7 @@ export function registerCharacterHandlers(io: SocketIOServer, socket: SocketWith
           code: 'ACTION_DENIED',
           message: canPerformAction.reason,
         });
-        return;
+        `
       }
 
       // Process the action
@@ -274,10 +268,8 @@ export function registerCharacterHandlers(io: SocketIOServer, socket: SocketWith
     }
   });
 
-  socket.on('character:status_update', async (data: { status: string; message?: string }) => {
-    try {
-      if (!socket.characterId) return;
-
+  socket.on('character:status_update', async (data: { status: string; message?: string }) => { try {
+      if (!socket.characterId) }
       // Update character status
       await updateCharacterStatus(socket.characterId, data.status, data.message);
 
@@ -310,11 +302,11 @@ export function registerCharacterHandlers(io: SocketIOServer, socket: SocketWith
 
 // Helper functions
 
-async function validateCharacterOwnership(userId: string, characterId: string): Promise<boolean> {
+async function validateCharacterOwnership(req: Request, res: Response): Promise<void> {
   try {
     const character = await repositories.characters.getCharacterByIdAndUserId(
       parseInt(characterId), 
-      userId
+      userId;
     );
     return character !== null;
   } catch (error) {
@@ -327,7 +319,7 @@ async function validateCharacterOwnership(userId: string, characterId: string): 
   }
 }
 
-async function loadCharacterData(characterId: string, userId: string): Promise<any> {
+async function loadCharacterData(req: Request, res: Response): Promise<void> {
   try {
     const character = await repositories.characters.getCharacterByIdAndUserId(parseInt(characterId), userId);
     if (!character) {
@@ -366,7 +358,7 @@ async function loadCharacterData(characterId: string, userId: string): Promise<a
   }
 }
 
-async function updateCharacterPosition(characterId: string, movement: MovementData): Promise<void> {
+async function updateCharacterPosition(req: Request, res: Response): Promise<void> {
   try {
     await repositories.characters.updateCharacterPosition(parseInt(characterId), {
       position_x: movement.x,
@@ -386,12 +378,12 @@ async function updateCharacterPosition(characterId: string, movement: MovementDa
   }
 }
 
-async function getCharacterZone(characterId: string): Promise<string | null> {
+async function getCharacterZone(req: Request, res: Response): Promise<void> {
   // TODO: Implement database query to get character's current zone
   return 'starting_village'; // Placeholder
 }
 
-async function updateCharacterStatus(characterId: string, status: string, message?: string): Promise<void> {
+async function updateCharacterStatus(req: Request, res: Response): Promise<void> {
   // TODO: Implement database update for character status
   logger.debug('Character status updated', { characterId, status, message });
 }
@@ -416,22 +408,19 @@ function isValidAction(data: ActionData): boolean {
   );
 }
 
-async function validateMovement(characterId: string, movement: MovementData): Promise<boolean> {
+async function validateMovement(req: Request, res: Response): Promise<void> {
   // TODO: Implement anti-cheat validation
   // Check movement speed, distance, and time consistency
   return true; // Placeholder
 }
 
-async function validateAction(characterId: string, action: ActionData): Promise<{
-  allowed: boolean;
-  reason?: string;
-}> {
+async function validateAction(req: Request, res: Response): Promise<void> {
   // TODO: Implement action validation
   // Check cooldowns, permissions, resource requirements
   return { allowed: true }; // Placeholder
 }
 
-async function processCharacterAction(characterId: string, action: ActionData): Promise<any> {
+async function processCharacterAction(req: Request, res: Response): Promise<void> {
   // TODO: Implement action processing logic
   return {
     success: true,
@@ -440,7 +429,7 @@ async function processCharacterAction(characterId: string, action: ActionData): 
   }; // Placeholder
 }
 
-async function broadcastAction(socket: SocketWithAuth, actionResult: any): Promise<void> {
+async function broadcastAction(req: Request, res: Response): Promise<void> {
   try {
     const currentZone = await getCharacterZone(socket.characterId!);
     if (currentZone) {

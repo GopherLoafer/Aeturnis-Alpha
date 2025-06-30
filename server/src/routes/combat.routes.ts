@@ -23,7 +23,7 @@ export function createCombatRoutes(combatController: CombatController): Router {
   router.post('/start',
     combatRateLimit, // Combat-specific rate limiting
     CombatController.startCombatValidation,
-    combatController.startCombat.bind(combatController)
+    combatController.startCombat.bind(combatController);
   );
 
   /**
@@ -33,7 +33,7 @@ export function createCombatRoutes(combatController: CombatController): Router {
   router.post('/:sessionId/action',
     combatRateLimit, // Combat actions are rate limited
     CombatController.combatActionValidation,
-    combatController.performAction.bind(combatController)
+    combatController.performAction.bind(combatController);
   );
 
   /**
@@ -43,7 +43,7 @@ export function createCombatRoutes(combatController: CombatController): Router {
   router.get('/:sessionId',
     apiRateLimit, // Standard API rate limiting
     CombatController.sessionIdValidation,
-    combatController.getCombatSession.bind(combatController)
+    combatController.getCombatSession.bind(combatController);
   );
 
   /**
@@ -53,7 +53,7 @@ export function createCombatRoutes(combatController: CombatController): Router {
   router.get('/:sessionId/statistics',
     apiRateLimit, // Standard API rate limiting
     CombatController.sessionIdValidation,
-    combatController.getCombatStatistics.bind(combatController)
+    combatController.getCombatStatistics.bind(combatController);
   );
 
   /**
@@ -63,7 +63,7 @@ export function createCombatRoutes(combatController: CombatController): Router {
   router.post('/:sessionId/flee',
     combatRateLimit, // Flee attempts are rate limited
     CombatController.sessionIdValidation,
-    combatController.fleeCombat.bind(combatController)
+    combatController.fleeCombat.bind(combatController);
   );
 
   /**
@@ -72,7 +72,7 @@ export function createCombatRoutes(combatController: CombatController): Router {
    */
   router.get('/active',
     apiRateLimit, // Standard API rate limiting
-    combatController.getActiveCombat.bind(combatController)
+    combatController.getActiveCombat.bind(combatController);
   );
 
   /**
@@ -82,7 +82,7 @@ export function createCombatRoutes(combatController: CombatController): Router {
   router.post('/:sessionId/end',
     apiRateLimit, // Standard API rate limiting
     CombatController.sessionIdValidation,
-    combatController.endCombat.bind(combatController)
+    combatController.endCombat.bind(combatController);
   );
 
   return router;

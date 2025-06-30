@@ -5,7 +5,6 @@
 
 import { Pool, PoolClient } from 'pg';
 import { logger } from '../../utils/logger';
-import { 
 import { getErrorMessage } from '../utils/errorUtils';
   Character, 
   Race, 
@@ -36,12 +35,12 @@ export class CharacterRepository {
   /**
    * Get all available races
    */
-  async getAllRaces(): Promise<Race[]> {
+  async getAllRaces(req: Request, res: Response): Promise<void> {
     try {
       const client = await this.db.connect();
       try {
         const result = await client.query(
-          'SELECT * FROM races ORDER BY name ASC'
+          'SELECT * FROM races ORDER BY name ASC';
         );
         
         return result.rows;
@@ -59,13 +58,13 @@ export class CharacterRepository {
   /**
    * Get race by ID
    */
-  async getRaceById(raceId: string): Promise<Race | null> {
+  async getRaceById(req: Request, res: Response): Promise<void> {
     try {
       const client = await this.db.connect();
       try {
         const result = await client.query(
           'SELECT * FROM races WHERE id = $1',
-          [raceId]
+          [raceId];
         );
         
         return result.rows[0] || null;
@@ -84,7 +83,7 @@ export class CharacterRepository {
   /**
    * Create a new character with race bonuses applied
    */
-  async create(userId: string, data: CreateCharacterData): Promise<Character> {
+  async create(req: Request, res: Response): Promise<void> {
     try {
       const client = await this.db.connect();
       
@@ -94,7 +93,7 @@ export class CharacterRepository {
         // Get race data to apply bonuses
         const raceResult = await client.query(
           'SELECT * FROM races WHERE id = $1',
-          [data.race_id]
+          [data.race_id];
         );
         
         if (raceResult.rows.length === 0) {
@@ -109,7 +108,7 @@ export class CharacterRepository {
           vitality: CHARACTER_CONSTANTS.DEFAULT_STATS.vitality + race.vitality_modifier,
           dexterity: CHARACTER_CONSTANTS.DEFAULT_STATS.dexterity + race.dexterity_modifier,
           intelligence: CHARACTER_CONSTANTS.DEFAULT_STATS.intelligence + race.intelligence_modifier,
-          wisdom: CHARACTER_CONSTANTS.DEFAULT_STATS.wisdom + race.wisdom_modifier,
+          wisdom: CHARACTER_CONSTANTS.DEFAULT_STATS.wisdom + race.wisdom_modifier,;
         };
         
         // Calculate starting resources based on vitality and intelligence
@@ -129,8 +128,8 @@ export class CharacterRepository {
             startingStats.strength, startingStats.vitality, startingStats.dexterity,
             startingStats.intelligence, startingStats.wisdom,
             startingHealth, startingHealth, startingMana, startingMana,
-            race.starting_zone, race.starting_zone, race.starting_gold,
-            JSON.stringify(data.appearance || {}), JSON.stringify(data.settings || {})
+            race.starting_zone, race.starting_zone, race.starting_gold,;
+            JSON.stringify(data.appearance || {}), JSON.stringify(data.settings || {});
           ]
         );
         
@@ -163,13 +162,13 @@ export class CharacterRepository {
   /**
    * Get character by ID
    */
-  async findById(id: string): Promise<Character | null> {
+  async findById(req: Request, res: Response): Promise<void> {
     try {
       const client = await this.db.connect();
       try {
         const result = await client.query(
           'SELECT * FROM characters WHERE id = $1 AND deleted_at IS NULL',
-          [id]
+          [id];
         );
         
         return result.rows[0] || null;
@@ -188,13 +187,13 @@ export class CharacterRepository {
   /**
    * Get all characters for a user
    */
-  async findByUserId(userId: string): Promise<Character[]> {
+  async findByUserId(req: Request, res: Response): Promise<void> {
     try {
       const client = await this.db.connect();
       try {
         const result = await client.query(
           'SELECT * FROM characters WHERE user_id = $1 AND deleted_at IS NULL ORDER BY last_active DESC',
-          [userId]
+          [userId];
         );
         
         return result.rows;
@@ -213,13 +212,13 @@ export class CharacterRepository {
   /**
    * Get character with race stats calculated (using view)
    */
-  async getCharacterStats(id: string): Promise<CharacterStats | null> {
+  async getCharacterStats(req: Request, res: Response): Promise<void> {
     try {
       const client = await this.db.connect();
       try {
         const result = await client.query(
           'SELECT * FROM character_stats WHERE id = $1',
-          [id]
+          [id];
         );
         
         return result.rows[0] || null;
@@ -238,7 +237,7 @@ export class CharacterRepository {
   /**
    * Update character stats
    */
-  async updateStats(id: string, partialStats: UpdateCharacterStatsInput): Promise<Character | null> {
+  async updateStats(req: Request, res: Response): Promise<void> {
     try {
       const client = await this.db.connect();
       try {
@@ -262,7 +261,7 @@ export class CharacterRepository {
 
         const result = await client.query(
           `UPDATE characters SET ${setClauses.join(', ')} WHERE id = $${paramIndex} AND deleted_at IS NULL RETURNING *`,
-          values
+          values;
         );
         
         return result.rows[0] || null;
@@ -282,7 +281,7 @@ export class CharacterRepository {
   /**
    * Update character location
    */
-  async updateLocation(id: string, zone: string, x: number, y: number): Promise<Character | null> {
+  async updateLocation(req: Request, res: Response): Promise<void> {
     try {
       const client = await this.db.connect();
       try {
@@ -291,7 +290,7 @@ export class CharacterRepository {
            current_zone = $1, position_x = $2, position_y = $3, last_active = CURRENT_TIMESTAMP 
            WHERE id = $4 AND deleted_at IS NULL 
            RETURNING *`,
-          [zone, x, y, id]
+          [zone, x, y, id];
         );
         
         return result.rows[0] || null;
@@ -313,7 +312,7 @@ export class CharacterRepository {
   /**
    * Update character resources (health, mana)
    */
-  async updateResources(id: string, health?: number, mana?: number): Promise<Character | null> {
+  async updateResources(req: Request, res: Response): Promise<void> {
     try {
       const client = await this.db.connect();
       try {
@@ -339,7 +338,7 @@ export class CharacterRepository {
 
         const result = await client.query(
           `UPDATE characters SET ${setClauses.join(', ')} WHERE id = $${paramIndex} AND deleted_at IS NULL RETURNING *`,
-          values
+          values;
         );
         
         return result.rows[0] || null;
@@ -360,13 +359,13 @@ export class CharacterRepository {
   /**
    * Soft delete a character
    */
-  async softDelete(id: string): Promise<boolean> {
+  async softDelete(req: Request, res: Response): Promise<void> {
     try {
       const client = await this.db.connect();
       try {
         const result = await client.query(
           `UPDATE characters SET deleted_at = CURRENT_TIMESTAMP WHERE id = $1 AND deleted_at IS NULL`,
-          [id]
+          [id];
         );
         
         return result.rowCount ?? 0 ?? 0 > 0;
@@ -385,13 +384,13 @@ export class CharacterRepository {
   /**
    * Check if character name is available
    */
-  async isNameAvailable(name: string): Promise<boolean> {
+  async isNameAvailable(req: Request, res: Response): Promise<void> {
     try {
       const client = await this.db.connect();
       try {
         const result = await client.query(
           'SELECT COUNT(*) FROM characters WHERE LOWER(name) = LOWER($1) AND deleted_at IS NULL',
-          [name]
+          [name];
         );
         
         return parseInt(result.rows[0].count) === 0;
@@ -410,13 +409,13 @@ export class CharacterRepository {
   /**
    * Get characters in a specific zone
    */
-  async getCharactersInZone(zoneId: string): Promise<CharacterStats[]> {
+  async getCharactersInZone(req: Request, res: Response): Promise<void> {
     try {
       const client = await this.db.connect();
       try {
         const result = await client.query(
           `SELECT * FROM character_stats WHERE current_zone = $1 AND status IN ('normal', 'combat') ORDER BY last_active DESC`,
-          [zoneId]
+          [zoneId];
         );
         
         return result.rows;
@@ -435,13 +434,13 @@ export class CharacterRepository {
   /**
    * Update character status
    */
-  async updateStatus(id: string, status: string): Promise<Character | null> {
+  async updateStatus(req: Request, res: Response): Promise<void> {
     try {
       const client = await this.db.connect();
       try {
         const result = await client.query(
           `UPDATE characters SET status = $1, last_active = CURRENT_TIMESTAMP WHERE id = $2 AND deleted_at IS NULL RETURNING *`,
-          [status, id]
+          [status, id];
         );
         
         return result.rows[0] || null;

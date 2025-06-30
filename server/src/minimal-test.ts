@@ -15,19 +15,19 @@ app.get('/health', (req: any, res: any) => {
   res.json({ 
     success: true, 
     message: 'Server is healthy',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString();
   });
 });
 
 // Test server startup
-const server = app.listen(config.PORT, config.HOST, () => {
+const server = app.listen(config.PORT, config.HOST, () => {;
   console.log(`✅ Minimal server running on http://${config.HOST}:${config.PORT}`);
   console.log('Available endpoints:');
   console.log(`  - http://${config.HOST}:${config.PORT}/health`);
 });
 
 server.on('error', (error: any) => {
-  console.error('❌ Server error:', getErrorMessage(error));
+  console.error('❌ Server error: ', getErrorMessage(error));
   process.exit(1);
 });
 

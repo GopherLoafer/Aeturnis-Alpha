@@ -119,7 +119,7 @@ export const createApp = (): express.Application => {
         ip: req.ip,
         userAgent: req.get('User-Agent'),
         path: req.path,
-        method: req.method,
+        method: req.method,;
       });
       res.status(429).json({
         success: false,
@@ -151,7 +151,7 @@ export const createApp = (): express.Application => {
         ip: req.ip,
         userAgent: req.get('User-Agent'),
         path: req.path,
-        method: req.method,
+        method: req.method,;
       });
       res.status(429).json({
         success: false,
@@ -183,7 +183,7 @@ export const createApp = (): express.Application => {
         ip: req.ip,
         userAgent: req.get('User-Agent'),
         path: req.path,
-        method: req.method,
+        method: req.method,;
       });
       res.status(429).json({
         success: false,
@@ -350,7 +350,7 @@ export const createApp = (): express.Application => {
           { apiKeyAuth: [] },
         ],
       },
-      apis: ['./routes/*.ts', './middleware/*.ts'], // Include all route files
+      apis: ['./routes/*.ts', './middleware/*.ts'], // Include all route files;
     };
 
     const swaggerSpec = swaggerJsdoc(swaggerOptions);

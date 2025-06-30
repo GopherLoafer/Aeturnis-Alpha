@@ -30,10 +30,10 @@ describe('AuthService', () => {
     mockDbClient = {
       connect: jest.fn().mockResolvedValue({
         query: jest.fn(),
-        release: jest.fn()
+        release: jest.fn();
       }),
       query: jest.fn(),
-      release: jest.fn()
+      release: jest.fn();
     };
 
     mockDb = {
@@ -46,7 +46,7 @@ describe('AuthService', () => {
       set: jest.fn(),
       del: jest.fn(),
       setex: jest.fn(),
-      keys: jest.fn()
+      keys: jest.fn();
     };
 
     // Mock Pool and Redis constructors
@@ -141,11 +141,11 @@ describe('AuthService', () => {
 
   describe('User Registration', () => {
     test('should successfully register new user', async () => {
-      const mockClient = {
-        query: jest.fn()
+      const mockClient = {;
+        query: jest.fn();
           .mockResolvedValueOnce({ rows: [] }) // No existing user
           .mockResolvedValueOnce({ rows: [{ id: 'new-user-id', email: 'test@example.com' }] }), // Insert result
-        release: jest.fn()
+        release: jest.fn();
       };
 
       mockDbClient.connect.mockResolvedValue(mockClient);
@@ -158,10 +158,10 @@ describe('AuthService', () => {
     });
 
     test('should fail registration for existing user', async () => {
-      const mockClient = {
-        query: jest.fn()
+      const mockClient = {;
+        query: jest.fn();
           .mockResolvedValueOnce({ rows: [{ id: 'existing-user' }] }), // Existing user found
-        release: jest.fn()
+        release: jest.fn();
       };
 
       mockDbClient.connect.mockResolvedValue(mockClient);
@@ -179,14 +179,14 @@ describe('AuthService', () => {
         id: 'user-id',
         email: 'test@example.com',
         username: 'testuser',
-        password_hash: '$argon2id$v=19$m=65536,t=3,p=4$salt$hash' // Mock hash
+        password_hash: '$argon2id$v=19$m=65536,t=3,p=4$salt$hash' // Mock hash;
       };
 
-      const mockClient = {
-        query: jest.fn()
+      const mockClient = {;
+        query: jest.fn();
           .mockResolvedValueOnce({ rows: [mockUser] }) // Find user
           .mockResolvedValueOnce({ rows: [] }), // Update last login
-        release: jest.fn()
+        release: jest.fn();
       };
 
       mockDbClient.connect.mockResolvedValue(mockClient);
@@ -205,10 +205,10 @@ describe('AuthService', () => {
     });
 
     test('should fail login with invalid credentials', async () => {
-      const mockClient = {
-        query: jest.fn()
+      const mockClient = {;
+        query: jest.fn();
           .mockResolvedValueOnce({ rows: [] }), // User not found
-        release: jest.fn()
+        release: jest.fn();
       };
 
       mockDbClient.connect.mockResolvedValue(mockClient);
@@ -261,10 +261,10 @@ describe('AuthService', () => {
 
   describe('Password Reset', () => {
     test('should generate reset token for valid email', async () => {
-      const mockClient = {
-        query: jest.fn()
+      const mockClient = {;
+        query: jest.fn();
           .mockResolvedValueOnce({ rows: [{ id: 'user-id', email: 'test@example.com' }] }),
-        release: jest.fn()
+        release: jest.fn();
       };
 
       mockDbClient.connect.mockResolvedValue(mockClient);
@@ -284,10 +284,10 @@ describe('AuthService', () => {
       mockRedis.get.mockResolvedValue(email); // Token maps to email
       mockRedis.del.mockResolvedValue(1);
 
-      const mockClient = {
-        query: jest.fn()
+      const mockClient = {;
+        query: jest.fn();
           .mockResolvedValueOnce({ rows: [{ id: 'user-id' }] }),
-        release: jest.fn()
+        release: jest.fn();
       };
 
       mockDbClient.connect.mockResolvedValue(mockClient);
@@ -319,7 +319,7 @@ describe('AuthService', () => {
       const expiredToken = jwt.sign(
         { userId: 1, type: 'refresh' },
         process.env.JWT_REFRESH_SECRET || 'test-refresh-secret',
-        { expiresIn: '-1h' }
+        { expiresIn: '-1h' };
       );
 
       const result = await authService.refreshToken(expiredToken);
@@ -331,7 +331,7 @@ describe('AuthService', () => {
       const wrongTypeToken = jwt.sign(
         { userId: 1, type: 'access' },
         process.env.JWT_REFRESH_SECRET || 'test-refresh-secret',
-        { expiresIn: '7d' }
+        { expiresIn: '7d' };
       );
 
       const result = await authService.refreshToken(wrongTypeToken);
@@ -343,7 +343,7 @@ describe('AuthService', () => {
       const validToken = jwt.sign(
         { userId: 999, type: 'refresh' },
         process.env.JWT_REFRESH_SECRET || 'test-refresh-secret',
-        { expiresIn: '7d' }
+        { expiresIn: '7d' };
       );
 
       mockRedis.get.mockResolvedValue(validToken);
@@ -372,7 +372,7 @@ describe('AuthService', () => {
     it('should prevent login for locked account', async () => {
       const lockedUser = {
         ...mockUser,
-        locked_until: new Date(Date.now() + 10 * 60 * 1000) // 10 minutes in future
+        locked_until: new Date(Date.now() + 10 * 60 * 1000) // 10 minutes in future;
       };
 
       mockDb.query.mockResolvedValueOnce({ rows: [lockedUser] });
@@ -388,7 +388,7 @@ describe('AuthService', () => {
       const expiredResetData = {
         token: 'expired-token',
         userId: 1,
-        expiry: new Date(Date.now() - 60 * 60 * 1000).toISOString() // 1 hour ago
+        expiry: new Date(Date.now() - 60 * 60 * 1000).toISOString() // 1 hour ago;
       };
 
       mockRedis.keys.mockResolvedValue(['reset:test@example.com']);
@@ -405,7 +405,7 @@ describe('AuthService', () => {
       mockRedis.get.mockResolvedValue(JSON.stringify({
         token: 'different-token',
         userId: 1,
-        expiry: new Date(Date.now() + 60 * 60 * 1000).toISOString()
+        expiry: new Date(Date.now() + 60 * 60 * 1000).toISOString();
       }));
 
       const result = await authService.resetPassword('invalid-token', 'newpassword123');
@@ -425,7 +425,7 @@ describe('AuthService', () => {
       const wrongSecretToken = jwt.sign(
         { userId: 1, type: 'access' },
         'wrong-secret',
-        { expiresIn: '15m' }
+        { expiresIn: '15m' };
       );
 
       const result = await authService.verifyAccessToken(wrongSecretToken);
@@ -449,7 +449,7 @@ describe('AuthService', () => {
       const expiredToken = jwt.sign(
         { userId: 1, type: 'refresh' },
         'refresh-secret',
-        { expiresIn: '-1h' } // Expired 1 hour ago
+        { expiresIn: '-1h' } // Expired 1 hour ago;
       );
 
       const result = await authService.refreshToken(expiredToken);
@@ -469,7 +469,7 @@ describe('AuthService', () => {
       const validToken = jwt.sign(
         { userId: 1, type: 'refresh' },
         'refresh-secret',
-        { expiresIn: '7d' }
+        { expiresIn: '7d' };
       );
 
       mockRedis.get.mockResolvedValue(null); // Token not in Redis
@@ -486,7 +486,7 @@ describe('AuthService', () => {
         email: 'test@test.com',
         password_hash: 'hash',
         failed_login_attempts: 4,
-        locked_until: null
+        locked_until: null;
       };
 
       mockDb.query.mockResolvedValueOnce({ rows: [mockUser] });
@@ -518,7 +518,7 @@ describe('AuthService', () => {
         id: 1,
         email: 'test@test.com',
         password_hash: 'hash',
-        locked_until: lockedUntil
+        locked_until: lockedUntil;
       };
 
       mockDb.query.mockResolvedValue({ rows: [mockUser] });
@@ -542,7 +542,7 @@ describe('AuthService', () => {
       const expiredResetData = {
         token: 'reset-token-123',
         userId: 1,
-        expiry: new Date(Date.now() - 3600 * 1000).toISOString() // Expired 1 hour ago
+        expiry: new Date(Date.now() - 3600 * 1000).toISOString() // Expired 1 hour ago;
       };
 
       mockRedis.keys.mockResolvedValue(['reset:test@test.com']);
@@ -560,7 +560,7 @@ describe('AuthService', () => {
       mockRedis.get.mockResolvedValue(JSON.stringify({
         token: 'different-token',
         userId: 1,
-        expiry: new Date(Date.now() + 3600 * 1000).toISOString()
+        expiry: new Date(Date.now() + 3600 * 1000).toISOString();
       }));
 
       const result = await authService.resetPassword('wrong-token', 'newpassword');
@@ -573,7 +573,7 @@ describe('AuthService', () => {
       const validToken = jwt.sign(
         { userId: 1, email: 'test@test.com', type: 'access' },
         'secret-key',
-        { expiresIn: '15m' }
+        { expiresIn: '15m' };
       );
 
       const result = await authService.verifyAccessToken(validToken);
@@ -593,7 +593,7 @@ describe('AuthService', () => {
     it('should reject tokens with wrong type', async () => {
       const refreshToken = jwt.sign(
         { userId: 1, type: 'refresh' },
-        'secret-key'
+        'secret-key';
       );
 
       const result = await authService.verifyAccessToken(refreshToken);

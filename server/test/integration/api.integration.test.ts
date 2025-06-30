@@ -17,8 +17,8 @@ describe('API Integration Tests', () => {
 
   describe('Health Endpoints', () => {
     test('GET /health should return 200', async () => {
-      const response = await request(app)
-        .get('/health')
+      const response = await request(app);
+        .get('/health');
         .expect(200);
 
       expect(response.body).toHaveProperty('status');
@@ -26,8 +26,8 @@ describe('API Integration Tests', () => {
     });
 
     test('GET /api/unknown should return standardized error', async () => {
-      const response = await request(app)
-        .get('/api/unknown')
+      const response = await request(app);
+        .get('/api/unknown');
         .expect(404);
 
       expect(response.body).toHaveProperty('success', false);

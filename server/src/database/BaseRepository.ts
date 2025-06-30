@@ -58,31 +58,23 @@ export abstract class BaseRepository<T = any, CreateT = Partial<T>, UpdateT = Pa
   protected abstract sanitizeOutput(data: any): T;
 
   // Find single record by ID
-  async findById(id: any, options: QueryOptions = {}): Promise<T | null> {
+  async findById(req: Request, res: Response): Promise<void> {
     const result = await this.queries.findOne<T>(
       this.tableName,
       { [this.primaryKey]: id },
-      options
+      options;
     );
     return result ? this.sanitizeOutput(result) : null;
   }
 
   // Find single record by criteria
-  async findOne(
-    where: Record<string, any>,
-    options: QueryOptions = {}
-  ): Promise<T | null> {
+  async findOne(req: Request, res: Response): Promise<void> {
     const result = await this.queries.findOne<T>(this.tableName, where, options);
     return result ? this.sanitizeOutput(result) : null;
   }
 
   // Find multiple records with advanced filtering
-  async findMany(
-    filters: FilterOptions = {},
-    sort?: SortOptions,
-    pagination?: PaginationOptions,
-    options: QueryOptions = {}
-  ): Promise<T[]> {
+  async findMany(req: Request, res: Response): Promise<void> {
     const { where = {}, whereIn = {}, whereLike = {}, whereNull = [], whereNotNull = [] } = filters;
     
     let query = `SELECT * FROM ${this.tableName}`;
@@ -163,7 +155,7 @@ export abstract class BaseRepository<T = any, CreateT = Partial<T>, UpdateT = Pa
       filters,
       sort,
       { limit, offset },
-      options
+      options;
     );
 
     const totalPages = Math.ceil(total / limit);
@@ -180,10 +172,7 @@ export abstract class BaseRepository<T = any, CreateT = Partial<T>, UpdateT = Pa
   }
 
   // Get count of records
-  async getCount(
-    filters: FilterOptions = {},
-    options: QueryOptions = {}
-  ): Promise<number> {
+  async getCount(req: Request, res: Response): Promise<void> {
     const { where = {}, whereIn = {}, whereLike = {}, whereNull = [], whereNotNull = [] } = filters;
     
     let query = `SELECT COUNT(*) as count FROM ${this.tableName}`;
@@ -227,11 +216,7 @@ export abstract class BaseRepository<T = any, CreateT = Partial<T>, UpdateT = Pa
   }
 
   // Create new record
-  async create(
-    data: CreateT,
-    auditInfo?: AuditInfo,
-    options: QueryOptions = {}
-  ): Promise<T> {
+  async create(req: Request, res: Response): Promise<void> {
     await this.validateCreate(data);
 
     return this.queries.transaction(async (client) => {
@@ -240,7 +225,7 @@ export abstract class BaseRepository<T = any, CreateT = Partial<T>, UpdateT = Pa
         this.tableName,
         data as Record<string, any>,
         '*',
-        options
+        options;
       );
 
       // Log audit trail if enabled
@@ -260,18 +245,13 @@ export abstract class BaseRepository<T = any, CreateT = Partial<T>, UpdateT = Pa
   }
 
   // Update record
-  async update(
-    id: any,
-    data: UpdateT,
-    auditInfo?: AuditInfo,
-    options: QueryOptions = {}
-  ): Promise<T | null> {
+  async update(req: Request, res: Response): Promise<void> {
     await this.validateUpdate(data);
 
     return this.queries.transaction(async (client) => {
       // Get original record for audit
-      const original = this.auditEnabled && auditInfo 
-        ? await this.findById(id, options)
+      const original = this.auditEnabled && auditInfo ;
+        ? await this.findById(id, options);
         : null;
 
       // Update the record
@@ -280,7 +260,7 @@ export abstract class BaseRepository<T = any, CreateT = Partial<T>, UpdateT = Pa
         data as Record<string, any>,
         { [this.primaryKey]: id },
         '*',
-        options
+        options;
       );
 
       if (!result) return null;
@@ -303,38 +283,30 @@ export abstract class BaseRepository<T = any, CreateT = Partial<T>, UpdateT = Pa
   }
 
   // Soft delete (sets deleted_at timestamp)
-  async softDelete(
-    id: any,
-    auditInfo?: AuditInfo,
-    options: QueryOptions = {}
-  ): Promise<boolean> {
+  async softDelete(req: Request, res: Response): Promise<void> {
     const deletedAt = new Date().toISOString();
     const result = await this.update(
       id,
       { deleted_at: deletedAt } as UpdateT,
       auditInfo ? { ...auditInfo, action: 'soft_delete' } : undefined,
-      options
+      options;
     );
     return result !== null;
   }
 
   // Hard delete
-  async delete(
-    id: any,
-    auditInfo?: AuditInfo,
-    options: QueryOptions = {}
-  ): Promise<boolean> {
+  async delete(req: Request, res: Response): Promise<void> {
     return this.queries.transaction(async (client) => {
       // Get record for audit before deletion
-      const original = this.auditEnabled && auditInfo 
-        ? await this.findById(id, options)
+      const original = this.auditEnabled && auditInfo ;
+        ? await this.findById(id, options);
         : null;
 
       // Delete the record
       const deletedCount = await this.queries.delete(
         this.tableName,
         { [this.primaryKey]: id },
-        options
+        options;
       );
 
       // Log audit trail if enabled
@@ -354,11 +326,7 @@ export abstract class BaseRepository<T = any, CreateT = Partial<T>, UpdateT = Pa
   }
 
   // Bulk operations
-  async bulkCreate(
-    records: CreateT[],
-    auditInfo?: AuditInfo,
-    options: QueryOptions = {}
-  ): Promise<T[]> {
+  async bulkCreate(req: Request, res: Response): Promise<void> {
     return this.queries.transaction(async (client) => {
       const results: T[] = [];
       
@@ -372,11 +340,11 @@ export abstract class BaseRepository<T = any, CreateT = Partial<T>, UpdateT = Pa
   }
 
   // Check if record exists
-  async exists(id: any, options: QueryOptions = {}): Promise<boolean> {
+  async exists(req: Request, res: Response): Promise<void> {
     const result = await this.queries.query<{ exists: boolean }>(
       `SELECT EXISTS(SELECT 1 FROM ${this.tableName} WHERE ${this.primaryKey} = $1)`,
       [id],
-      options
+      options;
     );
     return result.rows[0].exists;
   }
@@ -398,16 +366,9 @@ export abstract class BaseRepository<T = any, CreateT = Partial<T>, UpdateT = Pa
   }
 
   // Log audit trail
-  private async logAudit(
-    client: PoolClient,
-    resourceId: any,
-    action: string,
-    resourceType: string,
-    changes: Record<string, any>,
-    auditInfo: AuditInfo
-  ): Promise<void> {
+  private async logAudit(req: Request, res: Response): Promise<void> {
     await client.query(
-      `INSERT INTO audit_log (user_id, action, resource_type, resource_id, changes, ip_address, user_agent)
+      `INSERT INTO audit_log (user_id, action, resource_type, resource_id, changes, ip_address, user_agent);
        VALUES ($1, $2, $3, $4, $5, $6, $7)`,
       [
         auditInfo.userId || null,
@@ -418,8 +379,7 @@ export abstract class BaseRepository<T = any, CreateT = Partial<T>, UpdateT = Pa
         auditInfo.ipAddress || null,
         auditInfo.userAgent || null
       ]
-    );
-    return;
+    );`
 }
 }
 

@@ -28,11 +28,10 @@ export class PresenceManager {
   /**
    * Update user presence data
    */
-  public async updatePresence(userId: string, data: Partial<PresenceData>): Promise<void> {
+  public async updatePresence(req: Request, res: Response): Promise<void> {
     try {
       const redis = getRedis();
-      const key = `presence:${userId  return;
-}`;
+      const key = `presence:${userId}`;
       
       // Get current presence data
       const current = await this.getPresence(userId);
@@ -73,7 +72,7 @@ export class PresenceManager {
   /**
    * Get user presence data
    */
-  public async getPresence(userId: string): Promise<PresenceData> {
+  public async getPresence(req: Request, res: Response): Promise<void> {
     try {
       const redis = getRedis();
       const key = `presence:${userId}`;
@@ -122,7 +121,7 @@ export class PresenceManager {
   /**
    * Handle socket reconnection
    */
-  public async handleReconnect(socket: SocketWithAuth, userId: string): Promise<void> {
+  public async handleReconnect(req: Request, res: Response): Promise<void> {
     try {
       const redis = getRedis();
       
@@ -132,8 +131,7 @@ export class PresenceManager {
         socketId: socket.id,
         activity: 'reconnected',
         ip: socket.handshake.address,
-        userAgent: socket.handshake.headers['user-agent'],
-        return;
+        userAgent: socket.handshake.headers['user-agent'],`
 });
 
       // Clean up any stale socket sessions
@@ -157,15 +155,13 @@ export class PresenceManager {
   /**
    * Track user activity
    */
-  public async trackActivity(userId: string, activity: string, metadata?: any): Promise<void> {
-    try {
+  public async trackActivity(userId: string, activity: string, metadata?: any): Promise<void> { try {
       const redis = getRedis();
       
       // Update presence with new activity
       await this.updatePresence(userId, {
         activity,
-        lastSeen: Date.now(),
-        return;
+        lastSeen: Date.now(), }
 });
 
       // Store activity in timeline for analytics
@@ -173,7 +169,7 @@ export class PresenceManager {
       const activityData = {
         activity,
         timestamp: Date.now(),
-        metadata,
+        metadata,;
       };
       
       await redis.lpush(activityKey, JSON.stringify(activityData));
@@ -198,11 +194,7 @@ export class PresenceManager {
   /**
    * Get list of online users
    */
-  public async getOnlineUsers(limit = 100): Promise<{
-    userId: string;
-    lastSeen: number;
-    activity: string;
-  }[]> {
+  public async getOnlineUsers(req: Request, res: Response): Promise<void> {
     try {
       const redis = getRedis();
       
@@ -235,7 +227,7 @@ export class PresenceManager {
   /**
    * Get user activity history
    */
-  public async getActivityHistory(userId: string, limit = 20): Promise<any[]> {
+  public async getActivityHistory(req: Request, res: Response): Promise<void> {
     try {
       const redis = getRedis();
       const activityKey = `activity:${userId}`;
@@ -256,11 +248,7 @@ export class PresenceManager {
   /**
    * Get presence statistics
    */
-  public async getPresenceStats(): Promise<{
-    totalOnline: number;
-    totalRegistered: number;
-    recentActivity: number;
-  }> {
+  public async getPresenceStats(req: Request, res: Response): Promise<void> {
     try {
       const redis = getRedis();
       
@@ -297,13 +285,12 @@ export class PresenceManager {
   /**
    * Clean up stale socket sessions
    */
-  private async cleanupStaleSocketSessions(userId: string, currentSocketId: string): Promise<void> {
+  private async cleanupStaleSocketSessions(req: Request, res: Response): Promise<void> {
     try {
       const redis = getRedis();
       
       // Get all socket sessions for this user
-      const sessionKey = `user_sockets:${userId  return;
-}`;
+      const sessionKey = `user_sockets:${userId}`;
       const socketIds = await redis.smembers(sessionKey);
       
       // Remove stale socket IDs
@@ -330,14 +317,13 @@ export class PresenceManager {
   /**
    * Set user away status after inactivity
    */
-  public async setAwayStatus(userId: string): Promise<void> {
+  public async setAwayStatus(req: Request, res: Response): Promise<void> {
     try {
       const presence = await this.getPresence(userId);
       
       if (presence.online && presence.activity !== 'away') {
         await this.updatePresence(userId, {
-          activity: 'away',
-          return;
+          activity: 'away',`
 });
 
         logger.debug('User set to away status', {
@@ -357,8 +343,7 @@ export class PresenceManager {
   /**
    * Clean up offline users periodically
    */
-  public async cleanupOfflineUsers(): Promise<void> {
-    try {
+  public async cleanupOfflineUsers(): Promise<void> { try {
       const redis = getRedis();
       const cutoff = Date.now() - (this.ACTIVITY_TIMEOUT * 1000);
       
@@ -366,8 +351,7 @@ export class PresenceManager {
       await redis.zremrangebyscore('online_users', 0, cutoff);
       
       logger.debug('Cleaned up offline users', {
-        cutoff: new Date(cutoff).toISOString(),
-        return;
+        cutoff: new Date(cutoff).toISOString(), }
 });
 
     } catch (error) {

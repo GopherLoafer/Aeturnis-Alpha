@@ -15,39 +15,39 @@ export function createAffinityRoutes(affinityController: AffinityController): Ro
   router.post('/exp',
     rateLimitRedis('affinityExp'),
     AffinityController.awardExpValidation,
-    affinityController.awardExperience.bind(affinityController)
+    affinityController.awardExperience.bind(affinityController);
   );
 
   // Get character affinities
   router.get('/',
     rateLimitRedis('affinityGeneral'),
-    affinityController.getCharacterAffinities.bind(affinityController)
+    affinityController.getCharacterAffinities.bind(affinityController);
   );
 
   // Get all available affinities (public)
   router.get('/all',
     rateLimitRedis('affinityGeneral'),
-    affinityController.getAllAffinities.bind(affinityController)
+    affinityController.getAllAffinities.bind(affinityController);
   );
 
   // Get affinity summary with tier names and progress
   router.get('/summary',
     rateLimitRedis('affinityGeneral'),
-    affinityController.getAffinitySummary.bind(affinityController)
+    affinityController.getAffinitySummary.bind(affinityController);
   );
 
   // Get affinity bonus for a specific affinity
   router.get('/bonus/:name',
     rateLimitRedis('affinityGeneral'),
     AffinityController.affinityNameValidation,
-    affinityController.getAffinityBonus.bind(affinityController)
+    affinityController.getAffinityBonus.bind(affinityController);
   );
 
   // Get single affinity data with character progression
   router.get('/:name',
     rateLimitRedis('affinityGeneral'),
     AffinityController.affinityNameValidation,
-    affinityController.getAffinityByName.bind(affinityController)
+    affinityController.getAffinityByName.bind(affinityController);
   );
 
   return router;

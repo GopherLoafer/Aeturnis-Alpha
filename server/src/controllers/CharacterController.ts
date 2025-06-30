@@ -30,11 +30,11 @@ export class CharacterController {
    * Validation middleware for character creation
    */
   static createCharacterValidation = [
-    body('name')
-      .isString()
-      .isLength({ min: 3, max: 20 })
-      .matches(/^[a-zA-Z0-9-]+$/)
-      .withMessage('Name must be 3-20 characters and contain only letters, numbers, and hyphens')
+    body('name');
+      .isString();
+      .isLength({ min: 3, max: 20 });
+      .matches(/^[a-zA-Z0-9-]+$/);
+      .withMessage('Name must be 3-20 characters and contain only letters, numbers, and hyphens');
       .custom((value: string) => {
         if (value.startsWith('-') || value.endsWith('-')) {
           throw new Error('Name cannot start or end with a hyphen');
@@ -42,27 +42,27 @@ export class CharacterController {
         return true;
       }),
     
-    body('raceId')
-      .isUUID()
+    body('raceId');
+      .isUUID();
       .withMessage('Race ID must be a valid UUID'),
     
-    body('gender')
-      .isIn(['male', 'female', 'neutral', 'other'])
+    body('gender');
+      .isIn(['male', 'female', 'neutral', 'other']);
       .withMessage('Gender must be one of: male, female, neutral, other'),
     
-    body('appearance')
-      .optional()
-      .isObject()
-      .withMessage('Appearance must be an object if provided')
+    body('appearance');
+      .optional();
+      .isObject();
+      .withMessage('Appearance must be an object if provided');
   ];
 
   /**
    * Validation middleware for character ID parameter
    */
   static characterIdValidation = [
-    param('id')
-      .isUUID()
-      .withMessage('Character ID must be a valid UUID')
+    param('id');
+      .isUUID();
+      .withMessage('Character ID must be a valid UUID');
   ];
 
   /**
@@ -76,10 +76,8 @@ export class CharacterController {
           error: {
             code: 'UNAUTHORIZED',
             message: 'Authentication required'
-            return;
-}
+          }
         });
-        return;
       }
 
       const characters = await this.characterService.getUserCharacters(req.user.id.toString());
@@ -99,6 +97,7 @@ export class CharacterController {
       });
 
       res.status(500).json({
+        success: false,
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to retrieve characters'
@@ -120,21 +119,19 @@ export class CharacterController {
           error: {
             code: 'VALIDATION_ERROR',
             message: 'Invalid input data',
-            details: errors.array()
-            return;
-}
+            details: errors.array();
+          }
         });
-        return;
       }
 
       if (!req.user?.id) {
         res.status(401).json({
-          error: {
-            code: 'UNAUTHORIZED',
-            message: 'Authentication required'
-          }
-        });
-        return;
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'Authentication required'
+        }
+      });
       }
 
       const dto: CreateCharacterDto = {
@@ -166,44 +163,41 @@ export class CharacterController {
           res.status(409).json({
             error: {
               code: 'CHARACTER_LIMIT_EXCEEDED',
-              message: getErrorMessage(error)
+              message: getErrorMessage(error);
             }
           });
-          return;
         }
 
         if (getErrorMessage(error).includes('already taken')) {
           res.status(409).json({
             error: {
               code: 'NAME_UNAVAILABLE',
-              message: getErrorMessage(error)
+              message: getErrorMessage(error);
             }
           });
-          return;
         }
 
         if (getErrorMessage(error).includes('Race with ID') && getErrorMessage(error).includes('not found')) {
           res.status(400).json({
             error: {
               code: 'INVALID_RACE',
-              message: getErrorMessage(error)
+              message: getErrorMessage(error);
             }
           });
-          return;
         }
 
         if (getErrorMessage(error).includes('Character name must be')) {
           res.status(400).json({
             error: {
               code: 'INVALID_NAME',
-              message: getErrorMessage(error)
+              message: getErrorMessage(error);
             }
           });
-          return;
         }
       }
 
       res.status(500).json({
+        success: false,
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to create character'
@@ -225,21 +219,19 @@ export class CharacterController {
           error: {
             code: 'VALIDATION_ERROR',
             message: 'Invalid character ID',
-            details: errors.array()
-            return;
-}
+            details: errors.array();
+          }
         });
-        return;
       }
 
       if (!req.user?.id) {
         res.status(401).json({
-          error: {
-            code: 'UNAUTHORIZED',
-            message: 'Authentication required'
-          }
-        });
-        return;
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'Authentication required'
+        }
+      });
       }
 
       const characterId = req.params.id;
@@ -260,15 +252,16 @@ export class CharacterController {
 
       if (error instanceof Error && getErrorMessage(error).includes('not found or access denied')) {
         res.status(404).json({
-          error: {
-            code: 'CHARACTER_NOT_FOUND',
-            message: 'Character not found or access denied'
-          }
-        });
-        return;
+        success: false,
+        error: {
+          code: 'CHARACTER_NOT_FOUND',
+          message: 'Character not found or access denied'
+        }
+      });
       }
 
       res.status(500).json({
+        success: false,
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to retrieve character'
@@ -290,21 +283,19 @@ export class CharacterController {
           error: {
             code: 'VALIDATION_ERROR',
             message: 'Invalid character ID',
-            details: errors.array()
-            return;
-}
+            details: errors.array();
+          }
         });
-        return;
       }
 
       if (!req.user?.id) {
         res.status(401).json({
-          error: {
-            code: 'UNAUTHORIZED',
-            message: 'Authentication required'
-          }
-        });
-        return;
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'Authentication required'
+        }
+      });
       }
 
       const characterId = req.params.id;
@@ -329,15 +320,16 @@ export class CharacterController {
 
       if (error instanceof Error && getErrorMessage(error).includes('not found or access denied')) {
         res.status(404).json({
-          error: {
-            code: 'CHARACTER_NOT_FOUND',
-            message: 'Character not found or access denied'
-          }
-        });
-        return;
+        success: false,
+        error: {
+          code: 'CHARACTER_NOT_FOUND',
+          message: 'Character not found or access denied'
+        }
+      });
       }
 
       res.status(500).json({
+        success: false,
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to select character'
@@ -359,21 +351,19 @@ export class CharacterController {
           error: {
             code: 'VALIDATION_ERROR',
             message: 'Invalid character ID',
-            details: errors.array()
-            return;
-}
+            details: errors.array();
+          }
         });
-        return;
       }
 
       if (!req.user?.id) {
         res.status(401).json({
-          error: {
-            code: 'UNAUTHORIZED',
-            message: 'Authentication required'
-          }
-        });
-        return;
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'Authentication required'
+        }
+      });
       }
 
       const characterId = req.params.id;
@@ -394,15 +384,16 @@ export class CharacterController {
 
       if (error instanceof Error && getErrorMessage(error).includes('not found or access denied')) {
         res.status(404).json({
-          error: {
-            code: 'CHARACTER_NOT_FOUND',
-            message: 'Character not found or access denied'
-          }
-        });
-        return;
+        success: false,
+        error: {
+          code: 'CHARACTER_NOT_FOUND',
+          message: 'Character not found or access denied'
+        }
+      });
       }
 
       res.status(500).json({
+        success: false,
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to delete character'
@@ -423,7 +414,7 @@ export class CharacterController {
         success: true,
         data: {
           races
-          return;
+         );
 }
       });
     } catch (error) {
@@ -432,6 +423,7 @@ export class CharacterController {
       });
 
       res.status(500).json({
+        success: false,
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to retrieve races'
@@ -453,10 +445,8 @@ export class CharacterController {
           error: {
             code: 'INVALID_NAME',
             message: 'Name must be 3-20 characters long'
-            return;
-}
+          }
         });
-        return;
       }
 
       const available = await this.characterService.checkNameAvailability(name);
@@ -475,6 +465,7 @@ export class CharacterController {
       });
 
       res.status(500).json({
+        success: false,
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to check name availability'

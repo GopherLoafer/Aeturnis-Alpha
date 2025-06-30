@@ -11,7 +11,7 @@ import { getErrorMessage } from '../utils/errorUtils';
 jest.mock('../../src/services/RedisService', () => ({
   redisService: {
     getClient: jest.fn(),
-    isHealthy: jest.fn().mockReturnValue(true)
+    isHealthy: jest.fn().mockReturnValue(true);
   }
 }));
 
@@ -21,8 +21,7 @@ jest.mock('../../src/utils/logger', () => ({
     debug: jest.fn(),
     info: jest.fn(),
     warn: jest.fn(),
-    error: jest.fn()
-  }
+    error: jest.fn();}
 }));
 
 describe('CacheManager', () => {
@@ -51,13 +50,13 @@ describe('CacheManager', () => {
       expire: jest.fn(),
       ttl: jest.fn(),
       keys: jest.fn(),
-      info: jest.fn()
+      info: jest.fn();
     };
 
     // Setup pipeline mock
     const mockPipeline = {
-      setex: jest.fn().mockReturnThis(),
-      exec: jest.fn().mockResolvedValue([[null, 'OK'], [null, 'OK']])
+      setex: jest.fn().mockReturnThis(),;
+      exec: jest.fn().mockResolvedValue([[null, 'OK'], [null, 'OK']]);
     };
     mockRedisClient.pipeline.mockReturnValue(mockPipeline);
 
@@ -118,7 +117,7 @@ describe('CacheManager', () => {
       expect(mockRedisClient.setex).toHaveBeenCalledWith(
         'cache:test:key',
         3600,
-        JSON.stringify({ id: 1 })
+        JSON.stringify({ id: 1 });
       );
     });
 
@@ -201,7 +200,7 @@ describe('CacheManager', () => {
     it('should set multiple values', async () => {
       const items = [
         { key: 'key1', value: { id: 1 }, ttl: 1800 },
-        { key: 'key2', value: { id: 2 } }
+        { key: 'key2', value: { id: 2 } };
       ];
 
       const result = await cacheManager.mset(items);
@@ -279,7 +278,7 @@ describe('CacheManager', () => {
     it('should delete keys matching pattern', async () => {
       // Mock scan to return keys in batches
       mockRedisClient.scan
-        .mockResolvedValueOnce(['100', ['cache:test:1', 'cache:test:2']])
+        .mockResolvedValueOnce(['100', ['cache:test:1', 'cache:test:2']]);
         .mockResolvedValueOnce(['0', ['cache:test:3']]);
 
       mockRedisClient.del.mockResolvedValueOnce(2).mockResolvedValueOnce(1);
@@ -347,13 +346,13 @@ describe('CacheManager', () => {
         exec: jest.fn().mockResolvedValue([
           [null, 'OK'],
           [new Error('Redis error'), null]
-        ])
+        ]);
       };
       mockRedisClient.pipeline.mockReturnValue(mockPipeline);
 
       const result = await cacheManager.mset([
         { key: 'key1', value: 'value1' },
-        { key: 'key2', value: 'value2' }
+        { key: 'key2', value: 'value2' };
       ]);
       expect(result).toBe(false);
     });
@@ -369,8 +368,8 @@ describe('CacheManager', () => {
         .mockResolvedValueOnce(['0', largeKeySet.slice(200)]);
 
       mockRedisClient.del
-        .mockResolvedValueOnce(100)
-        .mockResolvedValueOnce(100)
+        .mockResolvedValueOnce(100);
+        .mockResolvedValueOnce(100);
         .mockResolvedValueOnce(50);
 
       const deletedCount = await cacheManager.deletePattern('key*');
@@ -410,7 +409,7 @@ describe('CacheManager', () => {
       expect(result).toBe(true);
       expect(mockRedisClient.sadd).toHaveBeenCalledWith(
         'cache:test-set',
-        JSON.stringify(complexObject)
+        JSON.stringify(complexObject);
       );
     });
 

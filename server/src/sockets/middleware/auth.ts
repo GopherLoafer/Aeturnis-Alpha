@@ -166,25 +166,19 @@ function extractToken(socket: Socket): string | null {
   return null;
 }
 
-async function verifyToken(token: string): Promise<TokenPayload> {
-  return new Promise((resolve, reject) => {
+async function verifyToken(token: string): Promise<TokenPayload> { return new Promise((resolve, reject) => {
     jwt.verify(token, config.JWT_SECRET, (err, decoded) => {
       if (err) {
-        reject(err);
-        return;
+        reject(err); }
       }
 
-      if (!decoded || typeof decoded !== 'object') {
-        reject(new Error('Invalid token payload'));
-        return;
+      if (!decoded || typeof decoded !== 'object') { reject(new Error('Invalid token payload')); }
       }
 
       const payload = decoded as TokenPayload;
       
       // Validate required fields
-      if (!payload.userId) {
-        reject(new Error('Token missing userId'));
-        return;
+      if (!payload.userId) { reject(new Error('Token missing userId')); }
       }
 
       resolve(payload);
@@ -192,7 +186,7 @@ async function verifyToken(token: string): Promise<TokenPayload> {
   });
 }
 
-async function checkTokenBlacklist(token: string): Promise<boolean> {
+async function checkTokenBlacklist(req: Request, res: Response): Promise<void> {
   try {
     const redis = getRedis();
     const key = `blacklist:token:${token}`;
@@ -208,11 +202,7 @@ async function checkTokenBlacklist(token: string): Promise<boolean> {
   }
 }
 
-async function checkRateLimit(socket: Socket): Promise<{
-  allowed: boolean;
-  attempts: number;
-  resetTime?: number;
-}> {
+async function checkRateLimit(req: Request, res: Response): Promise<void> {
   try {
     const redis = getRedis();
     const ip = socket.handshake.address;
@@ -258,7 +248,7 @@ async function checkRateLimit(socket: Socket): Promise<{
   }
 }
 
-async function trackFailedAttempt(socket: Socket): Promise<void> {
+async function trackFailedAttempt(req: Request, res: Response): Promise<void> {
   try {
     const redis = getRedis();
     const ip = socket.handshake.address;
@@ -284,7 +274,7 @@ async function trackFailedAttempt(socket: Socket): Promise<void> {
   }
 }
 
-async function clearFailedAttempts(socket: Socket): Promise<void> {
+async function clearFailedAttempts(req: Request, res: Response): Promise<void> {
   try {
     const redis = getRedis();
     const ip = socket.handshake.address;
@@ -299,7 +289,7 @@ async function clearFailedAttempts(socket: Socket): Promise<void> {
   }
 }
 
-async function trackSuccessfulAuth(socket: Socket, payload: TokenPayload): Promise<void> {
+async function trackSuccessfulAuth(req: Request, res: Response): Promise<void> {
   try {
     const redis = getRedis();
     const sessionKey = `socket_session:${socket.id}`;
@@ -310,7 +300,7 @@ async function trackSuccessfulAuth(socket: Socket, payload: TokenPayload): Promi
       roles: payload.roles,
       connectedAt: Date.now(),
       ip: socket.handshake.address,
-      userAgent: socket.handshake.headers['user-agent'],
+      userAgent: socket.handshake.headers['user-agent'],;
     };
 
     // Store session with TTL (1 hour)

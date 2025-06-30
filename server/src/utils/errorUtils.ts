@@ -79,7 +79,7 @@ export function parseDelay(delay: unknown): number {
 export function safeJsonParse<T = unknown>(json: string): T | null {
   try {
     return JSON.parse(json) as T;
-  } catch {
+      } catch (error) {
     return null;
   }
 }

@@ -9,7 +9,7 @@ import path from 'path';
 import { getErrorMessage } from '../utils/errorUtils';
 
 // Load environment files in order of precedence
-const loadEnvironmentFiles = (): void => {
+const loadEnvironmentFiles = (): void => {;
   const envFiles = ['.env', '.env.local'];
   
   envFiles.forEach(file => {
@@ -20,9 +20,9 @@ const loadEnvironmentFiles = (): void => {
 
 // Environment variable validation schema
 const envSchema = Joi.object({
-  // Application Configuration
-  NODE_ENV: Joi.string()
-    .valid('development', 'staging', 'production')
+  // Application Configuration;
+  NODE_ENV: Joi.string();
+    .valid('development', 'staging', 'production');
     .default('development'),
   PORT: Joi.number().integer().min(1024).max(65535).default(3000),
   HOST: Joi.string().hostname().default('0.0.0.0'),
@@ -62,8 +62,8 @@ const envSchema = Joi.object({
   COMPRESSION_THRESHOLD: Joi.number().integer().min(0).default(1024),
   
   // Logging Configuration
-  LOG_LEVEL: Joi.string()
-    .valid('error', 'warn', 'info', 'debug')
+  LOG_LEVEL: Joi.string();
+    .valid('error', 'warn', 'info', 'debug');
     .default('info'),
   LOG_FILE: Joi.string().default('logs/application.log'),
   
@@ -214,7 +214,7 @@ export const validateCriticalEnvVars = (): void => {
   const criticalVars = [
     'DATABASE_URL',
     'JWT_SECRET',
-    'JWT_REFRESH_SECRET'
+    'JWT_REFRESH_SECRET';
   ];
   
   const missing = criticalVars.filter(varName => !config[varName as keyof EnvironmentConfig]);

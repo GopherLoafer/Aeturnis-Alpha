@@ -171,7 +171,7 @@ export class ResponseHandler {
   success<T>(data: T, statusCode: number = 200, meta?: any): Response {
     const response = createSuccessResponse(data, {
       requestId: this.requestId,
-      ...meta,
+      ...meta,;
     });
     return this.res.status(statusCode).json(response);
   }
@@ -190,7 +190,7 @@ export class ResponseHandler {
     const pagination = calculatePagination(total, page, limit);
     const response = createPaginatedResponse(data, pagination, {
       requestId: this.requestId,
-      ...meta,
+      ...meta,;
     });
     return this.res.status(statusCode).json(response);
   }
@@ -231,7 +231,7 @@ export class ResponseHandler {
       details,
       this.requestId,
       this.res.req.path,
-      this.res.req.method
+      this.res.req.method;
     );
     return this.res.status(statusCode).json(response);
   }
@@ -363,9 +363,9 @@ export const createHealthCheckResponse = (
   system: HealthCheckResponse['system']
 ): HealthCheckResponse => {
   const serviceStatuses = Object.values(services).map(service => service.status);
-  const overallStatus = serviceStatuses.every(status => status === 'up')
+  const overallStatus = serviceStatuses.every(status => status === 'up');
     ? 'healthy'
-    : serviceStatuses.some(status => status === 'down')
+    : serviceStatuses.some(status => status === 'down');
     ? 'unhealthy'
     : 'degraded';
 

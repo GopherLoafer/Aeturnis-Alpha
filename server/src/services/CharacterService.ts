@@ -7,7 +7,6 @@ import { Pool } from 'pg';
 import { logger } from '../utils/logger';
 import { CharacterRepository } from '../database/repositories/CharacterRepository';
 import { CacheManager } from './CacheManager';
-import { 
 import { getErrorMessage } from '../utils/errorUtils';
   Character, 
   CharacterStats, 
@@ -45,7 +44,7 @@ export class CharacterService {
   /**
    * Create a new character for a user
    */
-  async createCharacter(userId: string, dto: CreateCharacterDto): Promise<Character> {
+  async createCharacter(req: Request, res: Response): Promise<void> {
     try {
       // Validate user character limit
       const existingCharacters = await this.characterRepo.findByUserId(userId);
@@ -117,7 +116,7 @@ export class CharacterService {
   /**
    * Get all characters for a user
    */
-  async getUserCharacters(userId: string): Promise<Character[]> {
+  async getUserCharacters(req: Request, res: Response): Promise<void> {
     try {
       const characters = await this.characterRepo.findByUserId(userId);
       
@@ -139,7 +138,7 @@ export class CharacterService {
   /**
    * Get a single character with full data including race bonuses
    */
-  async getCharacter(characterId: string, userId: string): Promise<CharacterFullData> {
+  async getCharacter(req: Request, res: Response): Promise<void> {
     try {
       // Check cache first
       const cacheKey = `char:${characterId}:data`;
@@ -191,7 +190,7 @@ export class CharacterService {
   /**
    * Select a character for the current session
    */
-  async selectCharacter(characterId: string, userId: string): Promise<CharacterFullData> {
+  async selectCharacter(req: Request, res: Response): Promise<void> {
     try {
       // Get the character and verify ownership
       const character = await this.getCharacter(characterId, userId);
@@ -231,13 +230,12 @@ export class CharacterService {
   /**
    * Soft delete a character
    */
-  async deleteCharacter(characterId: string, userId: string): Promise<void> {
+  async deleteCharacter(req: Request, res: Response): Promise<void> {
     try {
       // Verify character exists and ownership
       const character = await this.characterRepo.findById(characterId);
       if (!character) {
-        throw new Error('Character not found');
-        return;
+        throw new Error('Character not found');`
 }
 
       if (character.user_id !== userId) {
@@ -277,7 +275,7 @@ export class CharacterService {
   /**
    * Get all available races for character creation
    */
-  async getRaces(): Promise<Race[]> {
+  async getRaces(req: Request, res: Response): Promise<void> {
     try {
       const cacheKey = 'races:all';
       const cachedRaces = await this.cacheManager.get<Race[]>(cacheKey);
@@ -302,7 +300,7 @@ export class CharacterService {
   /**
    * Check if character name is available
    */
-  async checkNameAvailability(name: string): Promise<boolean> {
+  async checkNameAvailability(req: Request, res: Response): Promise<void> {
     try {
       if (!this.isValidCharacterName(name)) {
         return false;
@@ -338,10 +336,9 @@ export class CharacterService {
     return Math.min(progress, 100);
   }
 
-  private async cacheCharacter(characterId: string, character: Character): Promise<void> {
+  private async cacheCharacter(req: Request, res: Response): Promise<void> {
     try {
-      const cacheKey = `char:${characterId  return;
-}:data`;
+      const cacheKey = `char:${characterId}:data`;
       await this.cacheManager.set(cacheKey, character, { ttl: 300 }); // 5 minute cache
     } catch (error) {
       // Don't fail the main operation if caching fails
@@ -352,21 +349,15 @@ export class CharacterService {
     }
   }
 
-  private async logAuditAction(
-    userId: string, 
-    action: string, 
-    characterId: string, 
-    metadata: Record<string, any>
-  ): Promise<void> {
+  private async logAuditAction(req: Request, res: Response): Promise<void> {
     try {
       const client = await this.db.connect();
       try {
         await client.query(
-          `INSERT INTO audit_log (user_id, action, resource_type, resource_id, metadata)
+          `INSERT INTO audit_log (user_id, action, resource_type, resource_id, metadata);
            VALUES ($1, $2, $3, $4, $5)`,
           [userId, action, 'character', characterId, JSON.stringify(metadata)]
-        );
-        return;
+        );`
 } finally {
         client.release();
       }

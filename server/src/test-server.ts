@@ -10,7 +10,7 @@ import { getErrorMessage } from '../utils/errorUtils';
 
 const startTestServer = async (): Promise<void> => {
   try {
-    // Validate environment
+    // Validate environment;
     validateCriticalEnvVars();
 
     console.log('🚀 Starting Express API Test Server...');
@@ -19,7 +19,7 @@ const startTestServer = async (): Promise<void> => {
     const app = createApp();
 
     // Start HTTP server
-    const server = app.listen(config.PORT, config.HOST, () => {
+    const server = app.listen(config.PORT, config.HOST, () => {;
       console.log(`✅ Express API Test Server started successfully on http://${config.HOST}:${config.PORT}`);
       
       // Log available endpoints

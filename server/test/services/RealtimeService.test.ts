@@ -28,7 +28,7 @@ describe('RealtimeService', () => {
         sockets: new Map([
           ['socket1', { 
             join: jest.fn().mockResolvedValue(undefined),
-            leave: jest.fn().mockResolvedValue(undefined)
+            leave: jest.fn().mockResolvedValue(undefined);
           }]
         ])
       }
@@ -36,7 +36,7 @@ describe('RealtimeService', () => {
 
     mockSocket = {
       join: jest.fn().mockResolvedValue(undefined),
-      leave: jest.fn().mockResolvedValue(undefined)
+      leave: jest.fn().mockResolvedValue(undefined);
     };
 
     realtimeService = new RealtimeService(mockIo);
@@ -150,7 +150,7 @@ describe('RealtimeService', () => {
           message: 'Welcome to the game!',
           priority: 'medium',
           type: 'announcement'
-        })
+        });
       );
     });
 
@@ -161,7 +161,7 @@ describe('RealtimeService', () => {
         expect.objectContaining({
           message: 'Critical update!',
           priority: 'high'
-        })
+        });
       );
     });
   });
@@ -200,7 +200,7 @@ describe('RealtimeService', () => {
       expect(mockIo.emit).toHaveBeenCalledWith('game:state_update', 
         expect.objectContaining({
           updates,
-          timestamp: expect.any(Number)
+          timestamp: expect.any(Number);
         })
       );
     });
@@ -283,7 +283,7 @@ describe('RealtimeService', () => {
           zoneName: 'test',
           event: 'event',
           error: 'Test error'
-        })
+        });
       );
     });
   });

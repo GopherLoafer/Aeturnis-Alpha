@@ -23,13 +23,13 @@ export function createCharacterRoutes(characterController: CharacterController):
   router.get(
     '/name-check/:name',
     authRateLimit, // Prevent name checking spam
-    characterController.checkNameAvailability.bind(characterController)
+    characterController.checkNameAvailability.bind(characterController);
   );
 
   // GET /api/characters - List user's characters
   router.get(
     '/',
-    characterController.getUserCharacters.bind(characterController)
+    characterController.getUserCharacters.bind(characterController);
   );
 
   // POST /api/characters - Create new character
@@ -37,14 +37,14 @@ export function createCharacterRoutes(characterController: CharacterController):
     '/',
     authRateLimit, // Limit character creation attempts
     CharacterController.createCharacterValidation,
-    characterController.createCharacter.bind(characterController)
+    characterController.createCharacter.bind(characterController);
   );
 
   // GET /api/characters/:id - Get single character
   router.get(
     '/:id',
     CharacterController.characterIdValidation,
-    characterController.getCharacter.bind(characterController)
+    characterController.getCharacter.bind(characterController);
   );
 
   // POST /api/characters/:id/select - Select character for session
@@ -52,7 +52,7 @@ export function createCharacterRoutes(characterController: CharacterController):
     '/:id/select',
     chatRateLimit, // Allow frequent character switching but prevent spam
     CharacterController.characterIdValidation,
-    characterController.selectCharacter.bind(characterController)
+    characterController.selectCharacter.bind(characterController);
   );
 
   // DELETE /api/characters/:id - Delete character
@@ -60,7 +60,7 @@ export function createCharacterRoutes(characterController: CharacterController):
     '/:id',
     authRateLimit, // Limit deletion attempts
     CharacterController.characterIdValidation,
-    characterController.deleteCharacter.bind(characterController)
+    characterController.deleteCharacter.bind(characterController);
   );
 
   return router;

@@ -75,8 +75,7 @@ export class CachePatterns {
     } catch (error) {
       logger.error('Cache-aside operation failed', {
         key,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       
       // Fallback to data source on cache error
       return await loader();
@@ -108,8 +107,7 @@ export class CachePatterns {
         lastError = error;
         logger.warn(`Write-through data store write failed, attempt ${attempt}`, {
           key,
-          error: getErrorMessage(error)
-        });
+          error: getErrorMessage(error);});
         
         if (attempt < writeRetries) {
           // Exponential backoff
@@ -121,8 +119,7 @@ export class CachePatterns {
     if (!writeSuccess) {
       logger.error('Write-through data store write failed after retries', {
         key,
-        error: lastError?.message
-      });
+        error: lastError?.message});
       throw lastError || new Error('Write-through failed');
     }
 
@@ -133,8 +130,7 @@ export class CachePatterns {
     } catch (error) {
       logger.warn('Write-through cache update failed', {
         key,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
     }
   }
 
@@ -162,8 +158,7 @@ export class CachePatterns {
       } catch (error) {
         logger.error('Write-behind data store update failed', {
           key,
-          error: getErrorMessage(error)
-        });
+          error: getErrorMessage(error);});
         // TODO: Could implement a retry queue here
       }
     });
@@ -186,8 +181,7 @@ export class CachePatterns {
     } catch (error) {
       logger.error('Cache warming failed', {
         key,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       return false;
     }
   }
@@ -211,10 +205,10 @@ export class CachePatterns {
       const batch = items.slice(i, i + concurrency);
       
       const promises = batch.map(async item => {
-        try {
+        try {;
           await this.warmCache(item.key, item.loader, item.ttl);
           return true;
-        } catch {
+            } catch (error) {
           return false;
         }
       });
@@ -255,8 +249,7 @@ export class CachePatterns {
     } catch (error) {
       logger.error('Cache refresh failed', {
         key,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       throw error;
     }
   }
@@ -275,16 +268,15 @@ export class CachePatterns {
   /**
    * Invalidate cache pattern
    */
-  public async invalidate(key: string): Promise<boolean> {
+  public async invalidate(req: Request, res: Response): Promise<void> {
     try {
       const result = await cacheManager.delete(key);
-      logger.debug('Cache invalidated', { key, success: result });
+      logger.debug('Cache invalidated', { key, success: result});
       return result;
     } catch (error) {
       logger.error('Cache invalidation failed', {
         key,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       return false;
     }
   }
@@ -292,7 +284,7 @@ export class CachePatterns {
   /**
    * Invalidate cache pattern by prefix
    */
-  public async invalidatePattern(pattern: string): Promise<number> {
+  public async invalidatePattern(req: Request, res: Response): Promise<void> {
     try {
       const count = await cacheManager.deletePattern(pattern);
       logger.info('Cache pattern invalidated', { pattern, count });
@@ -300,8 +292,7 @@ export class CachePatterns {
     } catch (error) {
       logger.error('Cache pattern invalidation failed', {
         pattern,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       return 0;
     }
   }
@@ -330,7 +321,7 @@ export class CachePatterns {
   /**
    * Invalidate by tag
    */
-  public async invalidateByTag(tag: string): Promise<number> {
+  public async invalidateByTag(req: Request, res: Response): Promise<void> {
     try {
       const keys = await cacheManager.getSetMembers<string>(`tag:${tag}`);
       let invalidated = 0;
@@ -348,8 +339,7 @@ export class CachePatterns {
     } catch (error) {
       logger.error('Tag-based cache invalidation failed', {
         tag,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       return 0;
     }
   }
@@ -370,14 +360,13 @@ export class CachePatterns {
 
     // Schedule new refresh
     const task = setTimeout(async () => {
-      try {
+      try {;
         await this.refreshCache(key, loader, ttl);
         logger.debug('Background refresh completed', { key });
       } catch (error) {
         logger.error('Background refresh failed', {
           key,
-          error: getErrorMessage(error)
-        });
+          error: getErrorMessage(error);});
       } finally {
         this.backgroundRefreshTasks.delete(key);
       }

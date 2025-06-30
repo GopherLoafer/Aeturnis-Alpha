@@ -74,13 +74,13 @@ export class ChatRepository {
   /**
    * Get channel by ID
    */
-  async getChannel(channelId: number): Promise<ChatChannel | null> {
+  async getChannel(req: Request, res: Response): Promise<void> {
     try {
       const client = await this.db.connect();
       try {
         const result = await client.query(
           'SELECT * FROM chat_channels WHERE id = $1',
-          [channelId]
+          [channelId];
         );
         
         return result.rows[0] || null;
@@ -99,13 +99,13 @@ export class ChatRepository {
   /**
    * Get channel by name
    */
-  async getChannelByName(name: string): Promise<ChatChannel | null> {
+  async getChannelByName(req: Request, res: Response): Promise<void> {
     try {
       const client = await this.db.connect();
       try {
         const result = await client.query(
           'SELECT * FROM chat_channels WHERE LOWER(name) = LOWER($1)',
-          [name]
+          [name];
         );
         
         return result.rows[0] || null;
@@ -124,12 +124,12 @@ export class ChatRepository {
   /**
    * Create a new chat message
    */
-  async createMessage(data: CreateMessageData): Promise<ChatMessage> {
+  async createMessage(req: Request, res: Response): Promise<void> {
     try {
       const client = await this.db.connect();
       try {
-        const result = await client.query(
-          `INSERT INTO chat_messages (channel_id, user_id, character_id, content, message_type, mentions)
+        const result = await client.query(;
+          `INSERT INTO chat_messages (channel_id, user_id, character_id, content, message_type, mentions);
            VALUES ($1, $2, $3, $4, $5, $6)
            RETURNING *`,
           [
@@ -138,7 +138,7 @@ export class ChatRepository {
             data.character_id,
             data.content,
             data.message_type || 'text',
-            JSON.stringify(data.mentions || [])
+            JSON.stringify(data.mentions || []);
           ]
         );
         
@@ -164,7 +164,7 @@ export class ChatRepository {
   /**
    * Get recent messages from a channel
    */
-  async getChannelMessages(channelId: number, limit: number = 50, offset: number = 0): Promise<ChatMessage[]> {
+  async getChannelMessages(req: Request, res: Response): Promise<void> {
     try {
       const client = await this.db.connect();
       try {
@@ -175,7 +175,7 @@ export class ChatRepository {
            WHERE cm.channel_id = $1 AND cm.deleted_at IS NULL
            ORDER BY cm.created_at DESC
            LIMIT $2 OFFSET $3`,
-          [channelId, limit, offset]
+          [channelId, limit, offset];
         );
         
         return result.rows.reverse(); // Return in chronological order
@@ -196,13 +196,13 @@ export class ChatRepository {
   /**
    * Check if user is member of channel
    */
-  async isChannelMember(channelId: number, userId: string): Promise<boolean> {
+  async isChannelMember(req: Request, res: Response): Promise<void> {
     try {
       const client = await this.db.connect();
       try {
         const result = await client.query(
           'SELECT id FROM chat_channel_members WHERE channel_id = $1 AND user_id = $2',
-          [channelId, userId]
+          [channelId, userId];
         );
         
         return result.rows.length > 0;
@@ -222,7 +222,7 @@ export class ChatRepository {
   /**
    * Join a channel
    */
-  async joinChannel(channelId: number, userId: string): Promise<void> {
+  async joinChannel(req: Request, res: Response): Promise<void> {
     try {
       const client = await this.db.connect();
       try {
@@ -231,7 +231,7 @@ export class ChatRepository {
         // Check if already a member
         const existingResult = await client.query(
           'SELECT id FROM chat_channel_members WHERE channel_id = $1 AND user_id = $2',
-          [channelId, userId]
+          [channelId, userId];
         );
 
         if (existingResult.rows.length > 0) {
@@ -241,7 +241,7 @@ export class ChatRepository {
 
         // Add member
         await client.query(
-          `INSERT INTO chat_channel_members (channel_id, user_id)
+          `INSERT INTO chat_channel_members (channel_id, user_id);
            VALUES ($1, $2)`,
           [channelId, userId]
         );
@@ -271,12 +271,12 @@ export class ChatRepository {
   /**
    * Create a direct message
    */
-  async createDirectMessage(senderId: string, recipientId: string, content: string, messageType: string = 'text'): Promise<DirectMessage> {
+  async createDirectMessage(req: Request, res: Response): Promise<void> {
     try {
       const client = await this.db.connect();
       try {
-        const result = await client.query(
-          `INSERT INTO direct_messages (sender_id, recipient_id, content, message_type)
+        const result = await client.query(;
+          `INSERT INTO direct_messages (sender_id, recipient_id, content, message_type);
            VALUES ($1, $2, $3, $4)
            RETURNING *`,
           [senderId, recipientId, content, messageType]
@@ -305,7 +305,7 @@ export class ChatRepository {
   /**
    * Get conversation between two users
    */
-  async getConversation(userId1: string, userId2: string, limit: number = 50): Promise<DirectMessage[]> {
+  async getConversation(req: Request, res: Response): Promise<void> {
     try {
       const client = await this.db.connect();
       try {
@@ -314,7 +314,7 @@ export class ChatRepository {
            WHERE (sender_id = $1 AND recipient_id = $2) OR (sender_id = $2 AND recipient_id = $1)
            ORDER BY created_at DESC
            LIMIT $3`,
-          [userId1, userId2, limit]
+          [userId1, userId2, limit];
         );
         
         return result.rows.reverse(); // Return in chronological order
@@ -334,7 +334,7 @@ export class ChatRepository {
   /**
    * Flag a message for moderation
    */
-  async flagMessage(messageId: number, reason: string, flaggedBy: string): Promise<void> {
+  async flagMessage(req: Request, res: Response): Promise<void> {
     try {
       const client = await this.db.connect();
       try {
@@ -348,8 +348,7 @@ export class ChatRepository {
         logger.info('Message flagged', {
           messageId,
           reason,
-          flaggedBy,
-          return;
+          flaggedBy,`
 });
       } finally {
         client.release();
@@ -368,14 +367,14 @@ export class ChatRepository {
   /**
    * Get all public channels
    */
-  async getPublicChannels(): Promise<ChatChannel[]> {
+  async getPublicChannels(req: Request, res: Response): Promise<void> {
     try {
       const client = await this.db.connect();
       try {
         const result = await client.query(
           `SELECT * FROM chat_channels 
            WHERE type = 'public' 
-           ORDER BY member_count DESC, created_at ASC`
+           ORDER BY member_count DESC, created_at ASC`;
         );
         
         return result.rows;
@@ -393,13 +392,13 @@ export class ChatRepository {
   /**
    * Get zone-specific channels
    */
-  async getZoneChannels(zoneId: string): Promise<ChatChannel[]> {
+  async getZoneChannels(req: Request, res: Response): Promise<void> {
     try {
       const client = await this.db.connect();
       try {
         const result = await client.query(
           'SELECT * FROM chat_channels WHERE zone_id = $1 ORDER BY created_at ASC',
-          [zoneId]
+          [zoneId];
         );
         
         return result.rows;

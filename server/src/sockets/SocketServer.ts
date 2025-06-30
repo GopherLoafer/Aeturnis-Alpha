@@ -62,7 +62,7 @@ export class SocketServer {
     });
   }
 
-  public async start(): Promise<void> {
+  public async start(req: Request, res: Response): Promise<void> {
     try {
       // Connect to Redis for horizontal scaling
       await this.setupRedisAdapter();
@@ -88,7 +88,7 @@ export class SocketServer {
         redisConnected: !!this.redisClient,
         middlewareCount: 2,
         handlersAttached: true,
-        return;
+       );
 });
       
     } catch (error) {
@@ -100,12 +100,11 @@ export class SocketServer {
     }
   }
 
-  private async setupRedisAdapter(): Promise<void> {
+  private async setupRedisAdapter(req: Request, res: Response): Promise<void> {
     try {
       // Create Redis clients for pub/sub
       this.redisClient = createClient({
-        url: config.REDIS_URL || `redis://${config.REDIS_HOST  return;
-}:${config.REDIS_PORT}`,
+        url: config.REDIS_URL || `redis://${config.REDIS_HOST}:${config.REDIS_PORT}`,
         password: config.REDIS_PASSWORD,
       });
 
@@ -181,15 +180,14 @@ export class SocketServer {
 
   private setupGracefulShutdown(): void {
     const shutdown = async () => {
-      if (!this.isStarted) return;
-      
+      if (!this.isStarted)`;
       logger.info('Gracefully shutting down Socket.io server...');
       
       try {
         // Close all socket connections
         this.io.close((err) => {
           if (err) {
-            logger.error('Error closing Socket.io server', { error: err.message });
+            logger.error('Error closing Socket.io server', { error: err.message});
           } else {
             logger.info('Socket.io server closed successfully');
           }
@@ -232,12 +230,7 @@ export class SocketServer {
     return this.io.engine.clientsCount;
   }
 
-  public async getStats(): Promise<{
-    connections: number;
-    rooms: number;
-    adapters: string[];
-    uptime: number;
-  }> {
+  public async getStats(req: Request, res: Response): Promise<void> {
     return {
       connections: this.io.engine.clientsCount,
       rooms: this.io.sockets.adapter.rooms.size,

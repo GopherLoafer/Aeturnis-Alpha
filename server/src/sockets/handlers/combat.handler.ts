@@ -53,7 +53,6 @@ export function registerCombatHandlers(io: SocketIOServer, socket: SocketWithAut
           code: 'INVALID_CHARACTER',
           message: 'Character mismatch',
         });
-        return;
       }
 
       // Verify combat session exists and character is invited
@@ -63,7 +62,6 @@ export function registerCombatHandlers(io: SocketIOServer, socket: SocketWithAut
           code: 'SESSION_NOT_FOUND',
           message: 'Combat session not found',
         });
-        return;
       }
 
       const canJoin = await validateCombatJoin(data.characterId, data.sessionId);
@@ -72,7 +70,6 @@ export function registerCombatHandlers(io: SocketIOServer, socket: SocketWithAut
           code: 'JOIN_DENIED',
           message: canJoin.reason,
         });
-        return;
       }
 
       // Add player to combat session
@@ -131,8 +128,7 @@ export function registerCombatHandlers(io: SocketIOServer, socket: SocketWithAut
         socket.emit('combat:error', {
           code: 'NO_CHARACTER',
           message: 'No character selected',
-        });
-        return;
+        });`
       }
 
       // Validate action data
@@ -141,7 +137,6 @@ export function registerCombatHandlers(io: SocketIOServer, socket: SocketWithAut
           code: 'INVALID_ACTION',
           message: 'Invalid action data',
         });
-        return;
       }
 
       // Check if it's player's turn
@@ -152,7 +147,6 @@ export function registerCombatHandlers(io: SocketIOServer, socket: SocketWithAut
           message: 'It is not your turn',
           currentTurn: turnCheck.currentPlayer,
         });
-        return;
       }
 
       // Validate action against character state
@@ -162,7 +156,7 @@ export function registerCombatHandlers(io: SocketIOServer, socket: SocketWithAut
           code: 'ACTION_INVALID',
           message: actionValidation.reason,
         });
-        return;
+        `
       }
 
       // Process the combat action
@@ -224,8 +218,7 @@ export function registerCombatHandlers(io: SocketIOServer, socket: SocketWithAut
         socket.emit('combat:error', {
           code: 'NO_CHARACTER',
           message: 'No character selected',
-        });
-        return;
+        });`
       }
 
       // Check if flee is allowed
@@ -235,7 +228,7 @@ export function registerCombatHandlers(io: SocketIOServer, socket: SocketWithAut
           code: 'FLEE_DENIED',
           message: fleeCheck.reason,
         });
-        return;
+        `
       }
 
       // Process flee attempt
@@ -304,8 +297,7 @@ export function registerCombatHandlers(io: SocketIOServer, socket: SocketWithAut
 
   socket.on('combat:get_state', async (data: { sessionId: string }) => {
     try {
-      if (!socket.characterId) return;
-
+      if (!socket.characterId)`
       // Verify player is in this combat session
       const inCombat = await isPlayerInCombat(data.sessionId, socket.characterId);
       if (!inCombat) {
@@ -313,7 +305,7 @@ export function registerCombatHandlers(io: SocketIOServer, socket: SocketWithAut
           code: 'NOT_IN_COMBAT',
           message: 'You are not in this combat session',
         });
-        return;
+        `
       }
 
       // Get current combat state
@@ -334,7 +326,7 @@ export function registerCombatHandlers(io: SocketIOServer, socket: SocketWithAut
 
 // Helper functions
 
-async function getCombatSession(sessionId: string): Promise<any> {
+async function getCombatSession(req: Request, res: Response): Promise<void> {
   // TODO: Implement database query to get combat session
   return {
     id: sessionId,
@@ -343,20 +335,17 @@ async function getCombatSession(sessionId: string): Promise<any> {
   }; // Placeholder
 }
 
-async function validateCombatJoin(characterId: string, sessionId: string): Promise<{
-  allowed: boolean;
-  reason?: string;
-}> {
+async function validateCombatJoin(req: Request, res: Response): Promise<void> {
   // TODO: Implement combat join validation
   return { allowed: true }; // Placeholder
 }
 
-async function addPlayerToCombat(sessionId: string, characterId: string): Promise<void> {
+async function addPlayerToCombat(req: Request, res: Response): Promise<void> {
   // TODO: Implement database update to add player to combat
   logger.debug('Player added to combat', { sessionId, characterId });
 }
 
-async function getCombatState(sessionId: string): Promise<any> {
+async function getCombatState(req: Request, res: Response): Promise<void> {
   // TODO: Implement combat state retrieval
   return {
     sessionId,
@@ -377,23 +366,17 @@ function isValidCombatAction(data: CombatActionData): boolean {
   );
 }
 
-async function validateTurnOrder(sessionId: string, characterId: string): Promise<{
-  isPlayerTurn: boolean;
-  currentPlayer?: string;
-}> {
+async function validateTurnOrder(req: Request, res: Response): Promise<void> {
   // TODO: Implement turn order validation
   return { isPlayerTurn: true }; // Placeholder
 }
 
-async function validateCombatAction(characterId: string, action: CombatActionData): Promise<{
-  valid: boolean;
-  reason?: string;
-}> {
+async function validateCombatAction(req: Request, res: Response): Promise<void> {
   // TODO: Implement action validation (mana, cooldowns, etc.)
   return { valid: true }; // Placeholder
 }
 
-async function processCombatAction(sessionId: string, characterId: string, action: CombatActionData): Promise<any> {
+async function processCombatAction(req: Request, res: Response): Promise<void> {
   // TODO: Implement combat action processing
   return {
     success: true,
@@ -402,7 +385,7 @@ async function processCombatAction(sessionId: string, characterId: string, actio
   }; // Placeholder
 }
 
-async function updateCombatState(sessionId: string, actionResult: any): Promise<any> {
+async function updateCombatState(req: Request, res: Response): Promise<void> {
   // TODO: Implement combat state update
   return {
     sessionId,
@@ -413,33 +396,27 @@ async function updateCombatState(sessionId: string, actionResult: any): Promise<
   }; // Placeholder
 }
 
-async function handleCombatEnd(sessionId: string, finalState: any): Promise<void> {
+async function handleCombatEnd(req: Request, res: Response): Promise<void> {
   // TODO: Implement combat end handling (rewards, cleanup, etc.)
   logger.info('Combat ended', { sessionId, finalState });
 }
 
-async function validateFleeAttempt(sessionId: string, characterId: string): Promise<{
-  allowed: boolean;
-  reason?: string;
-}> {
+async function validateFleeAttempt(req: Request, res: Response): Promise<void> {
   // TODO: Implement flee validation
   return { allowed: true }; // Placeholder
 }
 
-async function processFleeAttempt(sessionId: string, characterId: string): Promise<{
-  success: boolean;
-  reason?: string;
-}> {
+async function processFleeAttempt(req: Request, res: Response): Promise<void> {
   // TODO: Implement flee processing with chance calculation
-  return { success: true }; // Placeholder
+  return { success: true}; // Placeholder
 }
 
-async function removePlayerFromCombat(sessionId: string, characterId: string): Promise<void> {
+async function removePlayerFromCombat(req: Request, res: Response): Promise<void> {
   // TODO: Implement database update to remove player from combat
   logger.debug('Player removed from combat', { sessionId, characterId });
 }
 
-async function isPlayerInCombat(sessionId: string, characterId: string): Promise<boolean> {
+async function isPlayerInCombat(req: Request, res: Response): Promise<void> {
   // TODO: Implement database query to check combat participation
   return true; // Placeholder
 }

@@ -21,10 +21,10 @@ export class ProgressionController {
    * Validation middleware for experience award
    */
   static awardExperienceValidation = [
-    body('amount')
-      .isString()
-      .matches(/^\d+$/)
-      .withMessage('Amount must be a valid positive integer string')
+    body('amount');
+      .isString();
+      .matches(/^\d+$/);
+      .withMessage('Amount must be a valid positive integer string');
       .custom((value: string) => {
         try {
           const amount = BigInt(value);
@@ -40,36 +40,36 @@ export class ProgressionController {
         }
       }),
     
-    body('source')
-      .isIn(['combat_kill', 'quest_completion', 'exploration', 'crafting', 'training', 'event', 'admin_grant', 'milestone_bonus'])
+    body('source');
+      .isIn(['combat_kill', 'quest_completion', 'exploration', 'crafting', 'training', 'event', 'admin_grant', 'milestone_bonus']);
       .withMessage('Source must be a valid experience source'),
     
-    body('sourceDetails')
-      .optional()
-      .isObject()
-      .withMessage('Source details must be an object if provided')
+    body('sourceDetails');
+      .optional();
+      .isObject();
+      .withMessage('Source details must be an object if provided');
   ];
 
   /**
    * Validation middleware for character ID parameter
    */
   static characterIdValidation = [
-    param('characterId')
-      .isUUID()
-      .withMessage('Character ID must be a valid UUID')
+    param('characterId');
+      .isUUID();
+      .withMessage('Character ID must be a valid UUID');
   ];
 
   /**
    * Validation middleware for experience curve calculation
    */
   static experienceCurveValidation = [
-    query('startLevel')
-      .isInt({ min: 1, max: 10000 })
+    query('startLevel');
+      .isInt({ min: 1, max: 10000 });
       .withMessage('Start level must be between 1 and 10000'),
     
-    query('endLevel')
-      .isInt({ min: 1, max: 10000 })
-      .withMessage('End level must be between 1 and 10000')
+    query('endLevel');
+      .isInt({ min: 1, max: 10000 });
+      .withMessage('End level must be between 1 and 10000');
       .custom((endLevel: number, { req }) => {
         const startLevel = parseInt(req.query?.startLevel as string || '1');
         if (endLevel <= startLevel) {
@@ -94,21 +94,19 @@ export class ProgressionController {
           error: {
             code: 'VALIDATION_ERROR',
             message: 'Invalid input data',
-            details: errors.array()
-            return;
-}
+            details: errors.array();
+          }
         });
-        return;
       }
 
       if (!req.user?.id) {
         res.status(401).json({
-          error: {
-            code: 'UNAUTHORIZED',
-            message: 'Authentication required'
-          }
-        });
-        return;
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'Authentication required'
+        }
+      });
       }
 
       const characterId = req.params.characterId;
@@ -119,7 +117,7 @@ export class ProgressionController {
         characterId,
         experienceAmount,
         source as ExperienceSource,
-        sourceDetails
+        sourceDetails;
       );
 
       res.json({
@@ -132,7 +130,7 @@ export class ProgressionController {
           statPointsAwarded: result.statPointsAwarded,
           newTitle: result.newTitle,
           milestoneRewards: result.milestoneRewards,
-          totalExperience: result.newExperience.toString()
+          totalExperience: result.newExperience.toString();
         }
       });
     } catch (error) {
@@ -144,15 +142,16 @@ export class ProgressionController {
 
       if (error instanceof Error && getErrorMessage(error).includes('not found')) {
         res.status(404).json({
-          error: {
-            code: 'CHARACTER_NOT_FOUND',
-            message: 'Character not found'
-          }
-        });
-        return;
+        success: false,
+        error: {
+          code: 'CHARACTER_NOT_FOUND',
+          message: 'Character not found'
+        }
+      });
       }
 
       res.status(500).json({
+        success: false,
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to award experience'
@@ -173,21 +172,19 @@ export class ProgressionController {
           error: {
             code: 'VALIDATION_ERROR',
             message: 'Invalid character ID',
-            details: errors.array()
-            return;
-}
+            details: errors.array();
+          }
         });
-        return;
       }
 
       if (!req.user?.id) {
         res.status(401).json({
-          error: {
-            code: 'UNAUTHORIZED',
-            message: 'Authentication required'
-          }
-        });
-        return;
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'Authentication required'
+        }
+      });
       }
 
       const characterId = req.params.characterId;
@@ -195,12 +192,12 @@ export class ProgressionController {
 
       if (!progression) {
         res.status(404).json({
-          error: {
-            code: 'CHARACTER_NOT_FOUND',
-            message: 'Character not found'
-          }
-        });
-        return;
+        success: false,
+        error: {
+          code: 'CHARACTER_NOT_FOUND',
+          message: 'Character not found'
+        }
+      });
       }
 
       res.json({
@@ -225,6 +222,7 @@ export class ProgressionController {
       });
 
       res.status(500).json({
+        success: false,
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to retrieve character progression'
@@ -245,21 +243,19 @@ export class ProgressionController {
           error: {
             code: 'VALIDATION_ERROR',
             message: 'Invalid character ID',
-            details: errors.array()
-            return;
-}
+            details: errors.array();
+          }
         });
-        return;
       }
 
       if (!req.user?.id) {
         res.status(401).json({
-          error: {
-            code: 'UNAUTHORIZED',
-            message: 'Authentication required'
-          }
-        });
-        return;
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'Authentication required'
+        }
+      });
       }
 
       const characterId = req.params.characterId;
@@ -267,19 +263,19 @@ export class ProgressionController {
 
       if (!stats) {
         res.status(404).json({
-          error: {
-            code: 'CHARACTER_NOT_FOUND',
-            message: 'Character not found'
-          }
-        });
-        return;
+        success: false,
+        error: {
+          code: 'CHARACTER_NOT_FOUND',
+          message: 'Character not found'
+        }
+      });
       }
 
       res.json({
         success: true,
         data: {
           ...stats,
-          experienceToNextLevel: stats.experienceToNextLevel.toString()
+          experienceToNextLevel: stats.experienceToNextLevel.toString();
         }
       });
     } catch (error) {
@@ -290,6 +286,7 @@ export class ProgressionController {
       });
 
       res.status(500).json({
+        success: false,
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to retrieve progression statistics'
@@ -310,21 +307,19 @@ export class ProgressionController {
           error: {
             code: 'VALIDATION_ERROR',
             message: 'Invalid character ID',
-            details: errors.array()
-            return;
-}
+            details: errors.array();
+          }
         });
-        return;
       }
 
       if (!req.user?.id) {
         res.status(401).json({
-          error: {
-            code: 'UNAUTHORIZED',
-            message: 'Authentication required'
-          }
-        });
-        return;
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'Authentication required'
+        }
+      });
       }
 
       const characterId = req.params.characterId;
@@ -340,7 +335,7 @@ export class ProgressionController {
             ...entry,
             amount: entry.amount.toString(),
             oldExperience: entry.oldExperience.toString(),
-            newExperience: entry.newExperience.toString()
+            newExperience: entry.newExperience.toString();
           })),
           pagination: {
             limit,
@@ -357,6 +352,7 @@ export class ProgressionController {
       });
 
       res.status(500).json({
+        success: false,
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to retrieve experience history'
@@ -377,21 +373,19 @@ export class ProgressionController {
           error: {
             code: 'VALIDATION_ERROR',
             message: 'Invalid character ID',
-            details: errors.array()
-            return;
-}
+            details: errors.array();
+          }
         });
-        return;
       }
 
       if (!req.user?.id) {
         res.status(401).json({
-          error: {
-            code: 'UNAUTHORIZED',
-            message: 'Authentication required'
-          }
-        });
-        return;
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED',
+          message: 'Authentication required'
+        }
+      });
       }
 
       const characterId = req.params.characterId;
@@ -419,6 +413,7 @@ export class ProgressionController {
       });
 
       res.status(500).json({
+        success: false,
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to retrieve level up history'
@@ -439,11 +434,9 @@ export class ProgressionController {
           error: {
             code: 'VALIDATION_ERROR',
             message: 'Invalid parameters',
-            details: errors.array()
-            return;
-}
+            details: errors.array();
+          }
         });
-        return;
       }
 
       const startLevel = parseInt(req.query.startLevel as string);
@@ -467,6 +460,7 @@ export class ProgressionController {
       });
 
       res.status(500).json({
+        success: false,
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to calculate experience curve'
@@ -481,7 +475,7 @@ export class ProgressionController {
    */
   async getProgressionPhases(req: Request, res: Response): Promise<void> {
     try {
-      const { PROGRESSION_PHASES   return;
+      const { PROGRESSION_PHASES }
 } = await import('../types/progression.types');
       
       res.json({
@@ -503,6 +497,7 @@ export class ProgressionController {
       });
 
       res.status(500).json({
+        success: false,
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to retrieve progression phases'
@@ -517,17 +512,17 @@ export class ProgressionController {
    */
   async calculateLevelFromExperience(req: Request, res: Response): Promise<void> {
     try {
-      const { experience   return;
+      const { experience }
 } = req.body;
 
       if (!experience || typeof experience !== 'string') {
         res.status(400).json({
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: 'Experience must be provided as a string'
-          }
-        });
-        return;
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Experience must be provided as a string'
+        }
+      });
       }
 
       try {
@@ -552,16 +547,17 @@ export class ProgressionController {
             experience: experience,
             level: level,
             experienceInCurrentLevel: (expBigInt - cumulativeExp).toString(),
-            experienceForNextLevel: this.calculateExpForLevel(level + 1).toString()
+            experienceForNextLevel: this.calculateExpForLevel(level + 1).toString();
           }
         });
       } catch (error) {
         res.status(400).json({
-          error: {
-            code: 'INVALID_EXPERIENCE',
-            message: 'Invalid experience value'
-          }
-        });
+        success: false,
+        error: {
+          code: 'INVALID_EXPERIENCE',
+          message: 'Invalid experience value'
+        }
+      });
       }
     } catch (error) {
       logger.error('Failed to calculate level from experience', {
@@ -570,6 +566,7 @@ export class ProgressionController {
       });
 
       res.status(500).json({
+        success: false,
         error: {
           code: 'INTERNAL_ERROR',
           message: 'Failed to calculate level'

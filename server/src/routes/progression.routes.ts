@@ -22,55 +22,55 @@ export function createProgressionRoutes(progressionController: ProgressionContro
     authRateLimit, // Limit experience award attempts
     ProgressionController.characterIdValidation,
     ProgressionController.awardExperienceValidation,
-    progressionController.awardExperience.bind(progressionController)
+    progressionController.awardExperience.bind(progressionController);
   );
 
   // GET /api/progression/characters/:characterId - Get character progression
   router.get(
     '/characters/:characterId',
     ProgressionController.characterIdValidation,
-    progressionController.getCharacterProgression.bind(progressionController)
+    progressionController.getCharacterProgression.bind(progressionController);
   );
 
   // GET /api/progression/characters/:characterId/stats - Get progression statistics
   router.get(
     '/characters/:characterId/stats',
     ProgressionController.characterIdValidation,
-    progressionController.getProgressionStats.bind(progressionController)
+    progressionController.getProgressionStats.bind(progressionController);
   );
 
   // GET /api/progression/characters/:characterId/experience-history - Get experience history
   router.get(
     '/characters/:characterId/experience-history',
     ProgressionController.characterIdValidation,
-    progressionController.getExperienceHistory.bind(progressionController)
+    progressionController.getExperienceHistory.bind(progressionController);
   );
 
   // GET /api/progression/characters/:characterId/level-history - Get level up history
   router.get(
     '/characters/:characterId/level-history',
     ProgressionController.characterIdValidation,
-    progressionController.getLevelUpHistory.bind(progressionController)
+    progressionController.getLevelUpHistory.bind(progressionController);
   );
 
   // GET /api/progression/experience-curve - Calculate experience curve
   router.get(
     '/experience-curve',
     ProgressionController.experienceCurveValidation,
-    progressionController.getExperienceCurve.bind(progressionController)
+    progressionController.getExperienceCurve.bind(progressionController);
   );
 
   // GET /api/progression/phases - Get progression phases information
   router.get(
     '/phases',
-    progressionController.getProgressionPhases.bind(progressionController)
+    progressionController.getProgressionPhases.bind(progressionController);
   );
 
   // POST /api/progression/calculate-level - Calculate level from experience (utility)
   router.post(
     '/calculate-level',
     chatRateLimit, // Allow frequent calculations but prevent spam
-    progressionController.calculateLevelFromExperience.bind(progressionController)
+    progressionController.calculateLevelFromExperience.bind(progressionController);
   );
 
   return router;

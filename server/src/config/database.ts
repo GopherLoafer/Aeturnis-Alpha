@@ -60,7 +60,7 @@ export const getDatabase = (): Pool => {
     pool = new Pool(config);
     
     pool.on('error', (err) => {
-      winston.error('Database pool error:', err);
+      winston.error('Database pool error: ', err);
     });
 
     pool.on('connect', () => {
@@ -90,7 +90,7 @@ export const getRedis = (): Redis => {
     });
 
     redisClient.on('error', (err) => {
-      winston.error('Redis connection error:', err);
+      winston.error('Redis connection error: ', err);
     });
 
     redisClient.on('connect', () => {
@@ -136,7 +136,7 @@ export const initializeDatabase = async (): Promise<void> => {
 
     // Create updated_at trigger function
     await db.query(`
-      CREATE OR REPLACE FUNCTION update_updated_at_column()
+      CREATE OR REPLACE FUNCTION update_updated_at_column();
       RETURNS TRIGGER AS $$
       BEGIN
         NEW.updated_at = CURRENT_TIMESTAMP;

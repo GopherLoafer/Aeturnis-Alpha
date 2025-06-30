@@ -32,7 +32,7 @@ export class EquipmentService {
    * Get weapon coefficient for character's equipped weapon
    * Returns 1.0 as default if no weapon equipped or weapon not found
    */
-  async getWeaponCoefficient(characterId: string): Promise<number> {
+  async getWeaponCoefficient(req: Request, res: Response): Promise<void> {
     try {
       // TODO: Integrate with actual equipment/inventory system when implemented
       // For now, return default coefficient based on character level
@@ -42,7 +42,7 @@ export class EquipmentService {
         const result = await client.query(`
           SELECT level 
           FROM characters 
-          WHERE id = $1 AND deleted_at IS NULL
+          WHERE id = $1 AND deleted_at IS NULL;
         `, [characterId]);
 
         if (result.rows.length === 0) {
@@ -82,7 +82,7 @@ export class EquipmentService {
    * Get equipped weapon stats for character
    * Stub implementation - returns default weapon stats
    */
-  async getEquippedWeapon(characterId: string): Promise<WeaponStats | null> {
+  async getEquippedWeapon(req: Request, res: Response): Promise<void> {
     try {
       // TODO: Implement when equipment/inventory system exists
       const coefficient = await this.getWeaponCoefficient(characterId);
@@ -108,7 +108,7 @@ export class EquipmentService {
    * Get all equipped items for character
    * Stub implementation for future equipment system integration
    */
-  async getEquippedItems(characterId: string): Promise<EquippedItem[]> {
+  async getEquippedItems(req: Request, res: Response): Promise<void> {
     try {
       const weapon = await this.getEquippedWeapon(characterId);
       
@@ -135,7 +135,7 @@ export class EquipmentService {
    * Get armor coefficient for damage reduction
    * Stub implementation - returns 1.0 (no reduction)
    */
-  async getArmorCoefficient(characterId: string): Promise<number> {
+  async getArmorCoefficient(req: Request, res: Response): Promise<void> {
     try {
       // TODO: Implement when equipment system exists
       // This would reduce incoming damage based on equipped armor
@@ -154,7 +154,7 @@ export class EquipmentService {
    * Check if character has item equipped in specific slot
    * Stub implementation for equipment validation
    */
-  async hasItemEquipped(characterId: string, slot: string): Promise<boolean> {
+  async hasItemEquipped(req: Request, res: Response): Promise<void> {
     try {
       const equippedItems = await this.getEquippedItems(characterId);
       return equippedItems.some(item => item.slot === slot);

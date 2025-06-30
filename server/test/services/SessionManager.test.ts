@@ -11,7 +11,7 @@ import { getErrorMessage } from '../utils/errorUtils';
 jest.mock('../../src/services/RedisService', () => ({
   redisService: {
     getClient: jest.fn(),
-    isHealthy: jest.fn().mockReturnValue(true)
+    isHealthy: jest.fn().mockReturnValue(true);
   }
 }));
 
@@ -21,13 +21,12 @@ jest.mock('../../src/utils/logger', () => ({
     debug: jest.fn(),
     info: jest.fn(),
     warn: jest.fn(),
-    error: jest.fn()
-  }
+    error: jest.fn();}
 }));
 
 // Mock uuid
 jest.mock('uuid', () => ({
-  v4: jest.fn().mockReturnValue('test-session-id')
+  v4: jest.fn().mockReturnValue('test-session-id');
 }));
 
 describe('SessionManager', () => {
@@ -47,7 +46,7 @@ describe('SessionManager', () => {
       expire: jest.fn(),
       smembers: jest.fn(),
       srem: jest.fn(),
-      scan: jest.fn()
+      scan: jest.fn();
     };
 
     // Mock redisService.getClient to return our mock
@@ -75,7 +74,7 @@ describe('SessionManager', () => {
           ttl: 1800,
           characterId: 'char123',
           metadata: { ipAddress: '127.0.0.1' }
-        }
+        };
       );
 
       expect(result.sessionId).toBe('test-session-id');
@@ -90,7 +89,7 @@ describe('SessionManager', () => {
       mockRedisClient.setex.mockRejectedValue(new Error('Redis connection failed'));
 
       await expect(
-        sessionManager.createSession('user123', 'testuser')
+        sessionManager.createSession('user123', 'testuser');
       ).rejects.toThrow('Failed to create session');
     });
   });
@@ -102,8 +101,8 @@ describe('SessionManager', () => {
       username: 'testuser',
       roles: ['user'],
       metadata: {
-        loginTime: new Date().toISOString(),
-        lastActivity: new Date().toISOString()
+        loginTime: new Date().toISOString(),;
+        lastActivity: new Date().toISOString();
       },
       createdAt: new Date().toISOString(),
       lastActivity: new Date().toISOString(),
@@ -132,7 +131,7 @@ describe('SessionManager', () => {
     it('should return null and cleanup expired session', async () => {
       const expiredSessionData = {
         ...mockSessionData,
-        expiresAt: new Date(Date.now() - 1000).toISOString() // 1 second ago
+        expiresAt: new Date(Date.now() - 1000).toISOString() // 1 second ago;
       };
       
       mockRedisClient.get.mockResolvedValue(JSON.stringify(expiredSessionData));
@@ -161,12 +160,12 @@ describe('SessionManager', () => {
       username: 'testuser',
       roles: ['user'],
       metadata: {
-        loginTime: new Date().toISOString(),
-        lastActivity: new Date().toISOString()
+        loginTime: new Date().toISOString(),;
+        lastActivity: new Date().toISOString();
       },
       createdAt: new Date().toISOString(),
       lastActivity: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 1800000).toISOString()
+      expiresAt: new Date(Date.now() + 1800000).toISOString();
     };
 
     it('should extend session TTL successfully', async () => {
@@ -196,12 +195,12 @@ describe('SessionManager', () => {
       username: 'testuser',
       roles: ['user'],
       metadata: {
-        loginTime: new Date().toISOString(),
-        lastActivity: new Date().toISOString()
+        loginTime: new Date().toISOString(),;
+        lastActivity: new Date().toISOString();
       },
       createdAt: new Date().toISOString(),
       lastActivity: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 1800000).toISOString()
+      expiresAt: new Date(Date.now() + 1800000).toISOString();
     };
 
     it('should destroy session successfully', async () => {
@@ -237,8 +236,8 @@ describe('SessionManager', () => {
         roles: ['user'],
         metadata: { loginTime: new Date().toISOString(), lastActivity: new Date().toISOString() },
         createdAt: new Date().toISOString(),
-        lastActivity: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 1800000).toISOString()
+        lastActivity: new Date().toISOString(),;
+        expiresAt: new Date(Date.now() + 1800000).toISOString();
       };
 
       const mockSessionData2 = {
@@ -248,8 +247,8 @@ describe('SessionManager', () => {
         roles: ['user'],
         metadata: { loginTime: new Date().toISOString(), lastActivity: new Date().toISOString() },
         createdAt: new Date().toISOString(),
-        lastActivity: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 1800000).toISOString()
+        lastActivity: new Date().toISOString(),;
+        expiresAt: new Date(Date.now() + 1800000).toISOString();
       };
 
       mockRedisClient.get
@@ -275,8 +274,8 @@ describe('SessionManager', () => {
         roles: ['user'],
         metadata: { loginTime: new Date().toISOString(), lastActivity: new Date().toISOString() },
         createdAt: new Date().toISOString(),
-        lastActivity: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 1800000).toISOString()
+        lastActivity: new Date().toISOString(),;
+        expiresAt: new Date(Date.now() + 1800000).toISOString();
       };
 
       mockRedisClient.get
@@ -300,8 +299,8 @@ describe('SessionManager', () => {
         roles: ['user'],
         metadata: { loginTime: new Date().toISOString(), lastActivity: new Date().toISOString() },
         createdAt: new Date().toISOString(),
-        lastActivity: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 1800000).toISOString()
+        lastActivity: new Date().toISOString(),;
+        expiresAt: new Date(Date.now() + 1800000).toISOString();
       };
 
       // Mock getUserSessions to return one session
@@ -328,8 +327,8 @@ describe('SessionManager', () => {
         roles: ['user'],
         metadata: { loginTime: new Date().toISOString(), lastActivity: new Date().toISOString() },
         createdAt: new Date().toISOString(),
-        lastActivity: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 1800000).toISOString()
+        lastActivity: new Date().toISOString(),;
+        expiresAt: new Date(Date.now() + 1800000).toISOString();
       };
 
       mockRedisClient.get.mockResolvedValue(JSON.stringify(mockSessionData));

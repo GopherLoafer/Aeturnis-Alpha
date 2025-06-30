@@ -41,11 +41,7 @@ export class DistributedLock {
   /**
    * Acquire a distributed lock
    */
-  public async acquireLock(
-    resource: string,
-    ttl: number,
-    options: LockOptions = {}
-  ): Promise<Lock | null> {
+  public async acquireLock(req: Request, res: Response): Promise<void> {
     const {
       retryCount = this.defaultRetryCount,
       retryDelay = this.defaultRetryDelay,
@@ -85,8 +81,7 @@ export class DistributedLock {
         logger.error('Error acquiring distributed lock', {
           resource,
           attempt: attempt + 1,
-          error: getErrorMessage(error)
-        });
+          error: getErrorMessage(error);});
       }
     }
 
@@ -101,15 +96,15 @@ export class DistributedLock {
   /**
    * Release a distributed lock
    */
-  public async releaseLock(lock: Lock): Promise<boolean> {
+  public async releaseLock(req: Request, res: Response): Promise<void> {
     try {
       const redis = redisService.getClient();
       const lockKey = this.buildLockKey(lock.resource);
 
       // Use Lua script to ensure atomic check-and-delete
       const luaScript = `
-        if redis.call("GET", KEYS[1]) == ARGV[1] then
-          return redis.call("DEL", KEYS[1])
+        if redis.call("GET", KEYS[1]) == ARGV[1] then;
+          return redis.call("DEL", KEYS[1]);
         else
           return 0
         end
@@ -134,8 +129,7 @@ export class DistributedLock {
     } catch (error) {
       logger.error('Error releasing distributed lock', {
         resource: lock.resource,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       return false;
     }
   }
@@ -143,15 +137,15 @@ export class DistributedLock {
   /**
    * Extend a distributed lock TTL
    */
-  public async extendLock(lock: Lock, additionalTtl: number): Promise<boolean> {
+  public async extendLock(req: Request, res: Response): Promise<void> {
     try {
       const redis = redisService.getClient();
       const lockKey = this.buildLockKey(lock.resource);
 
       // Use Lua script to ensure atomic check-and-extend
       const luaScript = `
-        if redis.call("GET", KEYS[1]) == ARGV[1] then
-          return redis.call("PEXPIRE", KEYS[1], ARGV[2])
+        if redis.call("GET", KEYS[1]) == ARGV[1] then;
+          return redis.call("PEXPIRE", KEYS[1], ARGV[2]);
         else
           return 0
         end
@@ -161,8 +155,8 @@ export class DistributedLock {
         luaScript, 
         1, 
         lockKey, 
-        lock.value, 
-        additionalTtl.toString()
+        lock.value, ;
+        additionalTtl.toString();
       ) as number;
 
       const extended = result === 1;
@@ -180,8 +174,7 @@ export class DistributedLock {
     } catch (error) {
       logger.error('Error extending distributed lock', {
         resource: lock.resource,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       return false;
     }
   }
@@ -221,7 +214,7 @@ export class DistributedLock {
   /**
    * Check if a resource is currently locked
    */
-  public async isLocked(resource: string): Promise<boolean> {
+  public async isLocked(req: Request, res: Response): Promise<void> {
     try {
       const redis = redisService.getClient();
       const lockKey = this.buildLockKey(resource);
@@ -231,8 +224,7 @@ export class DistributedLock {
     } catch (error) {
       logger.error('Error checking lock status', {
         resource,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       return false;
     }
   }
@@ -240,11 +232,7 @@ export class DistributedLock {
   /**
    * Get lock information for a resource
    */
-  public async getLockInfo(resource: string): Promise<{
-    isLocked: boolean;
-    ttl?: number;
-    value?: string;
-  }> {
+  public async getLockInfo(req: Request, res: Response): Promise<void> {
     try {
       const redis = redisService.getClient();
       const lockKey = this.buildLockKey(resource);
@@ -268,8 +256,7 @@ export class DistributedLock {
     } catch (error) {
       logger.error('Error getting lock info', {
         resource,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       return { isLocked: false };
     }
   }
@@ -277,7 +264,7 @@ export class DistributedLock {
   /**
    * Force release a lock (use with caution)
    */
-  public async forceReleaseLock(resource: string): Promise<boolean> {
+  public async forceReleaseLock(req: Request, res: Response): Promise<void> {
     try {
       const redis = redisService.getClient();
       const lockKey = this.buildLockKey(resource);
@@ -293,8 +280,7 @@ export class DistributedLock {
     } catch (error) {
       logger.error('Error force releasing lock', {
         resource,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       return false;
     }
   }
@@ -302,7 +288,7 @@ export class DistributedLock {
   /**
    * Clean up expired locks
    */
-  public async cleanupExpiredLocks(): Promise<number> {
+  public async cleanupExpiredLocks(req: Request, res: Response): Promise<void> {
     try {
       const redis = redisService.getClient();
       const pattern = `${this.keyPrefix}*`;
@@ -334,8 +320,7 @@ export class DistributedLock {
       return cleanedCount;
     } catch (error) {
       logger.error('Error cleaning up expired locks', {
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       return 0;
     }
   }
@@ -343,11 +328,7 @@ export class DistributedLock {
   /**
    * Get lock statistics
    */
-  public async getLockStats(): Promise<{
-    totalLocks: number;
-    activeLocks: number;
-    expiredLocks: number;
-  }> {
+  public async getLockStats(req: Request, res: Response): Promise<void> {
     try {
       const redis = redisService.getClient();
       const pattern = `${this.keyPrefix}*`;
@@ -380,8 +361,7 @@ export class DistributedLock {
       };
     } catch (error) {
       logger.error('Error getting lock stats', {
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       return {
         totalLocks: 0,
         activeLocks: 0,
@@ -393,7 +373,7 @@ export class DistributedLock {
   /**
    * Try to acquire lock atomically
    */
-  private async tryAcquireLock(key: string, value: string, ttl: number): Promise<boolean> {
+  private async tryAcquireLock(req: Request, res: Response): Promise<void> {
     const redis = redisService.getClient();
     
     // Use SET with NX (only if not exists) and PX (expire in milliseconds)
@@ -412,7 +392,7 @@ export class DistributedLock {
   /**
    * Delay utility for retry backoff
    */
-  private delay(ms: number): Promise<void> {
+  private delay(req: Request, res: Response): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 }

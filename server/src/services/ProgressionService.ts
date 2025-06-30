@@ -8,7 +8,6 @@ import { logger } from '../utils/logger';
 import { ProgressionRepository } from '../database/repositories/ProgressionRepository';
 import { CharacterRepository } from '../database/repositories/CharacterRepository';
 import { CacheManager } from './CacheManager';
-import {
 import { getErrorMessage } from '../utils/errorUtils';
   ProgressionPhase,
   ExperienceAwardResult,
@@ -90,12 +89,7 @@ export class ProgressionService {
   /**
    * Award experience to a character and handle level ups
    */
-  async awardExperience(
-    characterId: string,
-    amount: bigint,
-    source: ExperienceSource,
-    sourceDetails?: Record<string, any>
-  ): Promise<ExperienceAwardResult> {
+  async awardExperience(req: Request, res: Response): Promise<void> {
     try {
       // Get current character progression
       const progression = await this.progressionRepo.getCharacterProgression(characterId);
@@ -153,7 +147,7 @@ export class ProgressionService {
           characterId,
           oldLevel,
           newLevel,
-          progression
+          progression;
         );
         
         result.newTitle = levelUpResults.newTitle;
@@ -269,16 +263,7 @@ export class ProgressionService {
   /**
    * Handle level up rewards and phase transitions
    */
-  private async handleLevelUp(
-    characterId: string,
-    oldLevel: number,
-    newLevel: number,
-    progression: CharacterProgression
-  ): Promise<{
-    statPointsAwarded: number;
-    newTitle?: string;
-    milestoneRewards: MilestoneReward[];
-  }> {
+  private async handleLevelUp(req: Request, res: Response): Promise<void> {
     let totalStatPointsAwarded = 0;
     let newTitle: string | undefined;
     const milestoneRewards: MilestoneReward[] = [];
@@ -301,7 +286,7 @@ export class ProgressionService {
       }
 
       // Check for special title unlocks
-      const titleUnlockLevel = Object.entries(PROGRESSION_CONSTANTS.TITLE_UNLOCKS)
+      const titleUnlockLevel = Object.entries(PROGRESSION_CONSTANTS.TITLE_UNLOCKS);
         .find(([_, unlockLevel]) => unlockLevel === level);
       
       if (titleUnlockLevel) {
@@ -321,10 +306,7 @@ export class ProgressionService {
   /**
    * Award milestone rewards for reaching specific levels
    */
-  private async awardLevelUpRewards(
-    characterId: string,
-    level: number
-  ): Promise<MilestoneReward[]> {
+  private async awardLevelUpRewards(req: Request, res: Response): Promise<void> {
     const rewards = MILESTONE_REWARDS[level as keyof typeof MILESTONE_REWARDS] || [];
     const awardedRewards: MilestoneReward[] = [];
 
@@ -382,15 +364,14 @@ export class ProgressionService {
   /**
    * Award gold to character (helper method)
    */
-  private async awardGold(characterId: string, amount: number): Promise<void> {
+  private async awardGold(req: Request, res: Response): Promise<void> {
     try {
       const client = await this.db.connect();
       try {
         await client.query(
           'UPDATE characters SET gold = gold + $1 WHERE id = $2',
           [amount, characterId]
-        );
-        return;
+        ); }
 } finally {
         client.release();
       }
@@ -407,7 +388,7 @@ export class ProgressionService {
   /**
    * Get character progression summary
    */
-  async getCharacterProgression(characterId: string): Promise<CharacterProgression | null> {
+  async getCharacterProgression(req: Request, res: Response): Promise<void> {
     try {
       const cacheKey = `progression:${characterId}`;
       const cached = await this.cacheManager.get<CharacterProgression>(cacheKey);
@@ -447,16 +428,7 @@ export class ProgressionService {
   /**
    * Get progression statistics for a character
    */
-  async getProgressionStats(characterId: string): Promise<{
-    currentLevel: number;
-    currentPhase: string;
-    experienceToNextLevel: bigint;
-    progressPercentage: number;
-    totalStatPointsEarned: number;
-    availableStatPoints: number;
-    titlesUnlocked: string[];
-    nextMilestone: number | null;
-  } | null> {
+  async getProgressionStats(req: Request, res: Response): Promise<void> {
     try {
       const progression = await this.getCharacterProgression(characterId);
       if (!progression) {
@@ -469,10 +441,10 @@ export class ProgressionService {
       const experienceNeededForCurrentLevel = nextLevelExp;
       
       const progressPercentage = experienceNeededForCurrentLevel > 0n 
-        ? Number((experienceInCurrentLevel * 100n) / experienceNeededForCurrentLevel)
+        ? Number((experienceInCurrentLevel * 100n) / experienceNeededForCurrentLevel);
         : 100;
 
-      const nextMilestone = PROGRESSION_CONSTANTS.MILESTONE_LEVELS
+      const nextMilestone = PROGRESSION_CONSTANTS.MILESTONE_LEVELS;
         .find(level => level > progression.level) || null;
 
       return {
@@ -497,12 +469,11 @@ export class ProgressionService {
   /**
    * Clear character progression cache
    */
-  private async clearCharacterCache(characterId: string): Promise<void> {
+  private async clearCharacterCache(req: Request, res: Response): Promise<void> {
     try {
       await Promise.all([
-        this.cacheManager.delete(`progression:${characterId  return;
-}`),
-        this.cacheManager.delete(`char:${characterId}:data`)
+        this.cacheManager.delete(`progression:${characterId}`),
+        this.cacheManager.delete(`char:${characterId}:data`);
       ]);
     } catch (error) {
       logger.warn('Failed to clear character cache', {

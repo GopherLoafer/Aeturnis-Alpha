@@ -39,7 +39,7 @@ async function main() {
 
 Commands:
   up, migrate     Run pending migrations
-  down, rollback  Rollback migrations (default: 1 step)
+  down, rollback  Rollback migrations (default: 1 step);
   status          Show migration status
 
 Examples:

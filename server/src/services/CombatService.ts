@@ -9,7 +9,6 @@ import { CacheManager } from './CacheManager';
 import { RealtimeService } from './RealtimeService';
 import { EquipmentService } from './EquipmentService';
 import { AffinityService } from './AffinityService';
-import {
 import { getErrorMessage } from '../utils/errorUtils';
   CombatSession,
   CombatParticipant,
@@ -58,7 +57,7 @@ export class CombatService {
   /**
    * Start a new combat encounter
    */
-  async startEncounter(sessionData: CreateCombatSessionDto): Promise<CombatSession> {
+  async startEncounter(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     
     try {
@@ -87,7 +86,7 @@ export class CombatService {
         sessionData.zoneId,
         [],
         0,
-        1
+        1;
       ]);
 
       const session: CombatSession = this.mapSessionRow(sessionResult.rows[0]);
@@ -117,7 +116,7 @@ export class CombatService {
           characterStats.hp,
           characterStats.mp,
           characterStats.mp,
-          'alive'
+          'alive';
         ]);
 
         participants.push(this.mapParticipantRow(participantResult.rows[0]));
@@ -125,7 +124,7 @@ export class CombatService {
 
       // Determine turn order based on initiative
       const turnOrder = participants
-        .sort((a, b) => b.initiative - a.initiative)
+        .sort((a, b) => b.initiative - a.initiative);
         .map(p => p.characterId);
 
       // Update session with turn order and activate
@@ -173,11 +172,7 @@ export class CombatService {
   /**
    * Perform a combat action
    */
-  async performAction(
-    sessionId: string,
-    actorId: string,
-    actionRequest: CombatActionRequest
-  ): Promise<CombatActionResult> {
+  async performAction(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     
     try {
@@ -189,8 +184,7 @@ export class CombatService {
         return {
           success: false,
           message: validation.errorMessage || 'Action not allowed',
-          error: validation.errorCode
-        };
+          error: validation.errorCode};
       }
 
       const session = await this.getSession(sessionId);
@@ -198,20 +192,19 @@ export class CombatService {
         return {
           success: false,
           message: 'Combat session not found',
-          error: CombatErrorCode.COMBAT_NOT_FOUND
-        };
+          error: CombatErrorCode.COMBAT_NOT_FOUND};
       }
 
       // Calculate action results
       const actionResult = await this.calculateActionResult(
         sessionId,
         actorId,
-        actionRequest
+        actionRequest;
       );
 
       // Process the action using stored procedure
-      const actionId = await client.query(`
-        SELECT process_combat_action($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+      const actionId = await client.query(`;
+        SELECT process_combat_action($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13);
       `, [
         sessionId,
         actorId,
@@ -310,7 +303,7 @@ export class CombatService {
   /**
    * Get combat session by ID
    */
-  async getSession(sessionId: string): Promise<CombatSession | null> {
+  async getSession(req: Request, res: Response): Promise<void> {
     const cacheKey = `combat:session:${sessionId}`;
     const cached = await this.cacheManager.get<CombatSession>(cacheKey);
     
@@ -321,7 +314,7 @@ export class CombatService {
     const client = await this.db.connect();
     try {
       const result = await client.query(`
-        SELECT * FROM combat_sessions WHERE id = $1
+        SELECT * FROM combat_sessions WHERE id = $1;
       `, [sessionId]);
 
       if (result.rows.length === 0) {
@@ -340,11 +333,7 @@ export class CombatService {
   /**
    * End combat encounter
    */
-  async endEncounter(
-    sessionId: string,
-    winner?: string,
-    reason: CombatEndReason = CombatEndReason.VICTORY
-  ): Promise<void> {
+  async endEncounter(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     
     try {
@@ -360,8 +349,7 @@ export class CombatService {
       // Update all participants to remove from combat
       const participants = await this.getSessionParticipants(sessionId);
       for (const participant of participants) {
-        await this.updateCharacterCombatStatus(participant.characterId, 'idle');
-        return;
+        await this.updateCharacterCombatStatus(participant.characterId, 'idle');`
 }
 
       // Award experience and rewards if there's a winner
@@ -390,13 +378,13 @@ export class CombatService {
   /**
    * Get session participants
    */
-  async getSessionParticipants(sessionId: string): Promise<CombatParticipant[]> {
+  async getSessionParticipants(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     try {
       const result = await client.query(`
         SELECT * FROM combat_participants 
         WHERE session_id = $1 
-        ORDER BY initiative DESC
+        ORDER BY initiative DESC;
       `, [sessionId]);
 
       return result.rows.map(row => this.mapParticipantRow(row));
@@ -408,11 +396,11 @@ export class CombatService {
   /**
    * Get combat statistics
    */
-  async getCombatStatistics(sessionId: string): Promise<CombatStats> {
+  async getCombatStatistics(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     try {
-      const result = await client.query(`
-        SELECT * FROM get_combat_statistics($1)
+      const result = await client.query(`;
+        SELECT * FROM get_combat_statistics($1);
       `, [sessionId]);
 
       if (result.rows.length === 0) {
@@ -449,11 +437,7 @@ export class CombatService {
   /**
    * Validate combat action
    */
-  private async validateAction(
-    sessionId: string,
-    actorId: string,
-    actionRequest: CombatActionRequest
-  ): Promise<CombatValidation> {
+  private async validateAction(req: Request, res: Response): Promise<void> {
     const session = await this.getSession(sessionId);
     if (!session) {
       return {
@@ -515,7 +499,7 @@ export class CombatService {
           canAct: false,
           errorCode: CombatErrorCode.ACTION_ON_COOLDOWN,
           errorMessage: 'Action is on cooldown',
-          cooldownRemaining: Math.ceil(remainingMs / 1000)
+          cooldownRemaining: Math.ceil(remainingMs / 1000);
         };
       }
     }
@@ -559,14 +543,10 @@ export class CombatService {
   /**
    * Calculate action result with damage, healing, and effects
    */
-  private async calculateActionResult(
-    sessionId: string,
-    actorId: string,
-    actionRequest: CombatActionRequest
-  ): Promise<CombatAction> {
+  private async calculateActionResult(req: Request, res: Response): Promise<void> {
     const participants = await this.getSessionParticipants(sessionId);
     const actor = participants.find(p => p.characterId === actorId);
-    const target = actionRequest.targetId ? 
+    const target = actionRequest.targetId ? ;
       participants.find(p => p.characterId === actionRequest.targetId) : null;
 
     if (!actor) {
@@ -603,7 +583,7 @@ export class CombatService {
         if (isMissed) damage = 0;
         
         isBlocked = Math.random() < COMBAT_CONSTANTS.BLOCK_CHANCE;
-        if (isBlocked) damage = Math.floor(damage * 0.3);
+        if (isBlocked) damage = Math.floor(damage  * 0.3);
         
         description = this.generateActionDescription('attack', actor, target || null, damage, isCritical, isBlocked, isMissed);
         break;
@@ -673,19 +653,14 @@ export class CombatService {
       statusEffectApplied: statusEffect,
       description,
       turnNumber: session.turnNumber,
-      createdAt: new Date()
+      createdAt: new Date();
     };
   }
 
   /**
    * Helper methods for damage calculations
    */
-  private async calculateAttackDamage(
-    actorId: string, 
-    strength: number, 
-    targetVitality: number,
-    actionName: string = 'basic_attack'
-  ): Promise<number> {
+  private async calculateAttackDamage(req: Request, res: Response): Promise<void> {
     const weaponCoef = await this.equipmentService.getWeaponCoefficient(actorId);
     
     // Get weapon affinity from action name mapping
@@ -705,11 +680,11 @@ export class CombatService {
       }
     }
     
-    const baseDamage = Math.max(1, (strength - targetVitality) * weaponCoef);
+    const baseDamage = Math.max(1, (strength  - targetVitality) * weaponCoef);
     
     // Apply affinity bonus (percentage increase)
     const affinityMultiplier = 1 + (affinityBonus / 100);
-    const enhancedDamage = Math.floor(baseDamage * affinityMultiplier);
+    const enhancedDamage = Math.floor(baseDamage  * affinityMultiplier);
     
     const variance = Math.floor(Math.random() * (enhancedDamage * COMBAT_CONSTANTS.DAMAGE_VARIANCE)) + 1;
     return enhancedDamage + variance;
@@ -759,12 +734,7 @@ export class CombatService {
     return COMBAT_CONSTANTS.BASE_CRITICAL_CHANCE + (dexterity / COMBAT_CONSTANTS.DEXTERITY_CRIT_FACTOR);
   }
 
-  private async calculateSpellDamage(
-    actorId: string,
-    intelligence: number, 
-    level: number, 
-    spellName: string
-  ): Promise<number> {
+  private async calculateSpellDamage(req: Request, res: Response): Promise<void> {
     const baseDamage = intelligence * 1.5 + level;
     const spellMultiplier = this.getSpellMultiplier(spellName);
     
@@ -787,18 +757,13 @@ export class CombatService {
     
     // Apply affinity bonus (percentage increase)
     const affinityMultiplier = 1 + (affinityBonus / 100);
-    const enhancedBaseDamage = Math.floor(baseDamage * affinityMultiplier);
+    const enhancedBaseDamage = Math.floor(baseDamage  * affinityMultiplier);
     
     const variance = Math.floor(Math.random() * (enhancedBaseDamage * 0.2)) + 1;
     return Math.floor((enhancedBaseDamage + variance) * spellMultiplier);
   }
 
-  private async calculateHealingAmount(
-    actorId: string,
-    wisdom: number, 
-    level: number,
-    spellName: string = 'heal'
-  ): Promise<number> {
+  private async calculateHealingAmount(req: Request, res: Response): Promise<void> {
     const baseHealing = wisdom * 1.2 + level;
     
     // Get magic affinity from spell name mapping
@@ -820,7 +785,7 @@ export class CombatService {
     
     // Apply affinity bonus (percentage increase)
     const affinityMultiplier = 1 + (affinityBonus / 100);
-    const enhancedHealing = Math.floor(baseHealing * affinityMultiplier);
+    const enhancedHealing = Math.floor(baseHealing  * affinityMultiplier);
     
     const variance = Math.floor(Math.random() * (enhancedHealing * 0.2)) + 1;
     return Math.floor(enhancedHealing + variance);
@@ -903,14 +868,14 @@ export class CombatService {
   /**
    * Get character combat stats
    */
-  private async getCharacterCombatStats(characterId: string): Promise<any> {
+  private async getCharacterCombatStats(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     try {
       const result = await client.query(`
         SELECT c.*, cv.* 
         FROM characters c
         JOIN character_stats_view cv ON cv.character_id = c.id
-        WHERE c.id = $1 AND c.deleted_at IS NULL
+        WHERE c.id = $1 AND c.deleted_at IS NULL;
       `, [characterId]);
 
       if (result.rows.length === 0) {
@@ -965,7 +930,7 @@ export class CombatService {
   /**
    * Advance to next turn
    */
-  private async advanceTurn(sessionId: string): Promise<void> {
+  private async advanceTurn(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     try {
       await client.query(`
@@ -977,8 +942,7 @@ export class CombatService {
               ELSE turn_number 
             END
         WHERE id = $1
-      `, [sessionId]);
-      return;
+      `, [sessionId]);`
 } finally {
       client.release();
     }
@@ -987,13 +951,13 @@ export class CombatService {
   /**
    * Get active combat for character
    */
-  private async getActiveCombatForCharacter(characterId: string): Promise<CombatSession | null> {
+  private async getActiveCombatForCharacter(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     try {
       const result = await client.query(`
         SELECT cs.* FROM combat_sessions cs
         JOIN combat_participants cp ON cp.session_id = cs.id
-        WHERE cp.character_id = $1 AND cs.status = 'active'
+        WHERE cp.character_id = $1 AND cs.status = 'active';
       `, [characterId]);
 
       return result.rows.length > 0 ? this.mapSessionRow(result.rows[0]) : null;
@@ -1005,14 +969,13 @@ export class CombatService {
   /**
    * Update character combat status
    */
-  private async updateCharacterCombatStatus(characterId: string, status: string): Promise<void> {
+  private async updateCharacterCombatStatus(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     try {
       await client.query(`
         UPDATE characters SET status = $1, updated_at = CURRENT_TIMESTAMP
         WHERE id = $2
-      `, [status, characterId]);
-      return;
+      `, [status, characterId]);`
 } finally {
       client.release();
     }
@@ -1021,7 +984,7 @@ export class CombatService {
   /**
    * Calculate and award combat rewards
    */
-  private async awardCombatRewards(sessionId: string, winnerId: string): Promise<void> {
+  private async awardCombatRewards(req: Request, res: Response): Promise<void> {
     // Basic experience and gold calculation
     const baseExperience = 100;
     const baseGold = 50;
@@ -1035,8 +998,7 @@ export class CombatService {
       `, [baseExperience, baseGold, sessionId]);
 
       // Award to winner's character (integrate with progression system)
-      // This would call the ProgressionService to award experience
-      return;
+      // This would call the ProgressionService to award experience`
 } finally {
       client.release();
     }
@@ -1045,7 +1007,7 @@ export class CombatService {
   /**
    * Calculate combat rewards
    */
-  private async calculateRewards(sessionId: string, winnerId: string): Promise<CombatRewards> {
+  private async calculateRewards(req: Request, res: Response): Promise<void> {
     return {
       experience: 100,
       gold: 50,
@@ -1057,14 +1019,12 @@ export class CombatService {
   /**
    * Real-time broadcasting methods
    */
-  private async broadcastCombatStart(session: CombatSession, participants: CombatParticipant[]): Promise<void> {
-    const event: CombatStartEvent = {
+  private async broadcastCombatStart(session: CombatSession, participants: CombatParticipant[]): Promise<void> { const event: CombatStartEvent = {
       sessionId: session.id,
       participants,
       turnOrder: session.turnOrder,
       currentTurn: session.turnOrder[session.currentTurn],
-      message: 'Combat has begun!'
-      return;
+      message: 'Combat has begun!' }
 };
 
     this.realtimeService.broadcastToCombat(session.id, 'combat:start', event);
@@ -1075,10 +1035,8 @@ export class CombatService {
     action: CombatAction,
     participants: CombatParticipant[],
     currentTurn: string
-  ): Promise<void> {
-    const session = await this.getSession(sessionId);
-    if (!session) return;
-
+  ): Promise<void> { const session = await this.getSession(sessionId);
+    if (!session) }
     const event: CombatUpdateEvent = {
       sessionId,
       action,
@@ -1091,21 +1049,14 @@ export class CombatService {
     this.realtimeService.broadcastToCombat(sessionId, 'combat:update', event);
   }
 
-  private async broadcastCombatEnd(
-    sessionId: string,
-    winner: string,
-    reason: CombatEndReason,
-    stats: CombatStats,
-    rewards: CombatRewards
-  ): Promise<void> {
+  private async broadcastCombatEnd(req: Request, res: Response): Promise<void> {
     const event: CombatEndEvent = {
       sessionId,
       winner,
       reason,
       stats,
       rewards,
-      message: `Combat ended! Winner: ${winner  return;
-}`
+      message: `Combat ended! Winner: ${winner}`
     };
 
     this.realtimeService.broadcastToCombat(sessionId, 'combat:end', event);
@@ -1114,9 +1065,8 @@ export class CombatService {
   /**
    * Clear combat-related cache
    */
-  private async clearCombatCache(sessionId: string): Promise<void> {
-    await this.cacheManager.deletePattern(`combat:session:${sessionId  return;
-}*`);
+  private async clearCombatCache(req: Request, res: Response): Promise<void> {
+    await this.cacheManager.deletePattern(`combat:session:${sessionId}*`);
   }
 
   /**

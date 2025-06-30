@@ -18,7 +18,7 @@ export class RealtimeService {
   /**
    * Broadcast event to all users in a specific zone
    */
-  public async broadcastToZone(zoneName: string, event: string, data: any): Promise<void> {
+  public async broadcastToZone(req: Request, res: Response): Promise<void> {
     try {
       const roomName = `zone:${zoneName}`;
       this.io.to(roomName).emit(event, data);
@@ -39,7 +39,7 @@ export class RealtimeService {
   /**
    * Broadcast event to a specific user
    */
-  public async broadcastToUser(userId: string, event: string, data: any): Promise<void> {
+  public async broadcastToUser(req: Request, res: Response): Promise<void> {
     try {
       const roomName = `user:${userId}`;
       this.io.to(roomName).emit(event, data);
@@ -60,7 +60,7 @@ export class RealtimeService {
   /**
    * Broadcast event to a specific character
    */
-  public async broadcastToCharacter(characterId: string, event: string, data: any): Promise<void> {
+  public async broadcastToCharacter(req: Request, res: Response): Promise<void> {
     try {
       const roomName = `character:${characterId}`;
       this.io.to(roomName).emit(event, data);
@@ -81,13 +81,12 @@ export class RealtimeService {
   /**
    * Broadcast event to all guild members
    */
-  public async broadcastToGuild(guildId: string, event: string, data: any): Promise<void> {
+  public async broadcastToGuild(req: Request, res: Response): Promise<void> {
     try {
       // Verify guild exists
       const guildExists = await this.verifyGuildExists(guildId);
       if (!guildExists) {
-        logger.warn('Attempted to broadcast to non-existent guild', { guildId });
-        return;
+        logger.warn('Attempted to broadcast to non-existent guild', { guildId });`
       }
 
       const roomName = `guild:${guildId}`;
@@ -109,7 +108,7 @@ export class RealtimeService {
   /**
    * Broadcast event to all combat participants
    */
-  public async broadcastToCombat(sessionId: string, event: string, data: any): Promise<void> {
+  public async broadcastToCombat(req: Request, res: Response): Promise<void> {
     try {
       const roomName = `combat:${sessionId}`;
       this.io.to(roomName).emit(event, data);
@@ -130,7 +129,7 @@ export class RealtimeService {
   /**
    * Broadcast event globally to all connected users
    */
-  public async broadcastGlobal(event: string, data: any): Promise<void> {
+  public async broadcastGlobal(req: Request, res: Response): Promise<void> {
     try {
       this.io.to('global:events').emit(event, data);
       
@@ -149,13 +148,13 @@ export class RealtimeService {
   /**
    * Send announcement to all players
    */
-  public async sendAnnouncement(message: string, priority: 'low' | 'medium' | 'high' = 'medium'): Promise<void> {
+  public async sendAnnouncement(req: Request, res: Response): Promise<void> {
     try {
       const announcement = {
         message,
         priority,
         timestamp: Date.now(),
-        type: 'announcement'
+        type: 'announcement';
       };
 
       await this.broadcastGlobal('system:announcement', announcement);
@@ -179,7 +178,7 @@ export class RealtimeService {
   /**
    * Notify specific users about system events
    */
-  public async notifyUsers(userIds: string[], event: string, data: any): Promise<void> {
+  public async notifyUsers(req: Request, res: Response): Promise<void> {
     try {
       const promises = userIds.map(userId => this.broadcastToUser(userId, event, data));
       await Promise.allSettled(promises);
@@ -202,11 +201,11 @@ export class RealtimeService {
   /**
    * Send real-time game state updates
    */
-  public async sendGameStateUpdate(zoneName: string, updates: any): Promise<void> {
+  public async sendGameStateUpdate(req: Request, res: Response): Promise<void> {
     try {
       await this.broadcastToZone(zoneName, 'game:state_update', {
         updates,
-        timestamp: Date.now()
+        timestamp: Date.now();
       });
       
     } catch (error) {
@@ -248,8 +247,7 @@ export class RealtimeService {
     
     rooms.forEach((clients, roomName) => {
       // Skip individual socket rooms
-      if (!roomName.includes(':')) return;
-      
+      if (!roomName.includes(':'))`
       roomsInfo.push({
         roomName,
         clientCount: clients.size,
@@ -275,7 +273,7 @@ export class RealtimeService {
     this.metrics.set(metric, current + 1);
   }
 
-  private async verifyGuildExists(guildId: string): Promise<boolean> {
+  private async verifyGuildExists(req: Request, res: Response): Promise<void> {
     // TODO: Implement guild existence check
     return true; // Placeholder
   }
@@ -284,7 +282,7 @@ export class RealtimeService {
    * Combat room management methods
    */
 
-  public async joinCombatRoom(socketId: string, sessionId: string): Promise<void> {
+  public async joinCombatRoom(req: Request, res: Response): Promise<void> {
     try {
       const roomName = `combat:${sessionId}`;
       const socket = this.io?.sockets.sockets.get(socketId);
@@ -309,7 +307,7 @@ export class RealtimeService {
     }
   }
 
-  public async leaveCombatRoom(socketId: string, sessionId: string): Promise<void> {
+  public async leaveCombatRoom(req: Request, res: Response): Promise<void> {
     try {
       const roomName = `combat:${sessionId}`;
       const socket = this.io?.sockets.sockets.get(socketId);

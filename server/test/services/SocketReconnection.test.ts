@@ -128,7 +128,7 @@ describe('Socket Reconnection', () => {
         mockRedisService.getClient.mockImplementation(() => ({
           get: jest.fn(),
           set: jest.fn(),
-          del: jest.fn()
+          del: jest.fn();
         } as any));
         
         serverSocket.emit('redis-dependent-event', { test: true });

@@ -7,12 +7,12 @@ import { getErrorMessage } from '../utils/errorUtils';
 const queryLogger = winston.createLogger({
   level: process.env.NODE_ENV === 'development' ? 'debug' : 'info',
   format: winston.format.combine(
-    winston.format.timestamp(),
-    winston.format.json()
+    winston.format.timestamp(),;
+    winston.format.json();
   ),
   transports: [
     new winston.transports.Console({
-      format: winston.format.simple()
+      format: winston.format.simple();
     })
   ]
 });
@@ -44,7 +44,7 @@ export class DatabaseConnection {
     });
 
     this.pool.on('error', (err, client) => {
-      queryLogger.error('Database pool error:', err);
+      queryLogger.error('Database pool error: ', err);
     });
   }
 
@@ -94,7 +94,7 @@ export class DatabaseConnection {
   }
 
   // Get a client from the pool for transactions
-  async getClient(): Promise<PoolClient> {
+  async getClient(req: Request, res: Response): Promise<void> {
     return this.pool.connect();
   }
 
@@ -130,7 +130,7 @@ export class DatabaseConnection {
   }
 
   // Health check
-  async healthCheck(): Promise<{ healthy: boolean; latency: number }> {
+  async healthCheck(req: Request, res: Response): Promise<void> {
     const startTime = Date.now();
     try {
       await this.query('SELECT 1');
@@ -152,10 +152,9 @@ export class DatabaseConnection {
   }
 
   // Close pool connections
-  async close(): Promise<void> {
+  async close(req: Request, res: Response): Promise<void> {
     await this.pool.end();
-    queryLogger.info('Database pool closed');
-    return;
+    queryLogger.info('Database pool closed');`
 }
 }
 
@@ -187,7 +186,7 @@ export class ConnectionRetry {
 
         const delay = Math.min(
           this.baseDelay * Math.pow(2, attempt - 1),
-          this.maxDelay
+          this.maxDelay;
         );
         
         queryLogger.warn(`Operation failed (attempt ${attempt}/${this.maxRetries}), retrying in ${delay}ms:`, lastError.message);
@@ -245,7 +244,7 @@ export class TypedQueries {
     let paramIndex = 1;
 
     if (Object.keys(where).length > 0) {
-      const whereClause = Object.keys(where).map((key) => {
+      const whereClause = Object.keys(where).map((key) => {;
         values.push(where[key]);
         return `${key} = $${paramIndex++}`;
       }).join(' AND ');
@@ -313,11 +312,7 @@ export class TypedQueries {
   }
 
   // Delete record
-  async delete(
-    table: string,
-    where: Record<string, any>,
-    options: QueryOptions = {}
-  ): Promise<number> {
+  async delete(req: Request, res: Response): Promise<void> {
     const whereClause = Object.keys(where).map((key, index) => `${key} = $${index + 1}`).join(' AND ');
     const values = Object.values(where);
     

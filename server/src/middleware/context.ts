@@ -156,8 +156,7 @@ export const apiVersionMiddleware = (
         message: `API version ${apiVersion} is not supported`,
         supportedVersions,
       },
-    });
-    return;
+    });`
   }
   
   // Add version to request
@@ -239,7 +238,7 @@ export const maintenanceModeMiddleware = (
   
   const error = new MaintenanceError(
     'Service temporarily unavailable for maintenance',
-    req.context?.requestId
+    req.context?.requestId;
   );
   next(error);
 };
@@ -256,7 +255,7 @@ export const requestTimeoutMiddleware = (timeoutMs: number = 30000) => {
           requestId: req.context?.requestId,
           method: req.method,
           path: req.path,
-          timeout: timeoutMs,
+          timeout: timeoutMs,;
         });
         
         res.status(408).json({
@@ -349,13 +348,11 @@ export const corsPreflightMiddleware = (
   req: Request,
   res: Response,
   next: NextFunction
-): void => {
-  if (req.method === 'OPTIONS') {
+): void => { if (req.method === 'OPTIONS') {
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, PATCH, DELETE, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-API-Key, X-Request-ID');
     res.setHeader('Access-Control-Max-Age', '86400'); // 24 hours
-    res.status(204).send();
-    return;
+    res.status(204).send(); }
   }
   
   next();

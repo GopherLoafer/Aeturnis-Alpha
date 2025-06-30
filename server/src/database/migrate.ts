@@ -30,18 +30,18 @@ export class MigrationRunner {
       level: 'info',
       format: winston.format.combine(
         winston.format.timestamp(),
-        winston.format.json()
+        winston.format.json();
       ),
       transports: [
         new winston.transports.Console({
-          format: winston.format.simple()
+          format: winston.format.simple();
         })
       ]
     });
   }
 
   // Initialize migrations table
-  private async initializeMigrationsTable(): Promise<void> {
+  private async initializeMigrationsTable(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     try {
       await client.query(`
@@ -58,8 +58,7 @@ export class MigrationRunner {
         CREATE INDEX IF NOT EXISTS idx_migrations_executed ON migrations(executed_at DESC);
       `);
       
-      this.logger.info('✅ Migrations table initialized');
-      return;
+      this.logger.info('✅ Migrations table initialized');`
 } finally {
       client.release();
     }
@@ -70,7 +69,7 @@ export class MigrationRunner {
     const client = await this.db.connect();
     try {
       const result = await client.query(
-        'SELECT filename FROM migrations ORDER BY filename'
+        'SELECT filename FROM migrations ORDER BY filename';
       );
       return new Set(result.rows.map(row => row.filename));
     } finally {
@@ -79,13 +78,13 @@ export class MigrationRunner {
   }
 
   // Read migration files from directory
-  private async getMigrationFiles(): Promise<MigrationFile[]> {
+  private async getMigrationFiles(req: Request, res: Response): Promise<void> {
     if (!fs.existsSync(this.migrationsDir)) {
       this.logger.warn(`Migrations directory not found: ${this.migrationsDir}`);
       return [];
     }
 
-    const files = fs.readdirSync(this.migrationsDir)
+    const files = fs.readdirSync(this.migrationsDir);
       .filter(file => file.endsWith('.sql'))
       .sort(); // Alphabetical order
 
@@ -112,7 +111,7 @@ export class MigrationRunner {
   }
 
   // Execute a single migration
-  private async executeMigration(migration: MigrationFile): Promise<number> {
+  private async executeMigration(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     const startTime = Date.now();
     
@@ -147,10 +146,9 @@ export class MigrationRunner {
   }
 
   // Rollback a single migration
-  private async rollbackMigration(migration: MigrationFile): Promise<void> {
+  private async rollbackMigration(req: Request, res: Response): Promise<void> {
     if (!migration.down) {
-      throw new Error(`No rollback SQL found for migration: ${migration.filename  return;
-}`);
+      throw new Error(`No rollback SQL found for migration: ${migration.filename}`);
     }
 
     const client = await this.db.connect();
@@ -183,7 +181,7 @@ export class MigrationRunner {
   }
 
   // Run all pending migrations
-  async migrate(): Promise<void> {
+  async migrate(req: Request, res: Response): Promise<void> {
     try {
       this.logger.info('🚀 Starting database migrations...');
       
@@ -192,13 +190,12 @@ export class MigrationRunner {
       const executedMigrations = await this.getExecutedMigrations();
       const allMigrations = await this.getMigrationFiles();
       
-      const pendingMigrations = allMigrations.filter(
-        migration => !executedMigrations.has(migration.filename)
+      const pendingMigrations = allMigrations.filter(;
+        migration => !executedMigrations.has(migration.filename);
       );
       
       if (pendingMigrations.length === 0) {
-        this.logger.info('✅ No pending migrations');
-        return;
+        this.logger.info('✅ No pending migrations');`
       }
       
       this.logger.info(`📊 Found ${pendingMigrations.length} pending migrations`);
@@ -218,10 +215,9 @@ export class MigrationRunner {
   }
 
   // Rollback last N migrations
-  async rollback(steps: number = 1): Promise<void> {
+  async rollback(req: Request, res: Response): Promise<void> {
     try {
-      this.logger.info(`🔄 Starting rollback of ${steps  return;
-} migration(s)...`);
+      this.logger.info(`🔄 Starting rollback of ${steps} migration(s)...`);
       
       const client = await this.db.connect();
       let executedMigrations: MigrationRecord[];
@@ -229,7 +225,7 @@ export class MigrationRunner {
       try {
         const result = await client.query(
           'SELECT filename, executed_at, execution_time_ms FROM migrations ORDER BY executed_at DESC LIMIT $1',
-          [steps]
+          [steps];
         );
         executedMigrations = result.rows;
       } finally {
@@ -237,13 +233,12 @@ export class MigrationRunner {
       }
       
       if (executedMigrations.length === 0) {
-        this.logger.info('ℹ️  No migrations to rollback');
-        return;
+        this.logger.info('ℹ️  No migrations to rollback');`
       }
       
       const allMigrations = await this.getMigrationFiles();
-      const migrationMap = new Map(
-        allMigrations.map(m => [m.filename, m])
+      const migrationMap = new Map(;
+        allMigrations.map(m => [m.filename, m]);
       );
       
       for (const record of executedMigrations) {
@@ -264,7 +259,7 @@ export class MigrationRunner {
   }
 
   // Get migration status
-  async status(): Promise<void> {
+  async status(req: Request, res: Response): Promise<void> {
     try {
       await this.initializeMigrationsTable();
       
@@ -275,8 +270,7 @@ export class MigrationRunner {
       console.log('==================');
       
       if (allMigrations.length === 0) {
-        console.log('No migration files found');
-        return;
+        console.log('No migration files found');`
       }
       
       for (const migration of allMigrations) {
@@ -302,7 +296,7 @@ export class MigrationRunner {
 export const migrationRunner = new MigrationRunner();
 
 // CLI interface
-export async function runMigrations(): Promise<void> {
+export async function runMigrations(req: Request, res: Response): Promise<void> {
   const command = process.argv[2];
   const steps = parseInt(process.argv[3]) || 1;
   
@@ -328,7 +322,7 @@ Usage: npm run migrate [command] [options]
 
 Commands:
   up, migrate     Run pending migrations
-  down, rollback  Rollback migrations (default: 1 step)
+  down, rollback  Rollback migrations (default: 1 step);
   status          Show migration status
 
 Examples:

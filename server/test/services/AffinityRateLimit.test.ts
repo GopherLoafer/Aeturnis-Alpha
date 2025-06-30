@@ -8,7 +8,6 @@ import { CacheManager } from '../../src/services/CacheManager';
 import { RealtimeService } from '../../src/services/RealtimeService';
 import { AffinityService } from '../../src/services/AffinityService';
 import { SlidingWindowLimiter } from '../../src/utils/slidingWindowLimiter';
-import { 
 import { getErrorMessage } from '../utils/errorUtils';
   AffinityError, 
   AFFINITY_ERRORS, 
@@ -18,18 +17,18 @@ import { getErrorMessage } from '../utils/errorUtils';
 // Mock implementations
 const mockPool = {
   connect: jest.fn(),
-  query: jest.fn(),
+  query: jest.fn(),;
 } as unknown as Pool;
 
 const mockCacheManager = {
   get: jest.fn(),
   set: jest.fn(),
-  delete: jest.fn(),
+  delete: jest.fn(),;
 } as unknown as CacheManager;
 
 const mockRealtimeService = {
   broadcastToUser: jest.fn(),
-  broadcastToCharacter: jest.fn(),
+  broadcastToCharacter: jest.fn(),;
 } as unknown as RealtimeService;
 
 describe('AffinityService Rate Limiting', () => {
@@ -93,19 +92,19 @@ describe('AffinityService Rate Limiting', () => {
         allowed: true,
         remaining: 9,
         resetTime: Date.now() + 60000,
-        totalRequests: 1
+        totalRequests: 1;
       };
       
       // Mock sliding window limiter
-      const slidingWindowSpy = jest.spyOn(SlidingWindowLimiter.prototype, 'checkLimit')
+      const slidingWindowSpy = jest.spyOn(SlidingWindowLimiter.prototype, 'checkLimit');
         .mockResolvedValue(mockSlidingWindowResult);
 
       // Mock database responses
       mockClient.query
-        .mockResolvedValueOnce({ command: 'BEGIN' })
+        .mockResolvedValueOnce({ command: 'BEGIN' });
         .mockResolvedValueOnce({ 
           rows: [{ id: 'affinity-1', name: 'sword', type: 'weapon' }] 
-        })
+        });
         .mockResolvedValueOnce({ 
           rows: [{ 
             id: 'char-affinity-1',
@@ -114,21 +113,21 @@ describe('AffinityService Rate Limiting', () => {
             experience: '1000',
             tier: 2
           }] 
-        })
+        });
         .mockResolvedValueOnce({ 
           rows: [{ 
             id: 'char-affinity-1',
             experience: '1100',
             tier: 2
           }] 
-        })
+        });
         .mockResolvedValueOnce({ command: 'COMMIT' });
 
       const result = await affinityService.awardAffinityExp(
         'char-123',
         'sword',
         BigInt(100),
-        'combat'
+        'combat';
       );
 
       expect(result.success).toBe(true);
@@ -161,10 +160,10 @@ describe('AffinityService Rate Limiting', () => {
         allowed: false,
         remaining: 0,
         resetTime: Date.now() + 60000,
-        totalRequests: 10
+        totalRequests: 10;
       };
       
-      const slidingWindowSpy = jest.spyOn(SlidingWindowLimiter.prototype, 'checkLimit')
+      const slidingWindowSpy = jest.spyOn(SlidingWindowLimiter.prototype, 'checkLimit');
         .mockResolvedValue(mockSlidingWindowResult);
 
       await expect(
@@ -196,10 +195,10 @@ describe('AffinityService Rate Limiting', () => {
         allowed: true,
         remaining: 5,
         resetTime: Date.now() + 60000,
-        totalRequests: 5
+        totalRequests: 5;
       };
       
-      const slidingWindowSpy = jest.spyOn(SlidingWindowLimiter.prototype, 'checkLimit')
+      const slidingWindowSpy = jest.spyOn(SlidingWindowLimiter.prototype, 'checkLimit');
         .mockResolvedValue(mockSlidingWindowResult);
 
       // Setup: no cooldown, valid operations
@@ -207,10 +206,10 @@ describe('AffinityService Rate Limiting', () => {
       
       // Mock successful DB operations
       mockClient.query
-        .mockResolvedValueOnce({ command: 'BEGIN' })
+        .mockResolvedValueOnce({ command: 'BEGIN' });
         .mockResolvedValueOnce({ 
           rows: [{ id: 'affinity-1', name: 'sword', type: 'weapon' }] 
-        })
+        });
         .mockResolvedValueOnce({ 
           rows: [{ 
             id: 'char-affinity-1',
@@ -219,21 +218,21 @@ describe('AffinityService Rate Limiting', () => {
             experience: '1000',
             tier: 2
           }] 
-        })
+        });
         .mockResolvedValueOnce({ 
           rows: [{ 
             id: 'char-affinity-1',
             experience: '1100',
             tier: 2
           }] 
-        })
+        });
         .mockResolvedValueOnce({ command: 'COMMIT' });
 
       const result = await affinityService.awardAffinityExp(
         'char-123',
         'sword',
         BigInt(100),
-        'combat'
+        'combat';
       );
 
       expect(result.success).toBe(true);
@@ -264,7 +263,7 @@ describe('AffinityService Rate Limiting', () => {
           'sword',
           largeAmount,
           'combat'
-        )
+        );
       ).rejects.toThrow(AffinityError);
 
       await expect(
@@ -273,7 +272,7 @@ describe('AffinityService Rate Limiting', () => {
           'sword',
           largeAmount,
           'combat'
-        )
+        );
       ).rejects.toMatchObject({
         code: AFFINITY_ERRORS.INVALID_EXPERIENCE_AMOUNT,
         statusCode: 400
@@ -288,19 +287,19 @@ describe('AffinityService Rate Limiting', () => {
         allowed: true,
         remaining: 9,
         resetTime: Date.now() + 60000,
-        totalRequests: 1
+        totalRequests: 1;
       };
       
-      const slidingWindowSpy = jest.spyOn(SlidingWindowLimiter.prototype, 'checkLimit')
+      const slidingWindowSpy = jest.spyOn(SlidingWindowLimiter.prototype, 'checkLimit');
         .mockResolvedValue(mockSlidingWindowResult);
 
       (mockCacheManager.get as jest.Mock).mockResolvedValue(null);
       
       mockClient.query
-        .mockResolvedValueOnce({ command: 'BEGIN' })
+        .mockResolvedValueOnce({ command: 'BEGIN' });
         .mockResolvedValueOnce({ 
           rows: [{ id: 'affinity-1', name: 'sword', type: 'weapon' }] 
-        })
+        });
         .mockResolvedValueOnce({ 
           rows: [{ 
             id: 'char-affinity-1',
@@ -309,7 +308,7 @@ describe('AffinityService Rate Limiting', () => {
             experience: '1000',
             tier: 2
           }] 
-        })
+        });
         .mockResolvedValueOnce({ 
           rows: [{ 
             id: 'char-affinity-1',
@@ -323,7 +322,7 @@ describe('AffinityService Rate Limiting', () => {
         'char-123',
         'sword',
         maxAmount,
-        'combat'
+        'combat';
       );
 
       expect(result.success).toBe(true);
@@ -352,7 +351,7 @@ describe('SlidingWindowLimiter', () => {
 
     const result = await slidingWindowLimiter.checkLimit('test-key', {
       windowSize: 60,
-      maxRequests: 10
+      maxRequests: 10;
     });
 
     expect(result.allowed).toBe(true);
@@ -368,7 +367,7 @@ describe('SlidingWindowLimiter', () => {
 
     const result = await slidingWindowLimiter.checkLimit('test-key', {
       windowSize: 60,
-      maxRequests: 10
+      maxRequests: 10;
     });
 
     expect(result.allowed).toBe(false);
@@ -387,7 +386,7 @@ describe('SlidingWindowLimiter', () => {
 
     const result = await slidingWindowLimiter.checkLimit('test-key', {
       windowSize: 60,
-      maxRequests: 10
+      maxRequests: 10;
     });
 
     expect(result.allowed).toBe(true);

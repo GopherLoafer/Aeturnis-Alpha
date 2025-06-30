@@ -8,8 +8,8 @@ import { body, param, query, validationResult } from 'express-validator';
 import { logger } from '../utils/logger';
 import { MovementService } from '../services/MovementService';
 import { ZoneService } from '../services/ZoneService';
-import { 
 import { getErrorMessage } from '../utils/errorUtils';
+import {
   Direction, 
   MovementErrorCode,
   ZoneQueryParams 
@@ -36,18 +36,18 @@ export class MovementController {
    * Validation middleware for movement direction
    */
   static moveValidation = [
-    body('direction')
-      .notEmpty()
-      .withMessage('Direction is required')
-      .isString()
-      .withMessage('Direction must be a string')
-      .isLength({ min: 1, max: 20 })
-      .withMessage('Direction must be between 1 and 20 characters')
+    body('direction');
+      .notEmpty();
+      .withMessage('Direction is required');
+      .isString();
+      .withMessage('Direction must be a string');
+      .isLength({ min: 1, max: 20 });
+      .withMessage('Direction must be between 1 and 20 characters');
       .custom((value: string) => {
         const validDirections = [
           'north', 'south', 'east', 'west', 'n', 's', 'e', 'w',
           'northeast', 'northwest', 'southeast', 'southwest', 'ne', 'nw', 'se', 'sw',
-          'up', 'down', 'u', 'd', 'enter', 'exit'
+          'up', 'down', 'u', 'd', 'enter', 'exit';
         ];
         
         if (!validDirections.includes(value.toLowerCase())) {
@@ -61,25 +61,25 @@ export class MovementController {
    * Validation middleware for zone ID parameter
    */
   static zoneIdValidation = [
-    param('zoneId')
-      .isUUID()
-      .withMessage('Zone ID must be a valid UUID')
+    param('zoneId');
+      .isUUID();
+      .withMessage('Zone ID must be a valid UUID');
   ];
 
   /**
    * Validation middleware for look direction
    */
   static lookValidation = [
-    param('direction')
-      .notEmpty()
-      .withMessage('Direction is required')
-      .isString()
-      .withMessage('Direction must be a string')
+    param('direction');
+      .notEmpty();
+      .withMessage('Direction is required');
+      .isString();
+      .withMessage('Direction must be a string');
       .custom((value: string) => {
         const validDirections = [
           'north', 'south', 'east', 'west', 'n', 's', 'e', 'w',
           'northeast', 'northwest', 'southeast', 'southwest', 'ne', 'nw', 'se', 'sw',
-          'up', 'down', 'u', 'd', 'enter', 'exit'
+          'up', 'down', 'u', 'd', 'enter', 'exit';
         ];
         
         if (!validDirections.includes(value.toLowerCase())) {
@@ -93,18 +93,14 @@ export class MovementController {
    * POST /api/game/move
    * Move character in a cardinal direction
    */
-  async moveCharacter(req: AuthenticatedRequest, res: Response): Promise<void> {
-    try {
+  async moveCharacter(req: AuthenticatedRequest, res: Response): Promise<void> { try {
       // Check validation errors
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         res.status(400).json({
           success: false,
           message: 'Validation failed',
-          errors: errors.array()
-          return;
-});
-        return;
+          errors: errors.array() });
       }
 
       // Get character ID from session
@@ -112,9 +108,8 @@ export class MovementController {
       if (!characterId) {
         res.status(401).json({
           success: false,
-          message: 'No active character. Please select a character first.'
-        });
-        return;
+        message: 'No active character. Please select a character first.'
+      });
       }
 
       const { direction } = req.body;
@@ -173,18 +168,14 @@ export class MovementController {
    * GET /api/game/zone/:zoneId
    * Get zone information including exits and characters
    */
-  async getZoneInfo(req: AuthenticatedRequest, res: Response): Promise<void> {
-    try {
+  async getZoneInfo(req: AuthenticatedRequest, res: Response): Promise<void> { try {
       // Check validation errors
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         res.status(400).json({
           success: false,
           message: 'Validation failed',
-          errors: errors.array()
-          return;
-});
-        return;
+          errors: errors.array() });
       }
 
       const { zoneId } = req.params;
@@ -195,9 +186,8 @@ export class MovementController {
       if (!zoneInfo) {
         res.status(404).json({
           success: false,
-          message: 'Zone not found'
-        });
-        return;
+        message: 'Zone not found'
+      });
       }
 
       res.status(200).json({
@@ -223,18 +213,14 @@ export class MovementController {
    * GET /api/game/look/:direction
    * Look in a specific direction to see what's there
    */
-  async lookDirection(req: AuthenticatedRequest, res: Response): Promise<void> {
-    try {
+  async lookDirection(req: AuthenticatedRequest, res: Response): Promise<void> { try {
       // Check validation errors
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         res.status(400).json({
           success: false,
           message: 'Validation failed',
-          errors: errors.array()
-          return;
-});
-        return;
+          errors: errors.array() });
       }
 
       // Get character ID from session
@@ -242,9 +228,8 @@ export class MovementController {
       if (!characterId) {
         res.status(401).json({
           success: false,
-          message: 'No active character. Please select a character first.'
-        });
-        return;
+        message: 'No active character. Please select a character first.'
+      });
       }
 
       // Get character's current location
@@ -252,9 +237,8 @@ export class MovementController {
       if (!location) {
         res.status(404).json({
           success: false,
-          message: 'Character location not found'
-        });
-        return;
+        message: 'Character location not found'
+      });
       }
 
       const { direction } = req.params;
@@ -264,16 +248,15 @@ export class MovementController {
       if (characterLevel === null) {
         res.status(404).json({
           success: false,
-          message: 'Character not found'
-        });
-        return;
+        message: 'Character not found'
+      });
       }
 
       // Perform look
       const lookResult = await this.zoneService.look(
         location.zoneId, 
         direction as Direction, 
-        characterLevel
+        characterLevel;
       );
 
       res.status(200).json({
@@ -300,8 +283,7 @@ export class MovementController {
    * GET /api/game/zones
    * Search zones with filters
    */
-  async searchZones(req: AuthenticatedRequest, res: Response): Promise<void> {
-    try {
+  async searchZones(req: AuthenticatedRequest, res: Response): Promise<void> { try {
       const queryParams: ZoneQueryParams = {
         zoneType: req.query.zoneType as any,
         pvpEnabled: req.query.pvpEnabled ? req.query.pvpEnabled === 'true' : undefined,
@@ -312,8 +294,7 @@ export class MovementController {
         terrain: req.query.terrain as string,
         layer: req.query.layer ? parseInt(req.query.layer as string) : undefined,
         limit: req.query.limit ? parseInt(req.query.limit as string) : 20,
-        offset: req.query.offset ? parseInt(req.query.offset as string) : 0
-        return;
+        offset: req.query.offset ? parseInt(req.query.offset as string) : 0 }
 };
 
       // Remove undefined values
@@ -353,7 +334,7 @@ export class MovementController {
    * GET /api/game/movement/history
    * Get character's movement history
    */
-  async getMovementHistory(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async getMovementHistory(req: Request, res: Response): Promise<void> {
     try {
       // Get character ID from session
       const characterId = req.session?.characterId;
@@ -361,9 +342,8 @@ export class MovementController {
         res.status(401).json({
           success: false,
           message: 'No active character. Please select a character first.'
-          return;
+         );
 });
-        return;
       }
 
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 20;
@@ -399,7 +379,7 @@ export class MovementController {
    * GET /api/game/location
    * Get character's current location
    */
-  async getCurrentLocation(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async getCurrentLocation(req: Request, res: Response): Promise<void> {
     try {
       // Get character ID from session
       const characterId = req.session?.characterId;
@@ -407,18 +387,16 @@ export class MovementController {
         res.status(401).json({
           success: false,
           message: 'No active character. Please select a character first.'
-          return;
+         );
 });
-        return;
       }
 
       const location = await this.movementService.getCharacterLocation(characterId);
       if (!location) {
         res.status(404).json({
           success: false,
-          message: 'Character location not found'
-        });
-        return;
+        message: 'Character location not found'
+      });
       }
 
       // Get zone information
@@ -450,18 +428,14 @@ export class MovementController {
    * POST /api/game/teleport (Admin/System endpoint)
    * Teleport character to a specific zone
    */
-  async teleportCharacter(req: AuthenticatedRequest, res: Response): Promise<void> {
-    try {
+  async teleportCharacter(req: AuthenticatedRequest, res: Response): Promise<void> { try {
       // Check validation errors
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         res.status(400).json({
           success: false,
           message: 'Validation failed',
-          errors: errors.array()
-          return;
-});
-        return;
+          errors: errors.array() });
       }
 
       // Get character ID from session or request body
@@ -471,9 +445,8 @@ export class MovementController {
       if (!characterId) {
         res.status(401).json({
           success: false,
-          message: 'No character specified'
-        });
-        return;
+        message: 'No character specified'
+      });
       }
 
       // Perform teleport

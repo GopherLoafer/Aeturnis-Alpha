@@ -15,7 +15,7 @@ const authService = new AuthService();
 
 // Helper function to validate request body
 const validateRequest = (schema: any, data: any) => {
-  try {
+  try {;
     return { success: true, data: schema.parse(data) };
   } catch (error) {
     return { success: false, error: error.errors || getErrorMessage(error) };
@@ -26,7 +26,7 @@ const validateRequest = (schema: any, data: any) => {
 const getClientIp = (req: Request): string => {
   return req.ip || 
          req.connection.remoteAddress || 
-         req.socket.remoteAddress || 
+         req.socket.remoteAddress || ;
          'unknown';
 };
 
@@ -45,7 +45,6 @@ router.post('/register', authRateLimit, async (req: Request, res: Response): Pro
         details: validation.error,
         requestId: req.requestId
       });
-      return;
     }
 
     const { email, username, password } = validation.data;
@@ -59,7 +58,6 @@ router.post('/register', authRateLimit, async (req: Request, res: Response): Pro
         message: 'Registration failed',
         requestId: req.requestId
       });
-      return;
     }
 
     winston.info('User registration successful', {
@@ -75,10 +73,10 @@ router.post('/register', authRateLimit, async (req: Request, res: Response): Pro
     });
 
   } catch (error) {
-    winston.error('Registration endpoint error:', {
+    winston.error('Registration endpoint error: ', {
       error: error,
       requestId: req.requestId,
-      ip: getClientIp(req)
+      ip: getClientIp(req);
     });
 
     res.status(500).json({
@@ -104,7 +102,6 @@ router.post('/login', authRateLimit, async (req: Request, res: Response): Promis
         details: validation.error,
         requestId: req.requestId
       });
-      return;
     }
 
     const { emailOrUsername, password } = validation.data;
@@ -119,7 +116,6 @@ router.post('/login', authRateLimit, async (req: Request, res: Response): Promis
         message: 'Login failed',
         requestId: req.requestId
       });
-      return;
     }
 
     winston.info('User login successful', {
@@ -135,10 +131,10 @@ router.post('/login', authRateLimit, async (req: Request, res: Response): Promis
     });
 
   } catch (error) {
-    winston.error('Login endpoint error:', {
+    winston.error('Login endpoint error: ', {
       error: error,
       requestId: req.requestId,
-      ip: getClientIp(req)
+      ip: getClientIp(req);
     });
 
     res.status(500).json({
@@ -163,7 +159,6 @@ router.post('/refresh', async (req: Request, res: Response): Promise<void> => {
         message: 'Refresh token is required',
         requestId: req.requestId
       });
-      return;
     }
 
     // Refresh token
@@ -175,7 +170,6 @@ router.post('/refresh', async (req: Request, res: Response): Promise<void> => {
         message: 'Token refresh failed',
         requestId: req.requestId
       });
-      return;
     }
 
     winston.info('Token refresh successful', {
@@ -189,10 +183,10 @@ router.post('/refresh', async (req: Request, res: Response): Promise<void> => {
     });
 
   } catch (error) {
-    winston.error('Token refresh endpoint error:', {
+    winston.error('Token refresh endpoint error: ', {
       error: error,
       requestId: req.requestId,
-      ip: getClientIp(req)
+      ip: getClientIp(req);
     });
 
     res.status(500).json({
@@ -215,7 +209,6 @@ router.post('/logout', authenticate, async (req: Request, res: Response): Promis
         message: 'User must be authenticated to logout',
         requestId: req.requestId
       });
-      return;
     }
 
     // Logout user
@@ -227,7 +220,6 @@ router.post('/logout', authenticate, async (req: Request, res: Response): Promis
         message: 'Logout failed',
         requestId: req.requestId
       });
-      return;
     }
 
     winston.info('User logout successful', {
@@ -242,7 +234,7 @@ router.post('/logout', authenticate, async (req: Request, res: Response): Promis
     });
 
   } catch (error) {
-    winston.error('Logout endpoint error:', {
+    winston.error('Logout endpoint error: ', {
       error: error,
       requestId: req.requestId,
       userId: req.user?.id
@@ -271,7 +263,6 @@ router.post('/forgot-password', authRateLimit, async (req: Request, res: Respons
         details: validation.error,
         requestId: req.requestId
       });
-      return;
     }
 
     const { email } = validation.data;
@@ -292,10 +283,10 @@ router.post('/forgot-password', authRateLimit, async (req: Request, res: Respons
     });
 
   } catch (error) {
-    winston.error('Forgot password endpoint error:', {
+    winston.error('Forgot password endpoint error: ', {
       error: error,
       requestId: req.requestId,
-      ip: getClientIp(req)
+      ip: getClientIp(req);
     });
 
     res.status(500).json({
@@ -321,7 +312,6 @@ router.post('/reset-password', authRateLimit, async (req: Request, res: Response
         details: validation.error,
         requestId: req.requestId
       });
-      return;
     }
 
     const { token, newPassword } = validation.data;
@@ -335,7 +325,6 @@ router.post('/reset-password', authRateLimit, async (req: Request, res: Response
         message: 'Password reset failed',
         requestId: req.requestId
       });
-      return;
     }
 
     winston.info('Password reset successful', {
@@ -348,10 +337,10 @@ router.post('/reset-password', authRateLimit, async (req: Request, res: Response
     });
 
   } catch (error) {
-    winston.error('Reset password endpoint error:', {
+    winston.error('Reset password endpoint error: ', {
       error: error,
       requestId: req.requestId,
-      ip: getClientIp(req)
+      ip: getClientIp(req);
     });
 
     res.status(500).json({
@@ -374,7 +363,6 @@ router.get('/me', authenticate, async (req: Request, res: Response): Promise<voi
         message: 'User must be authenticated',
         requestId: req.requestId
       });
-      return;
     }
 
     winston.info('User profile accessed', {
@@ -390,7 +378,7 @@ router.get('/me', authenticate, async (req: Request, res: Response): Promise<voi
     });
 
   } catch (error) {
-    winston.error('Get profile endpoint error:', {
+    winston.error('Get profile endpoint error: ', {
       error: error,
       requestId: req.requestId,
       userId: req.user?.id
@@ -418,7 +406,7 @@ router.get('/status', authenticate, async (req: Request, res: Response): Promise
     });
 
   } catch (error) {
-    winston.error('Auth status endpoint error:', {
+    winston.error('Auth status endpoint error: ', {
       error: error,
       requestId: req.requestId
     });

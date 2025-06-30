@@ -14,32 +14,32 @@ import { getErrorMessage } from '../utils/errorUtils';
 export const ValidationRules = {
   // User-related validations
   username: () => 
-    body('username')
-      .isLength({ min: 3, max: 30 })
-      .withMessage('Username must be between 3 and 30 characters')
-      .matches(/^[a-zA-Z0-9_-]+$/)
-      .withMessage('Username can only contain letters, numbers, underscores, and hyphens')
-      .trim()
+    body('username');
+      .isLength({ min: 3, max: 30 });
+      .withMessage('Username must be between 3 and 30 characters');
+      .matches(/^[a-zA-Z0-9_-]+$/);
+      .withMessage('Username can only contain letters, numbers, underscores, and hyphens');
+      .trim();
       .escape(),
 
   email: () =>
-    body('email')
-      .isEmail()
-      .withMessage('Must be a valid email address')
-      .normalizeEmail()
-      .isLength({ max: 255 })
-      .withMessage('Email must be less than 255 characters')
+    body('email');
+      .isEmail();
+      .withMessage('Must be a valid email address');
+      .normalizeEmail();
+      .isLength({ max: 255 });
+      .withMessage('Email must be less than 255 characters');
       .trim(),
 
   password: () =>
-    body('password')
-      .isLength({ min: 8, max: 128 })
-      .withMessage('Password must be between 8 and 128 characters')
+    body('password');
+      .isLength({ min: 8, max: 128 });
+      .withMessage('Password must be between 8 and 128 characters');
       .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
       .withMessage('Password must contain at least one lowercase letter, one uppercase letter, one number, and one special character'),
 
   confirmPassword: () =>
-    body('confirmPassword')
+    body('confirmPassword');
       .custom((value, { req }) => {
         if (value !== req.body.password) {
           throw new Error('Password confirmation does not match password');
@@ -49,99 +49,99 @@ export const ValidationRules = {
 
   // ID validations
   id: (field = 'id') =>
-    param(field)
-      .isInt({ min: 1 })
-      .withMessage(`${field} must be a positive integer`)
+    param(field);
+      .isInt({ min: 1 });
+      .withMessage(`${field} must be a positive integer`);
       .toInt(),
 
   uuid: (field = 'id') =>
-    param(field)
-      .isUUID()
+    param(field);
+      .isUUID();
       .withMessage(`${field} must be a valid UUID`),
 
   // Pagination validations
   page: () =>
-    query('page')
-      .optional()
-      .isInt({ min: 1 })
-      .withMessage('Page must be a positive integer')
+    query('page');
+      .optional();
+      .isInt({ min: 1 });
+      .withMessage('Page must be a positive integer');
       .toInt(),
 
   limit: () =>
-    query('limit')
-      .optional()
-      .isInt({ min: 1, max: 100 })
-      .withMessage('Limit must be between 1 and 100')
+    query('limit');
+      .optional();
+      .isInt({ min: 1, max: 100 });
+      .withMessage('Limit must be between 1 and 100');
       .toInt(),
 
   // Game-specific validations
   characterName: () =>
-    body('characterName')
-      .isLength({ min: 2, max: 50 })
-      .withMessage('Character name must be between 2 and 50 characters')
-      .matches(/^[a-zA-Z0-9\s'.-]+$/)
-      .withMessage('Character name contains invalid characters')
-      .trim()
+    body('characterName');
+      .isLength({ min: 2, max: 50 });
+      .withMessage('Character name must be between 2 and 50 characters');
+      .matches(/^[a-zA-Z0-9\s'.-]+$/);
+      .withMessage('Character name contains invalid characters');
+      .trim();
       .escape(),
 
   level: () =>
-    body('level')
-      .isInt({ min: 1, max: 100 })
-      .withMessage('Level must be between 1 and 100')
+    body('level');
+      .isInt({ min: 1, max: 100 });
+      .withMessage('Level must be between 1 and 100');
       .toInt(),
 
   coordinates: () => [
-    body('x')
-      .isFloat({ min: -1000, max: 1000 })
-      .withMessage('X coordinate must be between -1000 and 1000')
+    body('x');
+      .isFloat({ min: -1000, max: 1000 });
+      .withMessage('X coordinate must be between -1000 and 1000');
       .toFloat(),
-    body('y')
-      .isFloat({ min: -1000, max: 1000 })
-      .withMessage('Y coordinate must be between -1000 and 1000')
+    body('y');
+      .isFloat({ min: -1000, max: 1000 });
+      .withMessage('Y coordinate must be between -1000 and 1000');
       .toFloat(),
-    body('z')
-      .optional()
-      .isFloat({ min: -1000, max: 1000 })
-      .withMessage('Z coordinate must be between -1000 and 1000')
+    body('z');
+      .optional();
+      .isFloat({ min: -1000, max: 1000 });
+      .withMessage('Z coordinate must be between -1000 and 1000');
       .toFloat(),
   ],
 
   // API Key validation
   apiKey: () =>
-    header('x-api-key')
-      .isLength({ min: 32, max: 128 })
-      .withMessage('API key must be between 32 and 128 characters')
-      .matches(/^[a-zA-Z0-9_-]+$/)
+    header('x-api-key');
+      .isLength({ min: 32, max: 128 });
+      .withMessage('API key must be between 32 and 128 characters');
+      .matches(/^[a-zA-Z0-9_-]+$/);
       .withMessage('API key contains invalid characters'),
 
   // Content validations
   title: () =>
-    body('title')
-      .isLength({ min: 1, max: 200 })
-      .withMessage('Title must be between 1 and 200 characters')
-      .trim()
+    body('title');
+      .isLength({ min: 1, max: 200 });
+      .withMessage('Title must be between 1 and 200 characters');
+      .trim();
       .escape(),
 
   description: () =>
-    body('description')
-      .optional()
-      .isLength({ max: 1000 })
-      .withMessage('Description must be less than 1000 characters')
-      .trim()
+    body('description');
+      .optional();
+      .isLength({ max: 1000 });
+      .withMessage('Description must be less than 1000 characters');
+      .trim();
       .escape(),
 
   // Date validations
   dateRange: () => [
-    query('startDate')
-      .optional()
-      .isISO8601()
-      .withMessage('Start date must be a valid ISO 8601 date')
+    query('startDate');
+      .optional();
+      .isISO8601();
+      .withMessage('Start date must be a valid ISO 8601 date');
       .toDate(),
-    query('endDate')
-      .optional()
-      .isISO8601()
-      .withMessage('End date must be a valid ISO 8601 date')
-      .toDate()
+    query('endDate');
+      .optional();
+      .isISO8601();
+      .withMessage('End date must be a valid ISO 8601 date');
+      .toDate();
       .custom((value, { req }) => {
         if (req.query?.startDate && value < req.query.startDate) {
           throw new Error('End date must be after start date');
@@ -152,7 +152,7 @@ export const ValidationRules = {
 
   // File upload validations
   imageFile: () =>
-    body('imageFile')
+    body('imageFile');
       .custom((value, { req }) => {
         if (!req.file) {
           throw new Error('Image file is required');
@@ -178,58 +178,58 @@ export const ValidationRules = {
 export const GameValidationChains = {
   createCharacter: [
     ValidationRules.characterName(),
-    body('class')
-      .isIn(['warrior', 'mage', 'archer', 'rogue'])
+    body('class');
+      .isIn(['warrior', 'mage', 'archer', 'rogue']);
       .withMessage('Character class must be warrior, mage, archer, or rogue'),
-    body('race')
-      .isIn(['human', 'elf', 'dwarf', 'orc'])
+    body('race');
+      .isIn(['human', 'elf', 'dwarf', 'orc']);
       .withMessage('Character race must be human, elf, dwarf, or orc'),
-    body('stats')
-      .isObject()
+    body('stats');
+      .isObject();
       .withMessage('Stats must be an object'),
-    body('stats.strength')
-      .isInt({ min: 1, max: 20 })
-      .withMessage('Strength must be between 1 and 20')
+    body('stats.strength');
+      .isInt({ min: 1, max: 20 });
+      .withMessage('Strength must be between 1 and 20');
       .toInt(),
-    body('stats.dexterity')
-      .isInt({ min: 1, max: 20 })
-      .withMessage('Dexterity must be between 1 and 20')
+    body('stats.dexterity');
+      .isInt({ min: 1, max: 20 });
+      .withMessage('Dexterity must be between 1 and 20');
       .toInt(),
-    body('stats.intelligence')
-      .isInt({ min: 1, max: 20 })
-      .withMessage('Intelligence must be between 1 and 20')
+    body('stats.intelligence');
+      .isInt({ min: 1, max: 20 });
+      .withMessage('Intelligence must be between 1 and 20');
       .toInt(),
-    body('stats.constitution')
-      .isInt({ min: 1, max: 20 })
-      .withMessage('Constitution must be between 1 and 20')
+    body('stats.constitution');
+      .isInt({ min: 1, max: 20 });
+      .withMessage('Constitution must be between 1 and 20');
       .toInt(),
   ],
 
   updatePosition: [
     ...ValidationRules.coordinates(),
-    body('mapId')
-      .isInt({ min: 1 })
-      .withMessage('Map ID must be a positive integer')
+    body('mapId');
+      .isInt({ min: 1 });
+      .withMessage('Map ID must be a positive integer');
       .toInt(),
-    body('timestamp')
-      .isISO8601()
-      .withMessage('Timestamp must be a valid ISO 8601 date')
+    body('timestamp');
+      .isISO8601();
+      .withMessage('Timestamp must be a valid ISO 8601 date');
       .toDate(),
   ],
 
   sendMessage: [
-    body('message')
-      .isLength({ min: 1, max: 500 })
-      .withMessage('Message must be between 1 and 500 characters')
-      .trim()
+    body('message');
+      .isLength({ min: 1, max: 500 });
+      .withMessage('Message must be between 1 and 500 characters');
+      .trim();
       .escape(),
-    body('channel')
-      .isIn(['global', 'guild', 'party', 'whisper'])
+    body('channel');
+      .isIn(['global', 'guild', 'party', 'whisper']);
       .withMessage('Channel must be global, guild, party, or whisper'),
-    body('targetUserId')
-      .optional()
-      .isInt({ min: 1 })
-      .withMessage('Target user ID must be a positive integer')
+    body('targetUserId');
+      .optional();
+      .isInt({ min: 1 });
+      .withMessage('Target user ID must be a positive integer');
       .toInt(),
   ],
 };
@@ -243,9 +243,9 @@ export const AuthValidationChains = {
     ValidationRules.email(),
     ValidationRules.password(),
     ValidationRules.confirmPassword(),
-    body('acceptTerms')
-      .isBoolean()
-      .withMessage('Terms acceptance must be a boolean')
+    body('acceptTerms');
+      .isBoolean();
+      .withMessage('Terms acceptance must be a boolean');
       .custom((value) => {
         if (!value) {
           throw new Error('You must accept the terms and conditions');
@@ -255,16 +255,16 @@ export const AuthValidationChains = {
   ],
 
   login: [
-    body('usernameOrEmail')
-      .isLength({ min: 1 })
-      .withMessage('Username or email is required')
+    body('usernameOrEmail');
+      .isLength({ min: 1 });
+      .withMessage('Username or email is required');
       .trim(),
-    body('password')
-      .isLength({ min: 1 })
+    body('password');
+      .isLength({ min: 1 });
       .withMessage('Password is required'),
-    body('rememberMe')
-      .optional()
-      .isBoolean()
+    body('rememberMe');
+      .optional();
+      .isBoolean();
       .withMessage('Remember me must be a boolean'),
   ],
 
@@ -273,17 +273,17 @@ export const AuthValidationChains = {
   ],
 
   resetPassword: [
-    body('token')
-      .isLength({ min: 1 })
-      .withMessage('Reset token is required')
+    body('token');
+      .isLength({ min: 1 });
+      .withMessage('Reset token is required');
       .trim(),
     ValidationRules.password(),
     ValidationRules.confirmPassword(),
   ],
 
   changePassword: [
-    body('currentPassword')
-      .isLength({ min: 1 })
+    body('currentPassword');
+      .isLength({ min: 1 });
       .withMessage('Current password is required'),
     ValidationRules.password(),
     ValidationRules.confirmPassword(),
@@ -344,13 +344,13 @@ export const handleValidationErrors = (
     const formattedErrors = errors.array().map(error => ({
       field: error.type === 'field' ? error.path : error.type,
       message: error.msg,
-      value: error.type === 'field' ? error.value : undefined,
+      value: error.type === 'field' ? error.value : undefined,;
     }));
     
     const validationError = new ValidationError(
       'Validation failed',
       formattedErrors,
-      requestId
+      requestId;
     );
     
     return next(validationError);
@@ -387,7 +387,7 @@ export const sanitizeRequestBody = (
  * Recursively sanitize object properties
  */
 const sanitizeObject = (obj: any): any => {
-  if (typeof obj !== 'object' || obj === null) {
+  if (typeof obj !== 'object' || obj === null) {;
     return obj;
   }
   
@@ -440,7 +440,7 @@ export const validateRateLimit = (
       const error = new ValidationError(
         message || 'Too many requests',
         { retryAfter: Math.ceil(windowMs / 1000) },
-        requestId
+        requestId;
       );
       return next(error);
     }
@@ -464,7 +464,7 @@ export const validateContentType = (allowedTypes: string[]) => {
       const error = new ValidationError(
         'Content-Type header is required',
         undefined,
-        requestId
+        requestId;
       );
       return next(error);
     }
@@ -474,7 +474,7 @@ export const validateContentType = (allowedTypes: string[]) => {
       const error = new ValidationError(
         `Content-Type must be one of: ${allowedTypes.join(', ')}`,
         { received: contentType, allowed: allowedTypes },
-        requestId
+        requestId;
       );
       return next(error);
     }

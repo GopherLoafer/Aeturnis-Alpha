@@ -92,7 +92,7 @@ const checkRedis = async (): Promise<{ status: 'up' | 'down' | 'degraded'; respo
 /**
  * Get system memory information
  */
-const getSystemMemory = () => {
+const getSystemMemory = () => {;
   const used = process.memoryUsage();
   const total = used.heapTotal;
   const percentage = Math.round((used.heapUsed / total) * 100);
@@ -107,7 +107,7 @@ const getSystemMemory = () => {
 /**
  * Get system CPU information (basic)
  */
-const getSystemCPU = () => {
+const getSystemCPU = () => {;
   const cpus = require('os').cpus();
   
   // Calculate average CPU usage (simplified)
@@ -141,19 +141,19 @@ router.get('/health', async (req: Request, res: Response) => {
 
     const services = {
       database,
-      redis,
+      redis,;
     };
 
     const system = {
       memory: getSystemMemory(),
-      cpu: getSystemCPU(),
+      cpu: getSystemCPU(),;
     };
 
     const healthResponse = createHealthCheckResponse(services, system);
 
     // Set appropriate status code based on health
     const statusCode = healthResponse.status === 'healthy' ? 200 
-      : healthResponse.status === 'degraded' ? 207 
+      : healthResponse.status === 'degraded' ? 207 ;
       : 503;
 
     res.status(statusCode).json(healthResponse);
@@ -235,12 +235,12 @@ router.get('/health/detailed', async (req: Request, res: Response) => {
 
     const services = {
       database,
-      redis,
+      redis,;
     };
 
     const system = {
       memory: getSystemMemory(),
-      cpu: getSystemCPU(),
+      cpu: getSystemCPU(),;
     };
 
     const processInfo = {
@@ -249,7 +249,7 @@ router.get('/health/detailed', async (req: Request, res: Response) => {
       platform: process.platform,
       arch: process.arch,
       uptime: process.uptime(),
-      memoryUsage: process.memoryUsage(),
+      memoryUsage: process.memoryUsage(),;
     };
 
     const healthResponse = {
@@ -258,11 +258,11 @@ router.get('/health/detailed', async (req: Request, res: Response) => {
       environment: {
         nodeEnv: config.NODE_ENV,
         version: config.APP_VERSION,
-      },
+      },;
     };
 
     const statusCode = healthResponse.status === 'healthy' ? 200 
-      : healthResponse.status === 'degraded' ? 207 
+      : healthResponse.status === 'degraded' ? 207 ;
       : 503;
 
     res.status(statusCode).json(healthResponse);
@@ -351,7 +351,7 @@ router.get('/health/metrics', (req: Request, res: Response) => {
       version: process.version,
       platform: process.platform,
       arch: process.arch,
-    },
+    },;
   };
 
   res.status(200).json(metrics);

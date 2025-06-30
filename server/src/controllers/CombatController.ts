@@ -7,7 +7,6 @@ import { Request, Response } from 'express';
 import { body, param, query, validationResult } from 'express-validator';
 import { logger } from '../utils/logger';
 import { CombatService } from '../services/CombatService';
-import {
 import { getErrorMessage } from '../utils/errorUtils';
   CombatActionRequest,
   CreateCombatSessionDto,
@@ -37,91 +36,88 @@ export class CombatController {
    * Validation middleware for starting combat
    */
   static startCombatValidation = [
-    body('sessionType')
-      .isIn(['pve', 'pvp', 'boss', 'arena', 'duel'])
+    body('sessionType');
+      .isIn(['pve', 'pvp', 'boss', 'arena', 'duel']);
       .withMessage('Invalid combat session type'),
-    body('targetId')
-      .optional()
-      .isUUID()
+    body('targetId');
+      .optional();
+      .isUUID();
       .withMessage('Target ID must be a valid UUID'),
-    body('zoneId')
-      .isUUID()
+    body('zoneId');
+      .isUUID();
       .withMessage('Zone ID must be a valid UUID'),
-    body('participants')
-      .isArray({ min: 1, max: 8 })
+    body('participants');
+      .isArray({ min: 1, max: 8 });
       .withMessage('Must have between 1 and 8 participants'),
-    body('participants.*.characterId')
-      .isUUID()
+    body('participants.*.characterId');
+      .isUUID();
       .withMessage('Character ID must be a valid UUID'),
-    body('participants.*.participantType')
-      .isIn(['player', 'monster', 'npc', 'boss'])
+    body('participants.*.participantType');
+      .isIn(['player', 'monster', 'npc', 'boss']);
       .withMessage('Invalid participant type'),
-    body('participants.*.side')
-      .isIn(['attackers', 'defenders', 'neutral'])
-      .withMessage('Invalid participant side')
+    body('participants.*.side');
+      .isIn(['attackers', 'defenders', 'neutral']);
+      .withMessage('Invalid participant side');
   ];
 
   /**
    * Validation middleware for combat actions
    */
   static combatActionValidation = [
-    param('sessionId')
-      .isUUID()
+    param('sessionId');
+      .isUUID();
       .withMessage('Session ID must be a valid UUID'),
-    body('actionType')
-      .isIn(['attack', 'spell', 'heal', 'defend', 'item', 'special', 'flee'])
+    body('actionType');
+      .isIn(['attack', 'spell', 'heal', 'defend', 'item', 'special', 'flee']);
       .withMessage('Invalid action type'),
-    body('actionName')
-      .isString()
-      .isLength({ min: 1, max: 100 })
+    body('actionName');
+      .isString();
+      .isLength({ min: 1, max: 100 });
       .withMessage('Action name must be between 1 and 100 characters'),
-    body('targetId')
-      .optional()
-      .isUUID()
+    body('targetId');
+      .optional();
+      .isUUID();
       .withMessage('Target ID must be a valid UUID'),
-    body('itemId')
-      .optional()
-      .isUUID()
+    body('itemId');
+      .optional();
+      .isUUID();
       .withMessage('Item ID must be a valid UUID'),
-    body('spellId')
-      .optional()
-      .isUUID()
-      .withMessage('Spell ID must be a valid UUID')
+    body('spellId');
+      .optional();
+      .isUUID();
+      .withMessage('Spell ID must be a valid UUID');
   ];
 
   /**
    * Validation middleware for session ID parameter
    */
   static sessionIdValidation = [
-    param('sessionId')
-      .isUUID()
-      .withMessage('Session ID must be a valid UUID')
+    param('sessionId');
+      .isUUID();
+      .withMessage('Session ID must be a valid UUID');
   ];
 
   /**
    * POST /api/combat/start
    * Start a new combat encounter
    */
-  async startCombat(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async startCombat(req: Request, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         res.status(400).json({
           success: false,
           message: 'Validation failed',
-          errors: errors.array()
-          return;
-});
-        return;
+          errors: errors.array();
+        });
       }
 
       const characterId = req.session?.characterId;
       if (!characterId) {
         res.status(401).json({
           success: false,
-          message: 'No active character selected'
-        });
-        return;
+        message: 'No active character selected'
+      });
       }
 
       const sessionData: CreateCombatSessionDto = {
@@ -150,7 +146,7 @@ export class CombatController {
         message: 'Combat encounter started successfully',
         data: {
           session,
-          participants: await this.combatService.getSessionParticipants(session.id)
+          participants: await this.combatService.getSessionParticipants(session.id);
         }
       });
 
@@ -166,7 +162,6 @@ export class CombatController {
           message: 'Character is already in combat',
           errorCode: CombatErrorCode.ALREADY_IN_COMBAT
         });
-        return;
       }
 
       res.status(500).json({
@@ -180,26 +175,23 @@ export class CombatController {
    * POST /api/combat/:sessionId/action
    * Perform a combat action
    */
-  async performAction(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async performAction(req: Request, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         res.status(400).json({
           success: false,
           message: 'Validation failed',
-          errors: errors.array()
-          return;
-});
-        return;
+          errors: errors.array();
+        });
       }
 
       const characterId = req.session?.characterId;
       if (!characterId) {
         res.status(401).json({
           success: false,
-          message: 'No active character selected'
-        });
-        return;
+        message: 'No active character selected'
+      });
       }
 
       const sessionId = req.params.sessionId;
@@ -214,7 +206,7 @@ export class CombatController {
       const result = await this.combatService.performAction(
         sessionId,
         characterId,
-        actionRequest
+        actionRequest;
       );
 
       if (!result.success) {
@@ -224,7 +216,6 @@ export class CombatController {
           errorCode: result.error,
           cooldownRemaining: result.action?.mpCost // Reuse field for cooldown
         });
-        return;
       }
 
       logger.info('Combat action performed', {
@@ -232,8 +223,7 @@ export class CombatController {
         actorId: characterId,
         actionType: actionRequest.actionType,
         actionName: actionRequest.actionName,
-        success: result.success
-      });
+        success: result.success});
 
       res.status(200).json({
         success: true,
@@ -264,17 +254,15 @@ export class CombatController {
    * GET /api/combat/:sessionId
    * Get combat session details
    */
-  async getCombatSession(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async getCombatSession(req: Request, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         res.status(400).json({
           success: false,
           message: 'Validation failed',
-          errors: errors.array()
-          return;
-});
-        return;
+          errors: errors.array();
+        });
       }
 
       const sessionId = req.params.sessionId;
@@ -286,7 +274,6 @@ export class CombatController {
           message: 'Combat session not found',
           errorCode: CombatErrorCode.COMBAT_NOT_FOUND
         });
-        return;
       }
 
       const participants = await this.combatService.getSessionParticipants(sessionId);
@@ -319,17 +306,15 @@ export class CombatController {
    * GET /api/combat/:sessionId/statistics
    * Get combat session statistics
    */
-  async getCombatStatistics(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async getCombatStatistics(req: Request, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         res.status(400).json({
           success: false,
           message: 'Validation failed',
-          errors: errors.array()
-          return;
-});
-        return;
+          errors: errors.array();
+        });
       }
 
       const sessionId = req.params.sessionId;
@@ -341,7 +326,6 @@ export class CombatController {
           message: 'Combat session not found',
           errorCode: CombatErrorCode.COMBAT_NOT_FOUND
         });
-        return;
       }
 
       const stats = await this.combatService.getCombatStatistics(sessionId);
@@ -369,26 +353,23 @@ export class CombatController {
    * POST /api/combat/:sessionId/flee
    * Attempt to flee from combat
    */
-  async fleeCombat(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async fleeCombat(req: Request, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         res.status(400).json({
           success: false,
           message: 'Validation failed',
-          errors: errors.array()
-          return;
-});
-        return;
+          errors: errors.array();
+        });
       }
 
       const characterId = req.session?.characterId;
       if (!characterId) {
         res.status(401).json({
           success: false,
-          message: 'No active character selected'
-        });
-        return;
+        message: 'No active character selected'
+      });
       }
 
       const sessionId = req.params.sessionId;
@@ -400,14 +381,13 @@ export class CombatController {
       const result = await this.combatService.performAction(
         sessionId,
         characterId,
-        fleeRequest
+        fleeRequest;
       );
 
       logger.info('Flee attempt', {
         sessionId,
         characterId,
-        success: result.success
-      });
+        success: result.success});
 
       res.status(200).json({
         success: result.success,
@@ -435,16 +415,15 @@ export class CombatController {
    * GET /api/combat/active
    * Get active combat session for current character
    */
-  async getActiveCombat(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async getActiveCombat(req: Request, res: Response): Promise<void> {
     try {
       const characterId = req.session?.characterId;
       if (!characterId) {
         res.status(401).json({
           success: false,
           message: 'No active character selected'
-          return;
+         );
 });
-        return;
       }
 
       // Find active combat session for this character
@@ -454,7 +433,7 @@ export class CombatController {
           SELECT cs.* FROM combat_sessions cs
           JOIN combat_participants cp ON cp.session_id = cs.id
           WHERE cp.character_id = $1 AND cs.status = 'active'
-          LIMIT 1
+          LIMIT 1;
         `, [characterId]);
 
         if (result.rows.length === 0) {
@@ -462,8 +441,7 @@ export class CombatController {
             success: true,
             message: 'No active combat session',
             data: null
-          });
-          return;
+          });`
         }
 
         const sessionId = result.rows[0].id;
@@ -500,17 +478,16 @@ export class CombatController {
    * POST /api/combat/:sessionId/end
    * End combat session (admin/system endpoint)
    */
-  async endCombat(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async endCombat(req: Request, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         res.status(400).json({
           success: false,
           message: 'Validation failed',
-          errors: errors.array()
-          return;
-});
-        return;
+          errors: errors.array();
+        });
+        `
       }
 
       const sessionId = req.params.sessionId;

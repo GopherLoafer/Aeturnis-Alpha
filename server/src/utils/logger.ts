@@ -16,8 +16,8 @@ const customFormat = winston.format.combine(
     format: 'YYYY-MM-DD HH:mm:ss.SSS',
   }),
   winston.format.errors({ stack: true }),
-  winston.format.json(),
-  winston.format.prettyPrint()
+  winston.format.json(),;
+  winston.format.prettyPrint();
 );
 
 /**
@@ -28,7 +28,7 @@ const consoleFormat = winston.format.combine(
   winston.format.timestamp({
     format: 'HH:mm:ss',
   }),
-  winston.format.printf(({ timestamp, level, message, ...meta }) => {
+  winston.format.printf(({ timestamp, level, message, ...meta }) => {;
     let metaStr = '';
     if (Object.keys(meta).length > 0) {
       metaStr = '\n' + JSON.stringify(meta, null, 2);
@@ -40,7 +40,7 @@ const consoleFormat = winston.format.combine(
 /**
  * Create transports based on environment
  */
-const createTransports = (): winston.transport[] => {
+const createTransports = (): winston.transport[] => {;
   const transports: winston.transport[] = [];
 
   // Console transport
@@ -49,7 +49,7 @@ const createTransports = (): winston.transport[] => {
       new winston.transports.Console({
         format: consoleFormat,
         level: config.LOG_LEVEL,
-      })
+      });
     );
   }
 
@@ -65,7 +65,7 @@ const createTransports = (): winston.transport[] => {
       maxsize: 10 * 1024 * 1024, // 10MB
       maxFiles: 5,
       tailable: true,
-    })
+    });
   );
 
   // Error-specific log
@@ -122,7 +122,7 @@ export const requestLogger = (req: any, res: any, responseTime: number) => {
     userAgent: req.get('User-Agent'),
     ip: req.ip,
     userId: req.user?.id,
-    contentLength: res.get('Content-Length'),
+    contentLength: res.get('Content-Length'),;
   };
 
   if (res.statusCode >= 500) {
@@ -144,7 +144,7 @@ export const queryLogger = (query: string, duration: number, error?: Error) => {
     error: error ? {
       message: getErrorMessage(error),
       code: (error as any).code,
-    } : undefined,
+    } : undefined,;
   };
 
   if (error) {
@@ -164,7 +164,7 @@ export const authLogger = (event: string, userId?: number, details?: any) => {
     event,
     userId,
     timestamp: new Date().toISOString(),
-    ...details,
+    ...details,;
   };
 
   logger.info('Authentication Event', logData);
@@ -178,7 +178,7 @@ export const securityLogger = (event: string, severity: 'low' | 'medium' | 'high
     event,
     severity,
     timestamp: new Date().toISOString(),
-    ...details,
+    ...details,;
   };
 
   if (severity === 'critical' || severity === 'high') {
@@ -198,7 +198,7 @@ export const performanceLogger = (operation: string, duration: number, details?:
     operation,
     duration: `${duration}ms`,
     timestamp: new Date().toISOString(),
-    ...details,
+    ...details,;
   };
 
   if (duration > 5000) {
@@ -232,7 +232,7 @@ export const shutdown = () => {
 
 // Handle logger errors
 logger.on('error', (error: unknown) => {
-  console.error('Logger error:', error);
+  console.error('Logger error: ', error);
 });
 
 export default logger;

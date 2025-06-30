@@ -82,12 +82,12 @@ export class CombatRepository {
   /**
    * Create a new combat session
    */
-  async createCombatSession(data: CreateCombatSessionData): Promise<CombatSession> {
+  async createCombatSession(req: Request, res: Response): Promise<void> {
     try {
       const client = await this.db.connect();
       try {
-        const result = await client.query(
-          `INSERT INTO combat_sessions (session_name, zone_id, max_participants, turn_duration_seconds, victory_conditions)
+        const result = await client.query(;
+          `INSERT INTO combat_sessions (session_name, zone_id, max_participants, turn_duration_seconds, victory_conditions);
            VALUES ($1, $2, $3, $4, $5)
            RETURNING *`,
           [
@@ -95,7 +95,7 @@ export class CombatRepository {
             data.zone_id,
             data.max_participants || 10,
             data.turn_duration_seconds || 30,
-            JSON.stringify(data.victory_conditions || {})
+            JSON.stringify(data.victory_conditions || {});
           ]
         );
         
@@ -121,13 +121,13 @@ export class CombatRepository {
   /**
    * Get combat session by ID
    */
-  async getCombatSession(sessionId: string): Promise<CombatSession | null> {
+  async getCombatSession(req: Request, res: Response): Promise<void> {
     try {
       const client = await this.db.connect();
       try {
         const result = await client.query(
           'SELECT * FROM combat_sessions WHERE id = $1',
-          [sessionId]
+          [sessionId];
         );
         
         return result.rows[0] || null;
@@ -146,12 +146,7 @@ export class CombatRepository {
   /**
    * Join a combat session
    */
-  async joinCombatSession(sessionId: string, characterId: number, characterStats: {
-    current_health: number;
-    max_health: number;
-    current_mana: number;
-    max_mana: number;
-  }): Promise<CombatParticipant> {
+  async joinCombatSession(req: Request, res: Response): Promise<void> {
     try {
       const client = await this.db.connect();
       try {
@@ -160,7 +155,7 @@ export class CombatRepository {
         // Check if session exists and has space
         const sessionResult = await client.query(
           'SELECT * FROM combat_sessions WHERE id = $1 FOR UPDATE',
-          [sessionId]
+          [sessionId];
         );
 
         if (!sessionResult.rows[0]) {
@@ -179,7 +174,7 @@ export class CombatRepository {
         // Check if character is already in session
         const existingResult = await client.query(
           'SELECT id FROM combat_participants WHERE combat_session_id = $1 AND character_id = $2',
-          [sessionId, characterId]
+          [sessionId, characterId];
         );
 
         if (existingResult.rows.length > 0) {
@@ -189,14 +184,14 @@ export class CombatRepository {
         // Get next turn position
         const turnPositionResult = await client.query(
           'SELECT COALESCE(MAX(turn_position), 0) + 1 as next_position FROM combat_participants WHERE combat_session_id = $1',
-          [sessionId]
+          [sessionId];
         );
         const turnPosition = turnPositionResult.rows[0].next_position;
 
         // Add participant
         const participantResult = await client.query(
-          `INSERT INTO combat_participants 
-           (combat_session_id, character_id, current_health, max_health, current_mana, max_mana, turn_position)
+          `INSERT INTO combat_participants ;
+           (combat_session_id, character_id, current_health, max_health, current_mana, max_mana, turn_position);
            VALUES ($1, $2, $3, $4, $5, $6, $7)
            RETURNING *`,
           [
@@ -244,13 +239,13 @@ export class CombatRepository {
   /**
    * Get combat participants for a session
    */
-  async getCombatParticipants(sessionId: string): Promise<CombatParticipant[]> {
+  async getCombatParticipants(req: Request, res: Response): Promise<void> {
     try {
       const client = await this.db.connect();
       try {
         const result = await client.query(
           'SELECT * FROM combat_participants WHERE combat_session_id = $1 ORDER BY turn_position',
-          [sessionId]
+          [sessionId];
         );
         
         return result.rows;
@@ -269,18 +264,14 @@ export class CombatRepository {
   /**
    * Record a combat action
    */
-  async recordCombatAction(sessionId: string, actionData: CombatActionData, results: {
-    damage_dealt?: number;
-    healing_done?: number;
-    effects_applied?: any[];
-  }): Promise<CombatAction> {
+  async recordCombatAction(req: Request, res: Response): Promise<void> {
     try {
       const client = await this.db.connect();
       try {
         // Get current session state
         const sessionResult = await client.query(
           'SELECT round_number, current_turn FROM combat_sessions WHERE id = $1',
-          [sessionId]
+          [sessionId];
         );
 
         if (!sessionResult.rows[0]) {
@@ -291,8 +282,8 @@ export class CombatRepository {
 
         const result = await client.query(
           `INSERT INTO combat_actions 
-           (combat_session_id, character_id, action_type, action_data, target_character_id, 
-            damage_dealt, healing_done, effects_applied, round_number, turn_number)
+           (combat_session_id, character_id, action_type, action_data, target_character_id, ;
+            damage_dealt, healing_done, effects_applied, round_number, turn_number);
            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
            RETURNING *`,
           [
@@ -326,13 +317,7 @@ export class CombatRepository {
   /**
    * Update combat session state
    */
-  async updateCombatSession(sessionId: string, updates: {
-    status?: string;
-    current_turn?: number;
-    round_number?: number;
-    turn_order?: any[];
-    combat_log?: any[];
-  }): Promise<CombatSession | null> {
+  async updateCombatSession(req: Request, res: Response): Promise<void> {
     try {
       const client = await this.db.connect();
       try {
@@ -360,7 +345,7 @@ export class CombatRepository {
 
         const result = await client.query(
           `UPDATE combat_sessions SET ${setClauses.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
-          values
+          values;
         );
         
         return result.rows[0] || null;
@@ -380,13 +365,13 @@ export class CombatRepository {
   /**
    * Get active combat sessions in a zone
    */
-  async getActiveCombatSessions(zoneId: string): Promise<CombatSession[]> {
+  async getActiveCombatSessions(req: Request, res: Response): Promise<void> {
     try {
       const client = await this.db.connect();
       try {
         const result = await client.query(
-          `SELECT * FROM combat_sessions 
-           WHERE zone_id = $1 AND status IN ('waiting', 'active') 
+          `SELECT * FROM combat_sessions ;
+           WHERE zone_id = $1 AND status IN ('waiting', 'active');
            ORDER BY created_at DESC`,
           [zoneId]
         );
@@ -407,7 +392,7 @@ export class CombatRepository {
   /**
    * End a combat session
    */
-  async endCombatSession(sessionId: string, winner?: string): Promise<CombatSession | null> {
+  async endCombatSession(req: Request, res: Response): Promise<void> {
     try {
       const client = await this.db.connect();
       try {
@@ -418,7 +403,7 @@ export class CombatRepository {
                last_action_at = CURRENT_TIMESTAMP
            WHERE id = $1 
            RETURNING *`,
-          [sessionId, JSON.stringify(winner)]
+          [sessionId, JSON.stringify(winner)];
         );
         
         logger.info('Combat session ended', {

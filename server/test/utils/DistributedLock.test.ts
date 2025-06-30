@@ -11,7 +11,7 @@ describe('Distributed Lock', () => {
     mockRedis = {
       eval: jest.fn(),
       del: jest.fn(),
-      set: jest.fn()
+      set: jest.fn();
     };
     
     (redisService.getClient as jest.Mock).mockReturnValue(mockRedis);
@@ -129,7 +129,7 @@ describe('Distributed Lock', () => {
       const result = await withLock('test-resource', testFunction, {
         ttl: 5000,
         retries: 3,
-        retryDelay: 100
+        retryDelay: 100;
       });
 
       expect(result).toBe('test-result');
@@ -149,7 +149,7 @@ describe('Distributed Lock', () => {
       const result = await withLock('test-resource', testFunction, {
         ttl: 5000,
         retries: 3,
-        retryDelay: 50
+        retryDelay: 50;
       });
 
       expect(result).toBe('success');
@@ -166,7 +166,7 @@ describe('Distributed Lock', () => {
           ttl: 5000,
           retries: 2,
           retryDelay: 10
-        })
+        });
       ).rejects.toThrow('Failed to acquire lock for test-resource after 2 retries');
 
       expect(testFunction).not.toHaveBeenCalled();
@@ -180,7 +180,7 @@ describe('Distributed Lock', () => {
       const testFunction = jest.fn().mockRejectedValue(new Error('Function error'));
 
       await expect(
-        withLock('test-resource', testFunction, { ttl: 5000 })
+        withLock('test-resource', testFunction, { ttl: 5000 });
       ).rejects.toThrow('Function error');
 
       expect(mockRedis.eval).toHaveBeenCalledTimes(2); // acquire + release
@@ -192,14 +192,14 @@ describe('Distributed Lock', () => {
         .mockResolvedValue(1);       // extend and release
 
       const longRunningFunction = jest.fn().mockImplementation(async () => {
-        // Simulate long operation
+        // Simulate long operation;
         await new Promise(resolve => setTimeout(resolve, 100));
         return 'completed';
       });
 
       const result = await withLock('test-resource', longRunningFunction, {
         ttl: 200,
-        extendInterval: 50
+        extendInterval: 50;
       });
 
       expect(result).toBe('completed');

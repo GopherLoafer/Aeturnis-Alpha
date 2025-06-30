@@ -43,9 +43,7 @@ export class RedisService {
   /**
    * Initialize Redis connection with retry logic
    */
-  public async connect(): Promise<void> {
-    if (this.isConnected && this.redis) {
-      return;
+  public async connect(): Promise<void> { if (this.isConnected && this.redis) { }
     }
 
     const redisConfig: RedisConfig = {
@@ -77,7 +75,7 @@ export class RedisService {
         db: redisConfig.db
       });
     } catch (error) {
-      logger.error('Failed to connect to Redis', { error: getErrorMessage(error) });
+      logger.error('Failed to connect to Redis', { error: getErrorMessage(error)});
       await this.handleConnectionFailure();
       throw error;
     }
@@ -86,9 +84,7 @@ export class RedisService {
   /**
    * Setup Redis event handlers
    */
-  private setupEventHandlers(): void {
-    if (!this.redis) return;
-
+  private setupEventHandlers(): void { if (!this.redis) }
     this.redis.on('connect', () => {
       logger.info('Redis client connected');
       this.isConnected = true;
@@ -100,7 +96,7 @@ export class RedisService {
     });
 
     this.redis.on('error', (error: unknown) => {
-      logger.error('Redis connection error', { error: getErrorMessage(error) });
+      logger.error('Redis connection error', { error: getErrorMessage(error)});
       this.isConnected = false;
     });
 
@@ -126,18 +122,17 @@ export class RedisService {
   /**
    * Handle connection failure with exponential backoff
    */
-  private async handleConnectionFailure(): Promise<void> {
+  private async handleConnectionFailure(req: Request, res: Response): Promise<void> {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
       logger.error('Max Redis reconnection attempts reached', {
-        attempts: this.reconnectAttempts
-        return;
+        attempts: this.reconnectAttempts`
 });
-      return;
+      `
     }
 
     const delay = Math.min(
       this.baseRetryDelay * Math.pow(2, this.reconnectAttempts),
-      30000 // Max 30 seconds
+      30000 // Max 30 seconds;
     );
 
     logger.info('Retrying Redis connection', {
@@ -150,7 +145,7 @@ export class RedisService {
     try {
       await this.connect();
     } catch (error) {
-      logger.error('Redis reconnection failed', { error: getErrorMessage(error) });
+      logger.error('Redis reconnection failed', { error: getErrorMessage(error)});
     }
   }
 
@@ -167,11 +162,7 @@ export class RedisService {
   /**
    * Check Redis connection health
    */
-  public async healthCheck(): Promise<{
-    status: 'healthy' | 'unhealthy';
-    latency?: number;
-    error?: string;
-  }> {
+  public async healthCheck(req: Request, res: Response): Promise<void> {
     if (!this.redis || !this.isConnected) {
       return {
         status: 'unhealthy',
@@ -191,8 +182,7 @@ export class RedisService {
     } catch (error) {
       return {
         status: 'unhealthy',
-        error: getErrorMessage(error)
-      };
+        error: getErrorMessage(error);};
     }
   }
 
@@ -214,21 +204,20 @@ export class RedisService {
     return {
       isConnected: this.isConnected,
       reconnectAttempts: this.reconnectAttempts,
-      uptime: this.redis?.connector?.connecting ? undefined : Date.now()
+      uptime: this.redis?.connector?.connecting ? undefined : Date.now();
     };
   }
 
   /**
    * Gracefully shutdown Redis connection
    */
-  public async disconnect(): Promise<void> {
+  public async disconnect(req: Request, res: Response): Promise<void> {
     if (this.redis) {
       try {
         await this.redis.quit();
-        logger.info('Redis connection closed gracefully');
-        return;
+        logger.info('Redis connection closed gracefully');`
 } catch (error) {
-        logger.error('Error during Redis shutdown', { error: getErrorMessage(error) });
+        logger.error('Error during Redis shutdown', { error: getErrorMessage(error)});
         // Force disconnect if graceful shutdown fails
         this.redis.disconnect();
       } finally {
@@ -255,8 +244,7 @@ export class RedisService {
       return result;
     } catch (error) {
       logger.error(`Redis command failed: ${commandName}`, {
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       throw error;
     }
   }

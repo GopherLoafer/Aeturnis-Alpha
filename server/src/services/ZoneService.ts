@@ -6,7 +6,6 @@
 import { Pool } from 'pg';
 import { logger } from '../utils/logger';
 import { CacheManager } from './CacheManager';
-import {
 import { getErrorMessage } from '../utils/errorUtils';
   Zone,
   ZoneInfo,
@@ -33,7 +32,7 @@ export class ZoneService {
   /**
    * Get zone information with exits and characters
    */
-  async getZone(zoneId: string): Promise<ZoneInfo | null> {
+  async getZone(req: Request, res: Response): Promise<void> {
     try {
       const cacheKey = `zone_info:${zoneId}`;
       const cached = await this.cacheManager.get<ZoneInfo>(cacheKey);
@@ -46,7 +45,7 @@ export class ZoneService {
 
       const [exits, charactersPresent] = await Promise.all([
         this.getZoneExits(zoneId),
-        this.getPlayersInZone(zoneId)
+        this.getPlayersInZone(zoneId);
       ]);
 
       const zoneInfo: ZoneInfo = {
@@ -72,7 +71,7 @@ export class ZoneService {
   /**
    * Get zone by ID
    */
-  async getZoneById(zoneId: string): Promise<Zone | null> {
+  async getZoneById(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     try {
       const result = await client.query(
@@ -81,7 +80,7 @@ export class ZoneService {
                 features, map_x, map_y, layer, monster_spawn_rate, ambient_sounds,
                 created_at, updated_at
          FROM zones WHERE id = $1`,
-        [zoneId]
+        [zoneId];
       );
 
       if (result.rows.length === 0) return null;
@@ -96,7 +95,7 @@ export class ZoneService {
   /**
    * Get zone by internal name
    */
-  async getZoneByName(internalName: string): Promise<Zone | null> {
+  async getZoneByName(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     try {
       const result = await client.query(
@@ -105,7 +104,7 @@ export class ZoneService {
                 features, map_x, map_y, layer, monster_spawn_rate, ambient_sounds,
                 created_at, updated_at
          FROM zones WHERE internal_name = $1`,
-        [internalName]
+        [internalName];
       );
 
       if (result.rows.length === 0) return null;
@@ -120,7 +119,7 @@ export class ZoneService {
   /**
    * Get exits from a zone
    */
-  async getZoneExits(zoneId: string): Promise<ZoneExit[]> {
+  async getZoneExits(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     try {
       const result = await client.query(
@@ -130,7 +129,7 @@ export class ZoneService {
          FROM zone_exits 
          WHERE from_zone_id = $1 AND is_visible = true
          ORDER BY direction`,
-        [zoneId]
+        [zoneId];
       );
 
       return result.rows.map(row => this.mapRowToZoneExit(row));
@@ -142,12 +141,12 @@ export class ZoneService {
   /**
    * Get characters currently in a zone
    */
-  async getPlayersInZone(zoneId: string): Promise<CharacterInZone[]> {
+  async getPlayersInZone(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     try {
       const result = await client.query(
         'SELECT * FROM get_characters_in_zone($1)',
-        [zoneId]
+        [zoneId];
       );
 
       return result.rows.map(row => ({
@@ -168,7 +167,7 @@ export class ZoneService {
   /**
    * Look in a specific direction from a zone
    */
-  async look(zoneId: string, direction: Direction, characterLevel: number = 1): Promise<LookResponse> {
+  async look(req: Request, res: Response): Promise<void> {
     try {
       const normalizedDirection = this.normalizeDirection(direction);
       if (!normalizedDirection) {
@@ -229,14 +228,14 @@ export class ZoneService {
   /**
    * Search zones with filters
    */
-  async searchZones(params: ZoneQueryParams): Promise<Zone[]> {
+  async searchZones(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     try {
       let query = `
         SELECT id, internal_name, display_name, description, zone_type,
                level_range, pvp_enabled, safe_zone, climate, terrain, lighting,
                features, map_x, map_y, layer, monster_spawn_rate, ambient_sounds,
-               created_at, updated_at
+               created_at, updated_at;
         FROM zones WHERE 1=1`;
       
       const queryParams: any[] = [];
@@ -315,7 +314,7 @@ export class ZoneService {
   /**
    * Get zone statistics
    */
-  async getZoneStatistics(zoneId: string): Promise<ZoneStatistics | null> {
+  async getZoneStatistics(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     try {
       const zone = await this.getZoneById(zoneId);
@@ -333,7 +332,7 @@ export class ZoneService {
          FROM movement_log 
          WHERE to_zone_id = $1 
          AND created_at > CURRENT_DATE - INTERVAL '30 days'`,
-        [zoneId]
+        [zoneId];
       );
 
       // Get popular exits
@@ -345,7 +344,7 @@ export class ZoneService {
          GROUP BY direction 
          ORDER BY count DESC 
          LIMIT 5`,
-        [zoneId]
+        [zoneId];
       );
 
       return {
@@ -356,7 +355,7 @@ export class ZoneService {
         averageTimeSpent: parseFloat(movementStats.rows[0]?.avg_travel_time || '0'),
         popularExits: exitStats.rows.map(row => ({
           direction: row.direction,
-          count: parseInt(row.count)
+          count: parseInt(row.count);
         })),
         peakPlayerTime: movementStats.rows[0]?.last_visit || new Date(),
         isActive: currentPlayers.length > 0
@@ -369,7 +368,7 @@ export class ZoneService {
   /**
    * Create a new zone
    */
-  async createZone(zoneData: CreateZoneDto): Promise<Zone> {
+  async createZone(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     try {
       const result = await client.query(
@@ -394,8 +393,8 @@ export class ZoneService {
           zoneData.mapX,
           zoneData.mapY,
           zoneData.layer || 0,
-          zoneData.monsterSpawnRate || 0.0,
-          JSON.stringify(zoneData.ambientSounds || [])
+          zoneData.monsterSpawnRate || 0.0,;
+          JSON.stringify(zoneData.ambientSounds || []);
         ]
       );
 
@@ -425,7 +424,7 @@ export class ZoneService {
   /**
    * Update an existing zone
    */
-  async updateZone(zoneData: UpdateZoneDto): Promise<Zone | null> {
+  async updateZone(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     try {
       const updates: string[] = [];
@@ -483,7 +482,7 @@ export class ZoneService {
       const query = `
         UPDATE zones 
         SET ${updates.join(', ')} 
-        WHERE id = $1 
+        WHERE id = $1 ;
         RETURNING *`;
 
       const result = await client.query(query, [zoneData.id, ...values]);
@@ -497,7 +496,7 @@ export class ZoneService {
       
       logger.info('Zone updated successfully', {
         zoneId: zone.id,
-        updates: Object.keys(zoneData).filter(key => key !== 'id')
+        updates: Object.keys(zoneData).filter(key => key !== 'id');
       });
 
       return zone;
@@ -515,12 +514,11 @@ export class ZoneService {
   /**
    * Clear zone-related cache
    */
-  private async clearZoneCache(zoneId: string): Promise<void> {
+  private async clearZoneCache(req: Request, res: Response): Promise<void> {
     const cacheKeys = [
-      `zone_info:${zoneId  return;
-}`,
+      `zone_info:${zoneId}`,
       `zone_exits:${zoneId}`,
-      `zone_players:${zoneId}`
+      `zone_players:${zoneId}`;
     ];
     
     await Promise.all(cacheKeys.map(key => this.cacheManager.delete(key)));

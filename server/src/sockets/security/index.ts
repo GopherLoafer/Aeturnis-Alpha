@@ -198,7 +198,7 @@ export class SocketSecurityService {
   public containsProfanity(content: string): boolean {
     const profanityPatterns = [
       /\b(spam|hack|cheat|exploit)\b/gi,
-      // Add more patterns as needed
+      // Add more patterns as needed;
     ];
 
     return profanityPatterns.some(pattern => pattern.test(content));

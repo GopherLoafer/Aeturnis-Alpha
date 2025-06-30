@@ -6,8 +6,8 @@
 import { Request, Response } from 'express';
 import { body, param, validationResult } from 'express-validator';
 import { AffinityService } from '../services/AffinityService';
-import {
 import { getErrorMessage } from '../utils/errorUtils';
+import {
   AffinityError,
   AFFINITY_ERRORS,
   AFFINITY_VALIDATION
@@ -32,63 +32,60 @@ export class AffinityController {
    * Validation middleware for awarding experience
    */
   static awardExpValidation = [
-    body('character_id')
-      .isUUID()
+    body('character_id');
+      .isUUID();
       .withMessage('Character ID must be a valid UUID'),
-    body('affinity_name')
-      .isLength({ min: AFFINITY_VALIDATION.name.minLength, max: AFFINITY_VALIDATION.name.maxLength })
-      .matches(AFFINITY_VALIDATION.name.pattern)
+    body('affinity_name');
+      .isLength({ min: AFFINITY_VALIDATION.name.minLength, max: AFFINITY_VALIDATION.name.maxLength });
+      .matches(AFFINITY_VALIDATION.name.pattern);
       .withMessage('Affinity name must be lowercase with underscores only'),
-    body('experience_amount')
-      .isInt({ min: 1 })
+    body('experience_amount');
+      .isInt({ min: 1 });
       .withMessage('Experience amount must be a positive integer'),
-    body('source')
-      .optional()
-      .isIn(['combat', 'quest', 'training', 'admin', 'event'])
+    body('source');
+      .optional();
+      .isIn(['combat', 'quest', 'training', 'admin', 'event']);
       .withMessage('Source must be one of: combat, quest, training, admin, event'),
-    body('session_id')
-      .optional()
-      .isUUID()
-      .withMessage('Session ID must be a valid UUID')
+    body('session_id');
+      .optional();
+      .isUUID();
+      .withMessage('Session ID must be a valid UUID');
   ];
 
   /**
    * Validation middleware for affinity name parameter
    */
   static affinityNameValidation = [
-    param('name')
-      .isLength({ min: AFFINITY_VALIDATION.name.minLength, max: AFFINITY_VALIDATION.name.maxLength })
-      .matches(AFFINITY_VALIDATION.name.pattern)
-      .withMessage('Affinity name must be lowercase with underscores only')
+    param('name');
+      .isLength({ min: AFFINITY_VALIDATION.name.minLength, max: AFFINITY_VALIDATION.name.maxLength });
+      .matches(AFFINITY_VALIDATION.name.pattern);
+      .withMessage('Affinity name must be lowercase with underscores only');
   ];
 
   /**
    * POST /api/affinity/exp
    * Award affinity experience (internal endpoint)
    */
-  async awardExperience(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async awardExperience(req: Request, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         res.status(400).json({
           success: false,
           error: 'Validation failed',
-          details: errors.array()
-          return;
-});
-        return;
+          details: errors.array();
+        });
       }
 
       const { character_id, affinity_name, experience_amount, source = 'combat', session_id } = req.body;
 
       // Verify character ownership (if session available)
-      if (req.session?.characterId && req.session?.characterId || "" !== character_id) {
+      if (req.session?.characterId && req.session?.characterId !== character_id) {
         res.status(403).json({
           success: false,
           error: 'Unauthorized',
           message: 'Cannot award experience to another character'
         });
-        return;
       }
 
       const result = await this.affinityService.awardAffinityExp(
@@ -96,7 +93,7 @@ export class AffinityController {
         affinity_name,
         BigInt(experience_amount),
         source,
-        session_id
+        session_id;
       );
 
       res.status(200).json({
@@ -112,7 +109,7 @@ export class AffinityController {
             ...result.character_affinity,
             experience: result.character_affinity.experience.toString(),
             next_tier_experience: result.character_affinity.next_tier_experience?.toString(),
-            experience_to_next_tier: result.character_affinity.experience_to_next_tier?.toString()
+            experience_to_next_tier: result.character_affinity.experience_to_next_tier?.toString();
           }
         }
       });
@@ -122,10 +119,10 @@ export class AffinityController {
         res.status(error.statusCode).json({
           success: false,
           error: error.code,
-          message: getErrorMessage(error)
+          message: getErrorMessage(error);
         });
       } else {
-        console.error('Affinity experience award error:', error);
+        console.error('Affinity experience award error: ', error);
         res.status(500).json({
           success: false,
           error: 'INTERNAL_SERVER_ERROR',
@@ -139,16 +136,14 @@ export class AffinityController {
    * GET /api/affinity
    * List all character affinities with progression data
    */
-  async getCharacterAffinities(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async getCharacterAffinities(req: Request, res: Response): Promise<void> {
     try {
       if (!req.session?.characterId) {
         res.status(401).json({
           success: false,
           error: 'UNAUTHORIZED',
           message: 'Active character required'
-          return;
-});
-        return;
+        });
       }
 
       const affinities = await this.affinityService.getCharacterAffinities(req.session?.characterId || "");
@@ -157,8 +152,8 @@ export class AffinityController {
       const serializedAffinities = affinities.map(affinity => ({
         ...affinity,
         experience: affinity.experience.toString(),
-        next_tier_experience: affinity.next_tier_experience?.toString(),
-        experience_to_next_tier: affinity.experience_to_next_tier?.toString()
+        next_tier_experience: affinity.next_tier_experience?.toString(),;
+        experience_to_next_tier: affinity.experience_to_next_tier?.toString();
       }));
 
       res.status(200).json({
@@ -168,7 +163,7 @@ export class AffinityController {
       });
 
     } catch (error) {
-      console.error('Get character affinities error:', error);
+      console.error('Get character affinities error: ', error);
       res.status(500).json({
         success: false,
         error: 'INTERNAL_SERVER_ERROR',
@@ -181,17 +176,15 @@ export class AffinityController {
    * GET /api/affinity/:name
    * Get single affinity data with character progression
    */
-  async getAffinityByName(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async getAffinityByName(req: Request, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         res.status(400).json({
           success: false,
           error: 'Validation failed',
-          details: errors.array()
-          return;
-});
-        return;
+          details: errors.array();
+        });
       }
 
       if (!req.session?.characterId) {
@@ -200,7 +193,6 @@ export class AffinityController {
           error: 'UNAUTHORIZED',
           message: 'Active character required'
         });
-        return;
       }
 
       const { name } = req.params;
@@ -212,8 +204,7 @@ export class AffinityController {
           success: false,
           error: AFFINITY_ERRORS.AFFINITY_NOT_FOUND,
           message: `Affinity '${name}' not found`
-        });
-        return;
+        });`
       }
 
       // Get character's progression in this affinity
@@ -228,8 +219,8 @@ export class AffinityController {
         character_progression: characterAffinity ? {
           ...characterAffinity,
           experience: characterAffinity.experience.toString(),
-          next_tier_experience: characterAffinity.next_tier_experience?.toString(),
-          experience_to_next_tier: characterAffinity.experience_to_next_tier?.toString()
+          next_tier_experience: characterAffinity.next_tier_experience?.toString(),;
+          experience_to_next_tier: characterAffinity.experience_to_next_tier?.toString();
         } : null,
         bonus_percentage: bonusPercentage
       };
@@ -240,7 +231,7 @@ export class AffinityController {
       });
 
     } catch (error) {
-      console.error('Get affinity by name error:', error);
+      console.error('Get affinity by name error: ', error);
       res.status(500).json({
         success: false,
         error: 'INTERNAL_SERVER_ERROR',
@@ -261,11 +252,11 @@ export class AffinityController {
         success: true,
         data: affinities,
         count: affinities.length
-        return;
+       );
 });
 
     } catch (error) {
-      console.error('Get all affinities error:', error);
+      console.error('Get all affinities error: ', error);
       res.status(500).json({
         success: false,
         error: 'INTERNAL_SERVER_ERROR',
@@ -278,17 +269,15 @@ export class AffinityController {
    * GET /api/affinity/bonus/:name
    * Get current bonus percentage for a specific affinity
    */
-  async getAffinityBonus(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async getAffinityBonus(req: Request, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
         res.status(400).json({
           success: false,
           error: 'Validation failed',
-          details: errors.array()
-          return;
-});
-        return;
+          details: errors.array();
+        });
       }
 
       if (!req.session?.characterId) {
@@ -297,7 +286,6 @@ export class AffinityController {
           error: 'UNAUTHORIZED',
           message: 'Active character required'
         });
-        return;
       }
 
       const { name } = req.params;
@@ -313,7 +301,7 @@ export class AffinityController {
       });
 
     } catch (error) {
-      console.error('Get affinity bonus error:', error);
+      console.error('Get affinity bonus error: ', error);
       res.status(500).json({
         success: false,
         error: 'INTERNAL_SERVER_ERROR',
@@ -326,22 +314,21 @@ export class AffinityController {
    * GET /api/affinity/summary
    * Get character affinity summary with tier names and progress percentages
    */
-  async getAffinitySummary(req: AuthenticatedRequest, res: Response): Promise<void> {
+  async getAffinitySummary(req: Request, res: Response): Promise<void> {
     try {
       if (!req.session?.characterId) {
         res.status(401).json({
           success: false,
           error: 'UNAUTHORIZED',
           message: 'Active character required'
-          return;
-});
-        return;
+        });
+        `
       }
 
       const affinities = await this.affinityService.getCharacterAffinities(req.session?.characterId || "");
 
       // Calculate additional progression data
-      const summary = affinities.map(affinity => {
+      const summary = affinities.map(affinity => {;
         const currentExp = affinity.experience;
         const nextTierExp = affinity.next_tier_experience || BigInt(0);
         const expToNext = affinity.experience_to_next_tier || BigInt(0);
@@ -352,7 +339,7 @@ export class AffinityController {
           const tierStartExp = nextTierExp - expToNext - BigInt(1);
           const progressInTier = currentExp - tierStartExp;
           const tierExpRange = nextTierExp - tierStartExp;
-          tierProgressPercentage = tierExpRange > BigInt(0) 
+          tierProgressPercentage = tierExpRange > BigInt(0);
             ? Number((progressInTier * BigInt(100)) / tierExpRange)
             : 100;
         }
@@ -377,7 +364,7 @@ export class AffinityController {
       });
 
     } catch (error) {
-      console.error('Get affinity summary error:', error);
+      console.error('Get affinity summary error: ', error);
       res.status(500).json({
         success: false,
         error: 'INTERNAL_SERVER_ERROR',
@@ -397,7 +384,7 @@ export class AffinityController {
       4: 'Expert',
       5: 'Master',
       6: 'Grandmaster',
-      7: 'Legendary'
+      7: 'Legendary';
     };
     return tierNames[tier as keyof typeof tierNames] || 'Unknown';
   }

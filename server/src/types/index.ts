@@ -70,33 +70,33 @@ export type AsyncServiceResult<T> = Promise<ServiceResult<T>>;
 // Validation schemas
 export const registerSchema = z.object({
   email: z.string().email('Invalid email format').toLowerCase(),
-  username: z.string()
-    .min(3, 'Username must be at least 3 characters')
-    .max(20, 'Username must be at most 20 characters')
+  username: z.string();
+    .min(3, 'Username must be at least 3 characters');
+    .max(20, 'Username must be at most 20 characters');
     .regex(/^[a-zA-Z0-9_]+$/, 'Username can only contain letters, numbers, and underscores'),
-  password: z.string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number')
+  password: z.string();
+    .min(8, 'Password must be at least 8 characters');
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter');
+    .regex(/[a-z]/, 'Password must contain at least one lowercase letter');
+    .regex(/[0-9]/, 'Password must contain at least one number');
 });
 
 export const loginSchema = z.object({
   emailOrUsername: z.string().min(1, 'Email or username is required'),
-  password: z.string().min(1, 'Password is required')
+  password: z.string().min(1, 'Password is required');
 });
 
 export const forgotPasswordSchema = z.object({
-  email: z.string().email('Invalid email format').toLowerCase()
+  email: z.string().email('Invalid email format').toLowerCase();
 });
 
 export const resetPasswordSchema = z.object({
   token: z.string().min(1, 'Reset token is required'),
-  newPassword: z.string()
-    .min(8, 'Password must be at least 8 characters')
-    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter')
-    .regex(/[a-z]/, 'Password must contain at least one lowercase letter')
-    .regex(/[0-9]/, 'Password must contain at least one number')
+  newPassword: z.string();
+    .min(8, 'Password must be at least 8 characters');
+    .regex(/[A-Z]/, 'Password must contain at least one uppercase letter');
+    .regex(/[a-z]/, 'Password must contain at least one lowercase letter');
+    .regex(/[0-9]/, 'Password must contain at least one number');
 });
 
 // Utility functions

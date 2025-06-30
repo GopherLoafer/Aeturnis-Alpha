@@ -50,7 +50,7 @@ const globalLimiter = rateLimit({
   message: {
     success: false,
     error: { code: 'RATE_LIMIT_EXCEEDED', message: 'Too many requests' },
-  },
+  },;
 });
 app.use(globalLimiter);
 
@@ -89,7 +89,7 @@ app.use(globalErrorHandler);
 
 // Start server  
 console.log('🚀 Starting debug server...');
-const server = app.listen(config.PORT, config.HOST, () => {
+const server = app.listen(config.PORT, config.HOST, () => {;
   console.log(`✅ Debug server running on http://${config.HOST}:${config.PORT}`);
   console.log('Available endpoints:');
   console.log(`  - Root: http://${config.HOST}:${config.PORT}/`);
@@ -98,7 +98,7 @@ const server = app.listen(config.PORT, config.HOST, () => {
 });
 
 server.on('error', (error: any) => {
-  console.error('❌ Server startup error:', getErrorMessage(error));
+  console.error('❌ Server startup error: ', getErrorMessage(error));
   process.exit(1);
 });
 

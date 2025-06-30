@@ -43,7 +43,6 @@ export function registerChatHandlers(io: SocketIOServer, socket: SocketWithAuth)
           code: 'INVALID_MESSAGE',
           message: 'Invalid message format',
         });
-        return;
       }
 
       // Check message content for profanity and spam
@@ -53,7 +52,6 @@ export function registerChatHandlers(io: SocketIOServer, socket: SocketWithAuth)
           code: 'CONTENT_BLOCKED',
           message: contentCheck.reason,
         });
-        return;
       }
 
       // Check chat permissions for channel
@@ -63,7 +61,6 @@ export function registerChatHandlers(io: SocketIOServer, socket: SocketWithAuth)
           code: 'PERMISSION_DENIED',
           message: hasPermission.reason,
         });
-        return;
       }
 
       // Store message in chat history
@@ -83,7 +80,7 @@ export function registerChatHandlers(io: SocketIOServer, socket: SocketWithAuth)
         channel: data.channel,
         message: data.message,
         timestamp: data.timestamp,
-        serverTimestamp: Date.now(),
+        serverTimestamp: Date.now(),;
       };
 
       // Broadcast to appropriate room
@@ -122,7 +119,6 @@ export function registerChatHandlers(io: SocketIOServer, socket: SocketWithAuth)
           code: 'INVALID_WHISPER',
           message: 'Invalid whisper format',
         });
-        return;
       }
 
       // Check if target user exists and is online
@@ -132,7 +128,6 @@ export function registerChatHandlers(io: SocketIOServer, socket: SocketWithAuth)
           code: 'USER_OFFLINE',
           message: 'Target user is not online',
         });
-        return;
       }
 
       // Check if sender is blocked by target
@@ -142,7 +137,6 @@ export function registerChatHandlers(io: SocketIOServer, socket: SocketWithAuth)
           code: 'USER_BLOCKED',
           message: 'You are blocked by this user',
         });
-        return;
       }
 
       // Validate message content
@@ -152,7 +146,6 @@ export function registerChatHandlers(io: SocketIOServer, socket: SocketWithAuth)
           code: 'CONTENT_BLOCKED',
           message: contentCheck.reason,
         });
-        return;
       }
 
       // Store whisper in message history
@@ -171,7 +164,7 @@ export function registerChatHandlers(io: SocketIOServer, socket: SocketWithAuth)
         toUserId: data.targetUserId,
         message: data.message,
         timestamp: data.timestamp,
-        serverTimestamp: Date.now(),
+        serverTimestamp: Date.now(),;
       };
 
       // Send to target
@@ -211,8 +204,7 @@ export function registerChatHandlers(io: SocketIOServer, socket: SocketWithAuth)
         socket.emit('chat:error', {
           code: 'NO_CHARACTER',
           message: 'No character selected',
-        });
-        return;
+        });`
       }
 
       // Validate emote data
@@ -221,7 +213,6 @@ export function registerChatHandlers(io: SocketIOServer, socket: SocketWithAuth)
           code: 'INVALID_EMOTE',
           message: 'Invalid emote format',
         });
-        return;
       }
 
       // Check if emote is allowed
@@ -231,7 +222,6 @@ export function registerChatHandlers(io: SocketIOServer, socket: SocketWithAuth)
           code: 'EMOTE_BLOCKED',
           message: emoteCheck.reason,
         });
-        return;
       }
 
       // Track activity
@@ -247,7 +237,7 @@ export function registerChatHandlers(io: SocketIOServer, socket: SocketWithAuth)
           code: 'NO_ZONE',
           message: 'Character is not in a zone',
         });
-        return;
+        `
       }
 
       // Prepare emote for broadcast
@@ -257,7 +247,7 @@ export function registerChatHandlers(io: SocketIOServer, socket: SocketWithAuth)
         emote: data.emote,
         target: data.target,
         timestamp: data.timestamp,
-        serverTimestamp: Date.now(),
+        serverTimestamp: Date.now(),;
       };
 
       // Broadcast emote to zone
@@ -295,8 +285,7 @@ export function registerChatHandlers(io: SocketIOServer, socket: SocketWithAuth)
         socket.emit('chat:error', {
           code: 'PERMISSION_DENIED',
           message: hasPermission.reason,
-        });
-        return;
+        });`
       }
 
       // Get chat history
@@ -323,21 +312,17 @@ export function registerChatHandlers(io: SocketIOServer, socket: SocketWithAuth)
     }
   });
 
-  socket.on('chat:typing', async (data: { channel: string; typing: boolean }) => {
-    try {
-      if (!socket.characterId) return;
-
+  socket.on('chat:typing', async (data: { channel: string; typing: boolean }) => { try {
+      if (!socket.characterId) }
       // Get current zone for zone chat
       let roomName = '';
-      if (data.channel === 'zone') {
-        const currentZone = await getCharacterZone(socket.characterId);
-        if (!currentZone) return;
+      if (data.channel === 'zone') { const currentZone = await getCharacterZone(socket.characterId);
+        if (!currentZone) }
         roomName = `zone:${currentZone}`;
       } else if (data.channel === 'global') {
         roomName = 'global:chat';
       } else if (data.channel === 'guild') {
-        // TODO: Get user's guild
-        return;
+        // TODO: Get user's guild`
       }
 
       // Broadcast typing status
@@ -391,10 +376,7 @@ function isValidEmote(data: EmoteData): boolean {
   );
 }
 
-async function validateMessageContent(message: string): Promise<{
-  valid: boolean;
-  reason?: string;
-}> {
+async function validateMessageContent(req: Request, res: Response): Promise<void> {
   // TODO: Implement profanity filter and spam detection
   const trimmed = message.trim();
   
@@ -409,7 +391,7 @@ async function validateMessageContent(message: string): Promise<{
   // Basic checks - in production would use proper content filtering
   const badWords = ['spam', 'scam']; // Placeholder
   const hasBadWords = badWords.some(word => 
-    trimmed.toLowerCase().includes(word.toLowerCase())
+    trimmed.toLowerCase().includes(word.toLowerCase());
   );
   
   if (hasBadWords) {
@@ -419,10 +401,7 @@ async function validateMessageContent(message: string): Promise<{
   return { valid: true };
 }
 
-async function checkChatPermissions(socket: SocketWithAuth, channel: string): Promise<{
-  allowed: boolean;
-  reason?: string;
-}> {
+async function checkChatPermissions(req: Request, res: Response): Promise<void> {
   switch (channel) {
     case 'zone':
       // Need to have a character and be in a zone
@@ -444,7 +423,7 @@ async function checkChatPermissions(socket: SocketWithAuth, channel: string): Pr
   }
 }
 
-async function storeChatMessage(userId: string, data: ChatMessageData): Promise<string> {
+async function storeChatMessage(req: Request, res: Response): Promise<void> {
   try {
     const redis = getRedis();
     const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -455,7 +434,7 @@ async function storeChatMessage(userId: string, data: ChatMessageData): Promise<
       channel: data.channel,
       message: data.message,
       timestamp: data.timestamp,
-      serverTimestamp: Date.now(),
+      serverTimestamp: Date.now(),;
     };
     
     // Store in channel history
@@ -474,7 +453,7 @@ async function storeChatMessage(userId: string, data: ChatMessageData): Promise<
   }
 }
 
-async function storeWhisperMessage(userId: string, data: WhisperData): Promise<string> {
+async function storeWhisperMessage(req: Request, res: Response): Promise<void> {
   try {
     const redis = getRedis();
     const messageId = `whisper_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
@@ -485,7 +464,7 @@ async function storeWhisperMessage(userId: string, data: WhisperData): Promise<s
       toUserId: data.targetUserId,
       message: data.message,
       timestamp: data.timestamp,
-      serverTimestamp: Date.now(),
+      serverTimestamp: Date.now(),;
     };
     
     // Store in both users' whisper history
@@ -513,7 +492,7 @@ async function storeWhisperMessage(userId: string, data: WhisperData): Promise<s
   }
 }
 
-async function broadcastChatMessage(socket: SocketWithAuth, channel: string, message: any): Promise<void> {
+async function broadcastChatMessage(req: Request, res: Response): Promise<void> {
   switch (channel) {
     case 'zone':
       if (socket.characterId) {
@@ -541,7 +520,7 @@ async function broadcastChatMessage(socket: SocketWithAuth, channel: string, mes
   });
 }
 
-async function isUserOnline(userId: string): Promise<boolean> {
+async function isUserOnline(req: Request, res: Response): Promise<void> {
   try {
     const presence = await presenceManager.getPresence(userId);
     return presence.online;
@@ -550,7 +529,7 @@ async function isUserOnline(userId: string): Promise<boolean> {
   }
 }
 
-async function checkIfBlocked(fromUserId: string, toUserId: string): Promise<boolean> {
+async function checkIfBlocked(req: Request, res: Response): Promise<void> {
   try {
     const redis = getRedis();
     const blockKey = `blocks:${toUserId}`;
@@ -561,10 +540,7 @@ async function checkIfBlocked(fromUserId: string, toUserId: string): Promise<boo
   }
 }
 
-async function validateEmote(emote: string): Promise<{
-  valid: boolean;
-  reason?: string;
-}> {
+async function validateEmote(req: Request, res: Response): Promise<void> {
   // TODO: Implement emote validation against allowed emotes list
   const allowedEmotes = ['smile', 'wave', 'bow', 'dance', 'cheer']; // Placeholder
   
@@ -575,12 +551,12 @@ async function validateEmote(emote: string): Promise<{
   return { valid: true };
 }
 
-async function getCharacterZone(characterId: string): Promise<string | null> {
+async function getCharacterZone(req: Request, res: Response): Promise<void> {
   // TODO: Implement database query to get character's current zone
   return 'starting_village'; // Placeholder
 }
 
-async function getChatHistory(channel: string, limit: number): Promise<any[]> {
+async function getChatHistory(req: Request, res: Response): Promise<void> {
   try {
     const redis = getRedis();
     const historyKey = `chat_history:${channel}`;

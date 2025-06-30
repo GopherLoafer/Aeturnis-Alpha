@@ -53,7 +53,7 @@ describe('CombatService Formula Tests', () => {
         { dex: 0, expected: 0.05 },    // 5% base
         { dex: 50, expected: 0.30 },   // 5% + 25% = 30%
         { dex: 200, expected: 1.05 },  // 5% + 100% = 105% (can exceed 100%)
-        { dex: 400, expected: 2.05 }   // 5% + 200% = 205%
+        { dex: 400, expected: 2.05 }   // 5% + 200% = 205%;
       ];
 
       testCases.forEach(({ dex, expected }) => {
@@ -171,7 +171,7 @@ export const CombatTestHelpers = {
    * Validate critical hit chance calculation
    */
   validateCriticalChance: (dexterity: number, actualCritChance: number): boolean => {
-    const expectedCritChance = COMBAT_CONSTANTS.BASE_CRITICAL_CHANCE + 
+    const expectedCritChance = COMBAT_CONSTANTS.BASE_CRITICAL_CHANCE + ;
       (dexterity / COMBAT_CONSTANTS.DEXTERITY_CRIT_FACTOR);
     
     return Math.abs(actualCritChance - expectedCritChance) < 0.001; // Allow for floating point precision

@@ -47,7 +47,7 @@ router.get('/stats', asyncWrapper(async (req: Request, res: Response) => {
     rooms: realtimeService.getRoomsInfo(),
     metrics: realtimeService.getMetrics(),
     uptime: process.uptime(),
-    timestamp: Date.now(),
+    timestamp: Date.now(),;
   };
 
   res.success(stats);

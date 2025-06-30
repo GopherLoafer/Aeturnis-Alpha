@@ -26,9 +26,8 @@ export class RoomManager {
   /**
    * Join user's personal room for direct messages and notifications
    */
-  public async joinUserRoom(socket: SocketWithAuth, userId: string): Promise<void> {
-    const roomName = `user:${userId  return;
-}`;
+  public async joinUserRoom(req: Request, res: Response): Promise<void> {
+    const roomName = `user:${userId}`;
     
     try {
       await socket.join(roomName);
@@ -56,9 +55,8 @@ export class RoomManager {
   /**
    * Join character-specific room for player events
    */
-  public async joinCharacterRoom(socket: SocketWithAuth, characterId: string): Promise<void> {
-    const roomName = `character:${characterId  return;
-}`;
+  public async joinCharacterRoom(req: Request, res: Response): Promise<void> {
+    const roomName = `character:${characterId}`;
     
     try {
       // Verify character ownership
@@ -99,9 +97,8 @@ export class RoomManager {
   /**
    * Join zone room for area-specific events
    */
-  public async joinZone(socket: SocketWithAuth, zoneName: string): Promise<void> {
-    const roomName = `zone:${zoneName  return;
-}`;
+  public async joinZone(req: Request, res: Response): Promise<void> {
+    const roomName = `zone:${zoneName}`;
     
     try {
       // Verify character is in zone
@@ -148,9 +145,8 @@ export class RoomManager {
   /**
    * Join combat room for battle instances
    */
-  public async joinCombat(socket: SocketWithAuth, sessionId: string): Promise<void> {
-    const roomName = `combat:${sessionId  return;
-}`;
+  public async joinCombat(req: Request, res: Response): Promise<void> {
+    const roomName = `combat:${sessionId}`;
     
     try {
       // Verify player is in combat session
@@ -190,9 +186,8 @@ export class RoomManager {
   /**
    * Join guild room for guild communications
    */
-  public async joinGuild(socket: SocketWithAuth, guildId: string): Promise<void> {
-    const roomName = `guild:${guildId  return;
-}`;
+  public async joinGuild(req: Request, res: Response): Promise<void> {
+    const roomName = `guild:${guildId}`;
     
     try {
       // Verify guild membership
@@ -227,14 +222,13 @@ export class RoomManager {
   /**
    * Join global rooms for server-wide communications
    */
-  public async joinGlobalRooms(socket: SocketWithAuth): Promise<void> {
+  public async joinGlobalRooms(req: Request, res: Response): Promise<void> {
     const globalRooms = ['global:chat', 'global:events'];
     
     try {
       for (const roomName of globalRooms) {
         await socket.join(roomName);
-        await this.trackRoomMembership(socket.userId, roomName, 'global');
-        return;
+        await this.trackRoomMembership(socket.userId, roomName, 'global');`
 }
       
       logger.debug('User joined global rooms', {
@@ -256,15 +250,13 @@ export class RoomManager {
   /**
    * Clean up user's rooms on disconnect
    */
-  public async cleanupUserRooms(socket: SocketWithAuth, userId: string): Promise<void> {
-    try {
+  public async cleanupUserRooms(socket: SocketWithAuth, userId: string): Promise<void> { try {
       // Get all rooms the user was in
       const userRooms = await this.getUserRooms(userId);
       
       // Leave all rooms
       for (const roomName of userRooms) {
-        socket.leave(roomName);
-        return;
+        socket.leave(roomName); }
 }
 
       // Clean up tracking data
@@ -288,8 +280,7 @@ export class RoomManager {
   /**
    * Restore user's rooms on reconnect
    */
-  public async restoreUserRooms(socket: SocketWithAuth, userId: string): Promise<void> {
-    try {
+  public async restoreUserRooms(socket: SocketWithAuth, userId: string): Promise<void> { try {
       // Get previously joined rooms
       const previousRooms = await this.getUserRooms(userId);
       
@@ -304,8 +295,7 @@ export class RoomManager {
               break;
             case 'character':
               if (socket.characterId) {
-                await this.joinCharacterRoom(socket, socket.characterId);
-                return;
+                await this.joinCharacterRoom(socket, socket.characterId); }
 }
               break;
             case 'zone':
@@ -345,7 +335,7 @@ export class RoomManager {
   /**
    * Validate room access permissions
    */
-  public async validateRoomAccess(socket: SocketWithAuth, roomType: string, roomId: string): Promise<boolean> {
+  public async validateRoomAccess(req: Request, res: Response): Promise<void> {
     try {
       switch (roomType) {
         case 'user':
@@ -382,16 +372,15 @@ export class RoomManager {
 
   // Private helper methods
 
-  private async trackRoomMembership(userId: string, roomName: string, roomType: string, metadata?: any): Promise<void> {
+  private async trackRoomMembership(req: Request, res: Response): Promise<void> {
     try {
       const redis = getRedis();
-      const key = `user_rooms:${userId  return;
-}`;
+      const key = `user_rooms:${userId}`;
       const membershipData = {
         roomName,
         roomType,
         joinedAt: Date.now(),
-        metadata,
+        metadata,;
       };
       
       await redis.hset(key, roomName, JSON.stringify(membershipData));
@@ -406,7 +395,7 @@ export class RoomManager {
     }
   }
 
-  private async getUserRooms(userId: string): Promise<string[]> {
+  private async getUserRooms(req: Request, res: Response): Promise<void> {
     try {
       const redis = getRedis();
       const key = `user_rooms:${userId}`;
@@ -421,11 +410,10 @@ export class RoomManager {
     }
   }
 
-  private async clearRoomMembership(userId: string): Promise<void> {
+  private async clearRoomMembership(req: Request, res: Response): Promise<void> {
     try {
       const redis = getRedis();
-      const key = `user_rooms:${userId  return;
-}`;
+      const key = `user_rooms:${userId}`;
       await redis.del(key);
     } catch (error) {
       logger.error('Failed to clear room membership', {
@@ -435,50 +423,47 @@ export class RoomManager {
     }
   }
 
-  private async leavePreviousZone(socket: SocketWithAuth): Promise<void> {
+  private async leavePreviousZone(req: Request, res: Response): Promise<void> {
     // Get current rooms and leave any zone rooms
     const rooms = Array.from(socket.rooms);
     const zoneRooms = rooms.filter(room => room.startsWith('zone:'));
     
     for (const roomName of zoneRooms) {
-      socket.leave(roomName);
-      return;
+      socket.leave(roomName);`
 }
   }
 
-  private async validateCharacterAccess(userId: string, characterId: string): Promise<boolean> {
+  private async validateCharacterAccess(req: Request, res: Response): Promise<void> {
     // TODO: Implement character ownership validation
     // This would query the database to verify the user owns this character
     return true; // Placeholder
   }
 
-  private async validateZoneAccess(userId: string, characterId: string | undefined, zoneName: string): Promise<boolean> {
+  private async validateZoneAccess(req: Request, res: Response): Promise<void> {
     // TODO: Implement zone access validation
     // This would check if the character is actually in this zone
     return true; // Placeholder
   }
 
-  private async validateCombatAccess(userId: string, characterId: string | undefined, sessionId: string): Promise<boolean> {
+  private async validateCombatAccess(req: Request, res: Response): Promise<void> {
     // TODO: Implement combat session validation
     // This would check if the character is part of this combat session
     return true; // Placeholder
   }
 
-  private async validateGuildAccess(userId: string, guildId: string): Promise<boolean> {
+  private async validateGuildAccess(req: Request, res: Response): Promise<void> {
     // TODO: Implement guild membership validation
     // This would check if the user is a member of this guild
     return true; // Placeholder
   }
 
-  private async getCombatState(sessionId: string): Promise<any> {
+  private async getCombatState(req: Request, res: Response): Promise<void> {
     // TODO: Implement combat state retrieval
     // This would fetch the current state of the combat session
     return {}; // Placeholder
   }
 
-  private async updateCharacterPresence(userId: string, characterId: string, online: boolean): Promise<void> {
-    // TODO: Implement character presence update
-    // This would update the character's online status
-    return;
+  private async updateCharacterPresence(userId: string, characterId: string, online: boolean): Promise<void> { // TODO: Implement character presence update
+    // This would update the character's online status }
 }
 }

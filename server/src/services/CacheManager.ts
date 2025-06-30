@@ -50,14 +50,13 @@ export class CacheManager {
       // Try to parse JSON, return string if parsing fails
       try {
         return JSON.parse(result) as T;
-      } catch {
+          } catch (error) {
         return result as unknown as T;
       }
     } catch (error) {
       logger.error('Cache get operation failed', {
         key,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       return null;
     }
   }
@@ -65,11 +64,7 @@ export class CacheManager {
   /**
    * Set value in cache with automatic serialization
    */
-  public async set(
-    key: string,
-    value: any,
-    options: CacheOptions = {}
-  ): Promise<boolean> {
+  public async set(req: Request, res: Response): Promise<void> {
     try {
       const redis = redisService.getClient();
       const fullKey = this.buildKey(key, options.prefix);
@@ -77,7 +72,7 @@ export class CacheManager {
 
       // Serialize value
       const serializedValue = typeof value === 'string' 
-        ? value 
+        ? value ;
         : JSON.stringify(value);
 
       // Set with TTL
@@ -93,8 +88,7 @@ export class CacheManager {
     } catch (error) {
       logger.error('Cache set operation failed', {
         key,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       return false;
     }
   }
@@ -102,7 +96,7 @@ export class CacheManager {
   /**
    * Delete key from cache
    */
-  public async delete(key: string, prefix?: string): Promise<boolean> {
+  public async delete(req: Request, res: Response): Promise<void> {
     try {
       const redis = redisService.getClient();
       const fullKey = this.buildKey(key, prefix);
@@ -112,8 +106,7 @@ export class CacheManager {
     } catch (error) {
       logger.error('Cache delete operation failed', {
         key,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       return false;
     }
   }
@@ -121,7 +114,7 @@ export class CacheManager {
   /**
    * Check if key exists in cache
    */
-  public async exists(key: string, prefix?: string): Promise<boolean> {
+  public async exists(req: Request, res: Response): Promise<void> {
     try {
       const redis = redisService.getClient();
       const fullKey = this.buildKey(key, prefix);
@@ -131,8 +124,7 @@ export class CacheManager {
     } catch (error) {
       logger.error('Cache exists operation failed', {
         key,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       return false;
     }
   }
@@ -152,15 +144,14 @@ export class CacheManager {
         
         try {
           return JSON.parse(result) as T;
-        } catch {
+            } catch (error) {
           return result as unknown as T;
         }
       });
     } catch (error) {
       logger.error('Cache mget operation failed', {
         keys,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       return keys.map(() => null);
     }
   }
@@ -168,7 +159,7 @@ export class CacheManager {
   /**
    * Set multiple keys at once
    */
-  public async mset(items: BulkSetItem[], prefix?: string): Promise<boolean> {
+  public async mset(req: Request, res: Response): Promise<void> {
     try {
       const redis = redisService.getClient();
       
@@ -179,7 +170,7 @@ export class CacheManager {
         const fullKey = this.buildKey(item.key, prefix);
         const ttl = item.ttl || this.defaultTTL;
         const serializedValue = typeof item.value === 'string' 
-          ? item.value 
+          ? item.value ;
           : JSON.stringify(item.value);
         
         pipeline.setex(fullKey, ttl, serializedValue);
@@ -189,15 +180,14 @@ export class CacheManager {
       
       // Check if all operations succeeded
       const allSucceeded = results?.every(([error, result]) => 
-        error === null && result === 'OK'
+        error === null && result === 'OK';
       ) ?? false;
       
       return allSucceeded;
     } catch (error) {
       logger.error('Cache mset operation failed', {
         itemCount: items.length,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       return false;
     }
   }
@@ -205,7 +195,7 @@ export class CacheManager {
   /**
    * Delete keys matching a pattern
    */
-  public async deletePattern(pattern: string, prefix?: string): Promise<number> {
+  public async deletePattern(req: Request, res: Response): Promise<void> {
     try {
       const redis = redisService.getClient();
       const fullPattern = this.buildKey(pattern, prefix);
@@ -243,8 +233,7 @@ export class CacheManager {
     } catch (error) {
       logger.error('Cache delete pattern operation failed', {
         pattern,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       return 0;
     }
   }
@@ -252,7 +241,7 @@ export class CacheManager {
   /**
    * Increment numeric value
    */
-  public async increment(key: string, amount = 1, prefix?: string): Promise<number> {
+  public async increment(req: Request, res: Response): Promise<void> {
     try {
       const redis = redisService.getClient();
       const fullKey = this.buildKey(key, prefix);
@@ -263,8 +252,7 @@ export class CacheManager {
       logger.error('Cache increment operation failed', {
         key,
         amount,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       throw error;
     }
   }
@@ -272,7 +260,7 @@ export class CacheManager {
   /**
    * Decrement numeric value
    */
-  public async decrement(key: string, amount = 1, prefix?: string): Promise<number> {
+  public async decrement(req: Request, res: Response): Promise<void> {
     try {
       const redis = redisService.getClient();
       const fullKey = this.buildKey(key, prefix);
@@ -283,8 +271,7 @@ export class CacheManager {
       logger.error('Cache decrement operation failed', {
         key,
         amount,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       throw error;
     }
   }
@@ -292,12 +279,12 @@ export class CacheManager {
   /**
    * Add value to set
    */
-  public async addToSet(key: string, value: any, prefix?: string): Promise<boolean> {
+  public async addToSet(req: Request, res: Response): Promise<void> {
     try {
       const redis = redisService.getClient();
       const fullKey = this.buildKey(key, prefix);
       const serializedValue = typeof value === 'string' 
-        ? value 
+        ? value ;
         : JSON.stringify(value);
       
       const result = await redis.sadd(fullKey, serializedValue);
@@ -305,8 +292,7 @@ export class CacheManager {
     } catch (error) {
       logger.error('Cache add to set operation failed', {
         key,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       return false;
     }
   }
@@ -324,15 +310,14 @@ export class CacheManager {
       return results.map(result => {
         try {
           return JSON.parse(result) as T;
-        } catch {
+            } catch (error) {
           return result as unknown as T;
         }
       });
     } catch (error) {
       logger.error('Cache get set members operation failed', {
         key,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       return [];
     }
   }
@@ -340,12 +325,12 @@ export class CacheManager {
   /**
    * Push value to list (left side)
    */
-  public async pushToList(key: string, value: any, prefix?: string): Promise<number> {
+  public async pushToList(req: Request, res: Response): Promise<void> {
     try {
       const redis = redisService.getClient();
       const fullKey = this.buildKey(key, prefix);
       const serializedValue = typeof value === 'string' 
-        ? value 
+        ? value ;
         : JSON.stringify(value);
       
       const result = await redis.lpush(fullKey, serializedValue);
@@ -353,8 +338,7 @@ export class CacheManager {
     } catch (error) {
       logger.error('Cache push to list operation failed', {
         key,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       return 0;
     }
   }
@@ -372,15 +356,14 @@ export class CacheManager {
       return results.map(result => {
         try {
           return JSON.parse(result) as T;
-        } catch {
+            } catch (error) {
           return result as unknown as T;
         }
       });
     } catch (error) {
       logger.error('Cache get list operation failed', {
         key,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       return [];
     }
   }
@@ -388,7 +371,7 @@ export class CacheManager {
   /**
    * Set TTL for existing key
    */
-  public async expire(key: string, ttl: number, prefix?: string): Promise<boolean> {
+  public async expire(req: Request, res: Response): Promise<void> {
     try {
       const redis = redisService.getClient();
       const fullKey = this.buildKey(key, prefix);
@@ -399,8 +382,7 @@ export class CacheManager {
       logger.error('Cache expire operation failed', {
         key,
         ttl,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       return false;
     }
   }
@@ -408,7 +390,7 @@ export class CacheManager {
   /**
    * Get time to live for key
    */
-  public async getTTL(key: string, prefix?: string): Promise<number> {
+  public async getTTL(req: Request, res: Response): Promise<void> {
     try {
       const redis = redisService.getClient();
       const fullKey = this.buildKey(key, prefix);
@@ -418,8 +400,7 @@ export class CacheManager {
     } catch (error) {
       logger.error('Cache TTL operation failed', {
         key,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       return -1;
     }
   }
@@ -442,13 +423,12 @@ export class CacheManager {
     });
 
     const promises = warmingFunctions.map(async (fn, index) => {
-      try {
+      try {;
         await fn();
         logger.debug(`Cache warming function ${index + 1} completed`);
       } catch (error) {
         logger.error(`Cache warming function ${index + 1} failed`, {
-          error: getErrorMessage(error)
-        });
+          error: getErrorMessage(error);});
       }
     });
 
@@ -459,11 +439,7 @@ export class CacheManager {
   /**
    * Get cache statistics
    */
-  public async getStats(): Promise<{
-    totalKeys: number;
-    memoryUsage: string;
-    hitRate?: number;
-  }> {
+  public async getStats(req: Request, res: Response): Promise<void> {
     try {
       const redis = redisService.getClient();
       
@@ -481,8 +457,7 @@ export class CacheManager {
       };
     } catch (error) {
       logger.error('Cache stats operation failed', {
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       return {
         totalKeys: 0,
         memoryUsage: 'unknown'

@@ -99,11 +99,7 @@ export async function rateLimitMiddleware(
   }
 }
 
-async function checkGlobalRateLimit(socket: Socket): Promise<{
-  allowed: boolean;
-  remainingPoints: number;
-  msBeforeNext: number;
-}> {
+async function checkGlobalRateLimit(req: Request, res: Response): Promise<void> {
   try {
     const redis = getRedis();
     const ip = socket.handshake.address;
@@ -139,7 +135,7 @@ function setupEventRateLimiting(socket: SocketWithAuth): void {
   // Wrap socket.on to add rate limiting to event listeners
   socket.on = function(event: string, listener: (...args: any[]) => void) {
     const wrappedListener = async (...args: any[]) => {
-      // Check rate limit for this event
+      // Check rate limit for this event;
       const allowed = await checkEventRateLimit(socket, event);
       
       if (!allowed.success) {
@@ -157,9 +153,7 @@ function setupEventRateLimiting(socket: SocketWithAuth): void {
           event,
           ip: socket.handshake.address,
           retryAfter: allowed.retryAfter,
-        });
-        
-        return;
+        });`
       }
 
       // Call original listener
@@ -179,17 +173,14 @@ function setupEventRateLimiting(socket: SocketWithAuth): void {
   };
 }
 
-async function checkEventRateLimit(socket: SocketWithAuth, event: string): Promise<{
-  success: boolean;
-  retryAfter?: number;
-}> {
+async function checkEventRateLimit(req: Request, res: Response): Promise<void> {
   try {
     const redis = getRedis();
     const config = eventLimits.get(event);
     
     if (!config) {
       // No rate limit configured for this event
-      return { success: true };
+      return { success: true};
     }
 
     const userId = socket.userId || 'anonymous';
@@ -204,7 +195,7 @@ async function checkEventRateLimit(socket: SocketWithAuth, event: string): Promi
       };
     }
 
-    return { success: true };
+    return { success: true};
 
   } catch (error) {
     logger.error('Failed to check event rate limit', {
@@ -213,11 +204,11 @@ async function checkEventRateLimit(socket: SocketWithAuth, event: string): Promi
     });
     
     // Fail open
-    return { success: true };
+    return { success: true};
   }
 }
 
-async function checkRateLimit(redis: any, key: string, config: RateLimitConfig): Promise<RateLimitData> {
+async function checkRateLimit(req: Request, res: Response): Promise<void> {
   const now = Date.now();
   const windowStart = now - (config.duration * 1000);
   
@@ -271,11 +262,7 @@ export function removeEventRateLimit(event: string): boolean {
   return eventLimits.delete(event);
 }
 
-export async function getRateLimitStatus(socket: SocketWithAuth, event: string): Promise<{
-  limit: number;
-  remaining: number;
-  resetTime: number;
-} | null> {
+export async function getRateLimitStatus(req: Request, res: Response): Promise<void> {
   try {
     const redis = getRedis();
     const config = eventLimits.get(event);

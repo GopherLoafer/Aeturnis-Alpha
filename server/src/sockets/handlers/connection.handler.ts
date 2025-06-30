@@ -25,7 +25,7 @@ export function handleConnection(io: SocketIOServer, socket: SocketWithAuth): vo
   });
 
   // Join user's personal room
-  roomManager.joinUserRoom(socket, socket.userId)
+  roomManager.joinUserRoom(socket, socket.userId);
     .catch(error => {
       logger.error('Failed to join user room', {
         socketId: socket.id,
@@ -51,7 +51,7 @@ export function handleConnection(io: SocketIOServer, socket: SocketWithAuth): vo
   });
 
   // Send initial sync data
-  sendInitialSyncData(socket)
+  sendInitialSyncData(socket);
     .catch(error => {
       logger.error('Failed to send initial sync data', {
         socketId: socket.id,
@@ -95,7 +95,7 @@ export function handleDisconnect(socket: SocketWithAuth, reason: string): void {
   });
 
   // Clean up user's rooms
-  roomManager.cleanupUserRooms(socket, socket.userId)
+  roomManager.cleanupUserRooms(socket, socket.userId);
     .catch(error => {
       logger.error('Failed to cleanup rooms on disconnect', {
         socketId: socket.id,
@@ -106,7 +106,7 @@ export function handleDisconnect(socket: SocketWithAuth, reason: string): void {
 
   // Broadcast disconnect to relevant rooms if character was active
   if (socket.characterId) {
-    broadcastCharacterOffline(socket)
+    broadcastCharacterOffline(socket);
       .catch(error => {
         logger.error('Failed to broadcast character offline', {
           socketId: socket.id,
@@ -136,7 +136,7 @@ export function handleReconnect(socket: SocketWithAuth): void {
   });
 
   // Restore presence and state
-  presenceManager.handleReconnect(socket, socket.userId)
+  presenceManager.handleReconnect(socket, socket.userId);
     .then(() => {
       logger.debug('Presence restored on reconnect', {
         socketId: socket.id,
@@ -152,7 +152,7 @@ export function handleReconnect(socket: SocketWithAuth): void {
     });
 
   // Rejoin rooms
-  roomManager.restoreUserRooms(socket, socket.userId)
+  roomManager.restoreUserRooms(socket, socket.userId);
     .then(() => {
       logger.debug('Rooms restored on reconnect', {
         socketId: socket.id,
@@ -168,7 +168,7 @@ export function handleReconnect(socket: SocketWithAuth): void {
     });
 
   // Send sync data for any missed events
-  sendReconnectSyncData(socket)
+  sendReconnectSyncData(socket);
     .catch(error => {
       logger.error('Failed to send reconnect sync data', {
         socketId: socket.id,
@@ -186,7 +186,7 @@ export function handleReconnect(socket: SocketWithAuth): void {
   });
 }
 
-async function sendInitialSyncData(socket: SocketWithAuth): Promise<void> {
+async function sendInitialSyncData(req: Request, res: Response): Promise<void> {
   try {
     // Get user's current state
     const presence = await presenceManager.getPresence(socket.userId);
@@ -229,7 +229,7 @@ async function sendInitialSyncData(socket: SocketWithAuth): Promise<void> {
   }
 }
 
-async function sendReconnectSyncData(socket: SocketWithAuth): Promise<void> {
+async function sendReconnectSyncData(req: Request, res: Response): Promise<void> {
   try {
     // Get last known state
     const presence = await presenceManager.getPresence(socket.userId);
@@ -256,9 +256,7 @@ async function sendReconnectSyncData(socket: SocketWithAuth): Promise<void> {
   }
 }
 
-async function broadcastCharacterOffline(socket: SocketWithAuth): Promise<void> {
-  if (!socket.characterId) return;
-
+async function broadcastCharacterOffline(socket: SocketWithAuth): Promise<void> { if (!socket.characterId) }
   try {
     // Broadcast to character's zone that they went offline
     socket.to(`character:${socket.characterId}`).emit('character:offline', {

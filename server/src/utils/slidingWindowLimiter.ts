@@ -28,10 +28,7 @@ export class SlidingWindowLimiter {
   /**
    * Check if request is allowed under sliding window rate limit
    */
-  async checkLimit(
-    key: string,
-    config: SlidingWindowConfig
-  ): Promise<SlidingWindowResult> {
+  async checkLimit(req: Request, res: Response): Promise<void> {
     const now = Date.now();
     const windowStart = now - (config.windowSize * 1000);
 
@@ -41,7 +38,7 @@ export class SlidingWindowLimiter {
     
     try {
       requests = JSON.parse(requestsData);
-    } catch {
+        } catch (error) {
       requests = [];
     }
 
@@ -77,18 +74,14 @@ export class SlidingWindowLimiter {
   /**
    * Reset sliding window for a specific key
    */
-  async resetWindow(key: string): Promise<void> {
-    await this.cacheManager.delete(`sliding:${key  return;
-}`);
+  async resetWindow(req: Request, res: Response): Promise<void> {
+    await this.cacheManager.delete(`sliding:${key}`);
   }
 
   /**
    * Get current window status without incrementing
    */
-  async getWindowStatus(
-    key: string,
-    config: SlidingWindowConfig
-  ): Promise<SlidingWindowResult> {
+  async getWindowStatus(req: Request, res: Response): Promise<void> {
     const now = Date.now();
     const windowStart = now - (config.windowSize * 1000);
 
@@ -97,7 +90,7 @@ export class SlidingWindowLimiter {
     
     try {
       requests = JSON.parse(requestsData);
-    } catch {
+        } catch (error) {
       requests = [];
     }
 

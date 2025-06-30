@@ -5,7 +5,6 @@
 
 import { Pool, PoolClient } from 'pg';
 import { logger } from '../../utils/logger';
-import { 
 import { getErrorMessage } from '../utils/errorUtils';
   ExperienceLogEntry,
   LevelUpLogEntry,
@@ -20,14 +19,14 @@ export class ProgressionRepository {
   /**
    * Get character progression data
    */
-  async getCharacterProgression(characterId: string): Promise<CharacterProgression | null> {
+  async getCharacterProgression(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     try {
       const result = await client.query(
         `SELECT id, level, experience, next_level_exp, available_stat_points, titles, active_title
          FROM characters 
          WHERE id = $1 AND deleted_at IS NULL`,
-        [characterId]
+        [characterId];
       );
 
       if (result.rows.length === 0) {
@@ -54,14 +53,7 @@ export class ProgressionRepository {
   /**
    * Update character level and experience
    */
-  async updateCharacterProgression(
-    characterId: string,
-    level: number,
-    experience: bigint,
-    nextLevelExp: bigint,
-    availableStatPoints: number,
-    newTitle?: string
-  ): Promise<boolean> {
+  async updateCharacterProgression(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     try {
       await client.query('BEGIN');
@@ -72,11 +64,11 @@ export class ProgressionRepository {
            SET level = $2, experience = $3, next_level_exp = $4, available_stat_points = $5, active_title = $6
            WHERE id = $1`
         : `UPDATE characters 
-           SET level = $2, experience = $3, next_level_exp = $4, available_stat_points = $5
+           SET level = $2, experience = $3, next_level_exp = $4, available_stat_points = $5;
            WHERE id = $1`;
 
       const params = newTitle 
-        ? [characterId, level, experience.toString(), nextLevelExp.toString(), availableStatPoints, newTitle]
+        ? [characterId, level, experience.toString(), nextLevelExp.toString(), availableStatPoints, newTitle];
         : [characterId, level, experience.toString(), nextLevelExp.toString(), availableStatPoints];
 
       const result = await client.query(updateQuery, params);
@@ -100,13 +92,13 @@ export class ProgressionRepository {
   /**
    * Add title to character if not already present
    */
-  async addCharacterTitle(characterId: string, title: string): Promise<boolean> {
+  async addCharacterTitle(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     try {
       // Get current titles
       const result = await client.query(
         'SELECT titles FROM characters WHERE id = $1',
-        [characterId]
+        [characterId];
       );
 
       if (result.rows.length === 0) {
@@ -140,12 +132,12 @@ export class ProgressionRepository {
   /**
    * Log experience gain
    */
-  async logExperience(entry: Omit<ExperienceLogEntry, 'id' | 'timestamp'>): Promise<string> {
+  async logExperience(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     try {
       const result = await client.query(
-        `INSERT INTO experience_log 
-         (character_id, amount, source, source_details, old_level, new_level, old_experience, new_experience)
+        `INSERT INTO experience_log ;
+         (character_id, amount, source, source_details, old_level, new_level, old_experience, new_experience);
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
          RETURNING id`,
         [
@@ -156,7 +148,7 @@ export class ProgressionRepository {
           entry.oldLevel,
           entry.newLevel,
           entry.oldExperience.toString(),
-          entry.newExperience.toString()
+          entry.newExperience.toString();
         ]
       );
 
@@ -176,12 +168,12 @@ export class ProgressionRepository {
   /**
    * Log level up event
    */
-  async logLevelUp(entry: Omit<LevelUpLogEntry, 'id' | 'timestamp'>): Promise<string> {
+  async logLevelUp(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     try {
       const result = await client.query(
-        `INSERT INTO level_up_log 
-         (character_id, old_level, new_level, stat_points_awarded, new_title, milestone_rewards)
+        `INSERT INTO level_up_log ;
+         (character_id, old_level, new_level, stat_points_awarded, new_title, milestone_rewards);
          VALUES ($1, $2, $3, $4, $5, $6)
          RETURNING id`,
         [
@@ -190,7 +182,7 @@ export class ProgressionRepository {
           entry.newLevel,
           entry.statPointsAwarded,
           entry.newTitle || null,
-          JSON.stringify(entry.milestoneRewards)
+          JSON.stringify(entry.milestoneRewards);
         ]
       );
 
@@ -211,24 +203,19 @@ export class ProgressionRepository {
   /**
    * Log milestone achievement
    */
-  async logMilestoneAchievement(
-    characterId: string,
-    milestoneLevel: number,
-    achievementType: string,
-    rewardData: Record<string, any>
-  ): Promise<boolean> {
+  async logMilestoneAchievement(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     try {
       await client.query(
         `INSERT INTO milestone_achievements 
-         (character_id, milestone_level, achievement_type, reward_data)
+         (character_id, milestone_level, achievement_type, reward_data);
          VALUES ($1, $2, $3, $4)
          ON CONFLICT (character_id, milestone_level, achievement_type) DO NOTHING`,
         [
           characterId,
           milestoneLevel,
           achievementType,
-          JSON.stringify(rewardData)
+          JSON.stringify(rewardData);
         ]
       );
 
@@ -249,11 +236,7 @@ export class ProgressionRepository {
   /**
    * Get character experience history
    */
-  async getExperienceHistory(
-    characterId: string,
-    limit: number = 50,
-    offset: number = 0
-  ): Promise<ExperienceLogEntry[]> {
+  async getExperienceHistory(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     try {
       const result = await client.query(
@@ -261,7 +244,7 @@ export class ProgressionRepository {
          WHERE character_id = $1 
          ORDER BY created_at DESC 
          LIMIT $2 OFFSET $3`,
-        [characterId, limit, offset]
+        [characterId, limit, offset];
       );
 
       return result.rows.map(row => ({
@@ -284,11 +267,7 @@ export class ProgressionRepository {
   /**
    * Get character level up history
    */
-  async getLevelUpHistory(
-    characterId: string,
-    limit: number = 20,
-    offset: number = 0
-  ): Promise<LevelUpLogEntry[]> {
+  async getLevelUpHistory(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     try {
       const result = await client.query(
@@ -296,7 +275,7 @@ export class ProgressionRepository {
          WHERE character_id = $1 
          ORDER BY created_at DESC 
          LIMIT $2 OFFSET $3`,
-        [characterId, limit, offset]
+        [characterId, limit, offset];
       );
 
       return result.rows.map(row => ({
@@ -317,14 +296,14 @@ export class ProgressionRepository {
   /**
    * Get milestone achievements for character
    */
-  async getMilestoneAchievements(characterId: string): Promise<any[]> {
+  async getMilestoneAchievements(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     try {
       const result = await client.query(
         `SELECT * FROM milestone_achievements 
          WHERE character_id = $1 
          ORDER BY milestone_level ASC`,
-        [characterId]
+        [characterId];
       );
 
       return result.rows.map(row => ({
@@ -343,15 +322,11 @@ export class ProgressionRepository {
   /**
    * Update character stat points tracking
    */
-  async updateStatPointsTracking(
-    characterId: string,
-    totalEarned: number,
-    available: number
-  ): Promise<void> {
+  async updateStatPointsTracking(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     try {
       await client.query(
-        `INSERT INTO character_stat_points (character_id, total_earned, available, last_updated)
+        `INSERT INTO character_stat_points (character_id, total_earned, available, last_updated);
          VALUES ($1, $2, $3, CURRENT_TIMESTAMP)
          ON CONFLICT (character_id) 
          DO UPDATE SET 
@@ -359,8 +334,7 @@ export class ProgressionRepository {
            available = $3,
            last_updated = CURRENT_TIMESTAMP`,
         [characterId, totalEarned, available]
-      );
-      return;
+      );`
 } catch (error) {
       logger.error('Failed to update stat points tracking', {
         characterId,
@@ -377,19 +351,7 @@ export class ProgressionRepository {
   /**
    * Batch operations for level up with full transaction support
    */
-  async performLevelUpTransaction(
-    characterId: string,
-    progressionData: {
-      level: number;
-      experience: bigint;
-      nextLevelExp: bigint;
-      availableStatPoints: number;
-      newTitle?: string;
-    },
-    experienceLogEntry: Omit<ExperienceLogEntry, 'id' | 'timestamp'>,
-    levelUpLogEntry: Omit<LevelUpLogEntry, 'id' | 'timestamp'>,
-    milestoneRewards: MilestoneReward[]
-  ): Promise<boolean> {
+  async performLevelUpTransaction(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     try {
       await client.query('BEGIN');
@@ -434,62 +396,45 @@ export class ProgressionRepository {
   }
 
   // Private helper methods for transaction support
-  private async updateCharacterProgressionWithClient(
-    client: PoolClient,
-    characterId: string,
-    data: {
-      level: number;
-      experience: bigint;
-      nextLevelExp: bigint;
-      availableStatPoints: number;
-      newTitle?: string;
-    }
-  ): Promise<void> {
+  private async updateCharacterProgressionWithClient(req: Request, res: Response): Promise<void> {
     const updateQuery = data.newTitle
       ? `UPDATE characters 
          SET level = $2, experience = $3, next_level_exp = $4, available_stat_points = $5, active_title = $6
          WHERE id = $1`
       : `UPDATE characters 
-         SET level = $2, experience = $3, next_level_exp = $4, available_stat_points = $5
+         SET level = $2, experience = $3, next_level_exp = $4, available_stat_points = $5;
          WHERE id = $1`;
 
     const params = data.newTitle 
-      ? [characterId, data.level, data.experience.toString(), data.nextLevelExp.toString(), data.availableStatPoints, data.newTitle]
+      ? [characterId, data.level, data.experience.toString(), data.nextLevelExp.toString(), data.availableStatPoints, data.newTitle];
       : [characterId, data.level, data.experience.toString(), data.nextLevelExp.toString(), data.availableStatPoints];
 
-    await client.query(updateQuery, params);
-    return;
+    await client.query(updateQuery, params);`
 }
 
-  private async logExperienceWithClient(
-    client: PoolClient,
-    entry: Omit<ExperienceLogEntry, 'id' | 'timestamp'>
-  ): Promise<void> {
+  private async logExperienceWithClient(req: Request, res: Response): Promise<void> {
     await client.query(
       `INSERT INTO experience_log 
-       (character_id, amount, source, source_details, old_level, new_level, old_experience, new_experience)
+       (character_id, amount, source, source_details, old_level, new_level, old_experience, new_experience);
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
       [
         entry.characterId,
         entry.amount.toString(),
         entry.source,
-        JSON.stringify(entry.sourceDetails || {  return;
+        JSON.stringify(entry.sourceDetails || {`
 }),
         entry.oldLevel,
         entry.newLevel,
         entry.oldExperience.toString(),
-        entry.newExperience.toString()
+        entry.newExperience.toString();
       ]
     );
   }
 
-  private async logLevelUpWithClient(
-    client: PoolClient,
-    entry: Omit<LevelUpLogEntry, 'id' | 'timestamp'>
-  ): Promise<void> {
+  private async logLevelUpWithClient(req: Request, res: Response): Promise<void> {
     await client.query(
       `INSERT INTO level_up_log 
-       (character_id, old_level, new_level, stat_points_awarded, new_title, milestone_rewards)
+       (character_id, old_level, new_level, stat_points_awarded, new_title, milestone_rewards);
        VALUES ($1, $2, $3, $4, $5, $6)`,
       [
         entry.characterId,
@@ -497,38 +442,29 @@ export class ProgressionRepository {
         entry.newLevel,
         entry.statPointsAwarded,
         entry.newTitle || null,
-        JSON.stringify(entry.milestoneRewards)
+        JSON.stringify(entry.milestoneRewards);
       ]
-    );
-    return;
+    );`
 }
 
-  private async logMilestoneAchievementWithClient(
-    client: PoolClient,
-    characterId: string,
-    milestoneLevel: number,
-    achievementType: string,
-    rewardData: Record<string, any>
-  ): Promise<void> {
+  private async logMilestoneAchievementWithClient(req: Request, res: Response): Promise<void> {
     await client.query(
       `INSERT INTO milestone_achievements 
-       (character_id, milestone_level, achievement_type, reward_data)
+       (character_id, milestone_level, achievement_type, reward_data);
        VALUES ($1, $2, $3, $4)
        ON CONFLICT (character_id, milestone_level, achievement_type) DO NOTHING`,
       [characterId, milestoneLevel, achievementType, JSON.stringify(rewardData)]
-    );
-    return;
+    );`
 }
 
   private async addCharacterTitleWithClient(
     client: PoolClient,
     characterId: string,
     title: string
-  ): Promise<void> {
-    // Get current titles
+  ): Promise<void> { // Get current titles
     const result = await client.query(
       'SELECT titles FROM characters WHERE id = $1',
-      [characterId]
+      [characterId];
     );
 
     if (result.rows.length > 0) {
@@ -539,8 +475,7 @@ export class ProgressionRepository {
         await client.query(
           'UPDATE characters SET titles = $2 WHERE id = $1',
           [characterId, JSON.stringify(updatedTitles)]
-        );
-        return;
+        ); }
 }
     }
   }

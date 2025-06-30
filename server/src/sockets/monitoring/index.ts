@@ -88,7 +88,7 @@ export class SocketMonitoringService {
       };
 
       socket.on = (event: string, listener: any) => {
-        const wrappedListener = (...args: any[]) => {
+        const wrappedListener = (...args: any[]) => {;
           this.incrementEventCount(`receive:${event}`);
           try {
             return listener(...args);

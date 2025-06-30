@@ -8,7 +8,6 @@ import { logger } from '../utils/logger';
 import { ZoneService } from './ZoneService';
 import { CacheManager } from './CacheManager';
 import { RealtimeService } from '../services/RealtimeService';
-import {
 import { getErrorMessage } from '../utils/errorUtils';
   MoveResult,
   Direction,
@@ -41,11 +40,7 @@ export class MovementService {
   /**
    * Move character in specified direction
    */
-  async moveCharacter(
-    characterId: string, 
-    direction: string,
-    movementType: MovementType = 'normal'
-  ): Promise<MoveResult> {
+  async moveCharacter(req: Request, res: Response): Promise<void> {
     const startTime = Date.now();
     
     try {
@@ -115,7 +110,7 @@ export class MovementService {
       // Get new zone information
       const newZoneInfo = await this.zoneService.getZone(exit.toZoneId);
       if (!newZoneInfo) {
-        throw new Error('Failed to load destination zone information');
+      throw new Error(errorMessage);
       }
 
       // Broadcast movement events
@@ -155,7 +150,7 @@ export class MovementService {
   /**
    * Get character's current location
    */
-  async getCharacterLocation(characterId: string): Promise<CharacterLocation | null> {
+  async getCharacterLocation(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     try {
       const result = await client.query(
@@ -164,7 +159,7 @@ export class MovementService {
                 created_at, updated_at
          FROM character_locations 
          WHERE character_id = $1`,
-        [characterId]
+        [characterId];
       );
 
       if (result.rows.length === 0) return null;
@@ -191,7 +186,7 @@ export class MovementService {
   /**
    * Validate if character can move in the specified direction
    */
-  async validateMovement(characterId: string, zoneId: string, direction: Direction): Promise<MovementValidation> {
+  async validateMovement(req: Request, res: Response): Promise<void> {
     try {
       // Check movement cooldown
       const cooldownCheck = await this.checkMovementCooldown(characterId);
@@ -300,12 +295,12 @@ export class MovementService {
   /**
    * Check movement cooldown
    */
-  async checkMovementCooldown(characterId: string): Promise<{ canMove: boolean; remainingSeconds?: number }> {
+  async checkMovementCooldown(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     try {
       const result = await client.query(
         'SELECT check_movement_cooldown($1, $2) as can_move',
-        [characterId, ZONE_CONSTANTS.MOVEMENT_COOLDOWN_SECONDS]
+        [characterId, ZONE_CONSTANTS.MOVEMENT_COOLDOWN_SECONDS];
       );
 
       const canMove = result.rows[0]?.can_move || false;
@@ -314,7 +309,7 @@ export class MovementService {
         // Get exact remaining time
         const locationResult = await client.query(
           'SELECT last_movement FROM character_locations WHERE character_id = $1',
-          [characterId]
+          [characterId];
         );
         
         if (locationResult.rows.length > 0) {
@@ -336,12 +331,12 @@ export class MovementService {
   /**
    * Get character level
    */
-  async getCharacterLevel(characterId: string): Promise<number | null> {
+  async getCharacterLevel(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     try {
       const result = await client.query(
         'SELECT level FROM characters WHERE id = $1 AND deleted_at IS NULL',
-        [characterId]
+        [characterId];
       );
 
       return result.rows.length > 0 ? result.rows[0].level : null;
@@ -353,12 +348,12 @@ export class MovementService {
   /**
    * Get character data for validation
    */
-  async getCharacterData(characterId: string): Promise<{ level: number; status: string } | null> {
+  async getCharacterData(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     try {
       const result = await client.query(
         'SELECT level, status FROM characters WHERE id = $1 AND deleted_at IS NULL',
-        [characterId]
+        [characterId];
       );
 
       return result.rows.length > 0 ? {
@@ -373,14 +368,7 @@ export class MovementService {
   /**
    * Execute the movement transaction
    */
-  private async executeMovement(
-    characterId: string,
-    fromZoneId: string,
-    toZoneId: string,
-    direction: Direction,
-    movementType: MovementType,
-    travelTime: number
-  ): Promise<void> {
+  private async executeMovement(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     try {
       await client.query('BEGIN');
@@ -394,8 +382,7 @@ export class MovementService {
       await client.query('COMMIT');
 
       // Clear character cache
-      await this.clearCharacterCache(characterId);
-      return;
+      await this.clearCharacterCache(characterId);`
 } catch (error) {
       await client.query('ROLLBACK');
       throw error;
@@ -412,12 +399,10 @@ export class MovementService {
     fromZoneId: string,
     toZoneId: string,
     direction: Direction
-  ): Promise<void> {
-    try {
+  ): Promise<void> { try {
       // Get character information for broadcasting
       const characterInfo = await this.getCharacterInfo(characterId);
-      if (!characterInfo) return;
-
+      if (!characterInfo) }
       // Broadcast exit message to old zone
       if (fromZoneId !== toZoneId) {
         this.realtimeService.broadcastToZone(fromZoneId, 'character_exit', {
@@ -453,12 +438,12 @@ export class MovementService {
   /**
    * Get character information for broadcasting
    */
-  private async getCharacterInfo(characterId: string): Promise<{ name: string; level: number } | null> {
+  private async getCharacterInfo(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     try {
       const result = await client.query(
         'SELECT name, level FROM characters WHERE id = $1 AND deleted_at IS NULL',
-        [characterId]
+        [characterId];
       );
 
       return result.rows.length > 0 ? {
@@ -473,15 +458,14 @@ export class MovementService {
   /**
    * Update character's zone room membership for real-time communication
    */
-  private async updateZoneRoomMembership(characterId: string, fromZoneId: string, toZoneId: string): Promise<void> {
+  private async updateZoneRoomMembership(req: Request, res: Response): Promise<void> {
     try {
       // Broadcast zone exit if leaving a zone
       if (fromZoneId && fromZoneId !== toZoneId) {
         await this.realtimeService.broadcastToZone(fromZoneId, 'character_exit', {
           characterId,
           message: `A character has left the area.`,
-          timestamp: Date.now()
-          return;
+          timestamp: Date.now()`
 });
       }
 
@@ -490,7 +474,7 @@ export class MovementService {
         await this.realtimeService.broadcastToZone(toZoneId, 'character_enter', {
           characterId,
           message: `A character has entered the area.`,
-          timestamp: Date.now()
+          timestamp: Date.now();
         });
       }
     } catch (error) {
@@ -506,11 +490,7 @@ export class MovementService {
   /**
    * Get movement history for a character
    */
-  async getMovementHistory(
-    characterId: string,
-    limit: number = 20,
-    offset: number = 0
-  ): Promise<MovementLogEntry[]> {
+  async getMovementHistory(req: Request, res: Response): Promise<void> {
     const client = await this.db.connect();
     try {
       const result = await client.query(
@@ -520,7 +500,7 @@ export class MovementService {
          WHERE character_id = $1 
          ORDER BY created_at DESC 
          LIMIT $2 OFFSET $3`,
-        [characterId, limit, offset]
+        [characterId, limit, offset];
       );
 
       return result.rows.map(row => ({
@@ -542,11 +522,7 @@ export class MovementService {
   /**
    * Teleport character to a specific zone (admin/system function)
    */
-  async teleportCharacter(
-    characterId: string,
-    targetZoneId: string,
-    movementType: MovementType = 'teleport'
-  ): Promise<MoveResult> {
+  async teleportCharacter(req: Request, res: Response): Promise<void> {
     try {
       // Get current location
       const currentLocation = await this.getCharacterLocation(characterId);
@@ -603,11 +579,10 @@ export class MovementService {
   /**
    * Broadcast teleport events
    */
-  private async broadcastTeleport(characterId: string, fromZoneId: string, toZoneId: string): Promise<void> {
+  private async broadcastTeleport(req: Request, res: Response): Promise<void> {
     try {
       const characterInfo = await this.getCharacterInfo(characterId);
-      if (!characterInfo) return;
-
+      if (!characterInfo)`
       // Broadcast disappearance from old zone
       this.realtimeService.broadcastToZone(fromZoneId, 'character_teleport_out', {
         characterId,
@@ -637,11 +612,10 @@ export class MovementService {
   /**
    * Clear character-related cache
    */
-  private async clearCharacterCache(characterId: string): Promise<void> {
+  private async clearCharacterCache(req: Request, res: Response): Promise<void> {
     const cacheKeys = [
-      `character_location:${characterId  return;
-}`,
-      `character_info:${characterId}`
+      `character_location:${characterId}`,
+      `character_info:${characterId}`;
     ];
     
     await Promise.all(cacheKeys.map(key => this.cacheManager.delete(key)));

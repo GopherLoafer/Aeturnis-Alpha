@@ -67,7 +67,7 @@ export class RedisRateLimiter {
           'X-RateLimit-Limit': config.maxRequests.toString(),
           'X-RateLimit-Remaining': result.remaining.toString(),
           'X-RateLimit-Reset': result.resetTime.toString(),
-          'X-RateLimit-Window': config.windowMs.toString()
+          'X-RateLimit-Window': config.windowMs.toString();
         });
 
         if (!result.allowed) {
@@ -80,7 +80,7 @@ export class RedisRateLimiter {
             maxRequests: config.maxRequests,
             windowMs: config.windowMs,
             ip: req.ip,
-            userAgent: req.get('User-Agent')
+            userAgent: req.get('User-Agent');
           });
 
           if (config.onLimitReached) {
@@ -92,7 +92,6 @@ export class RedisRateLimiter {
             message,
             retryAfter: Math.ceil((result.resetTime - Date.now()) / 1000)
           });
-          return;
         }
 
         next();
@@ -110,7 +109,7 @@ export class RedisRateLimiter {
   /**
    * Check rate limit using sliding window algorithm
    */
-  public async checkRateLimit(key: string, config: RateLimitConfig): Promise<RateLimitResult> {
+  public async checkRateLimit(req: Request, res: Response): Promise<void> {
     const redis = redisService.getClient();
     const now = Date.now();
     const windowStart = now - config.windowMs;
@@ -118,21 +117,17 @@ export class RedisRateLimiter {
 
     // Use Lua script for atomic operations
     const luaScript = `
-      local key = KEYS[1]
-      local window_start = tonumber(ARGV[1])
-      local now = tonumber(ARGV[2])
-      local max_requests = tonumber(ARGV[3])
-      local window_ms = tonumber(ARGV[4])
-
+      local key = KEYS[1];
+      local window_start = tonumber(ARGV[1]);
+      local now = tonumber(ARGV[2]);
+      local max_requests = tonumber(ARGV[3]);
+      local window_ms = tonumber(ARGV[4]);
       -- Remove expired entries
-      redis.call('ZREMRANGEBYSCORE', key, '-inf', window_start)
-
+      redis.call('ZREMRANGEBYSCORE', key, '-inf', window_start);
       -- Count current requests in window
-      local current_requests = redis.call('ZCARD', key)
-
+      local current_requests = redis.call('ZCARD', key);
       -- Calculate remaining requests
-      local remaining = math.max(0, max_requests - current_requests)
-      
+      local remaining = math.max(0, max_requests - current_requests);
       -- Calculate reset time (end of current window)
       local reset_time = now + window_ms
 
@@ -153,8 +148,8 @@ export class RedisRateLimiter {
       redisKey,
       windowStart.toString(),
       now.toString(),
-      config.maxRequests.toString(),
-      config.windowMs.toString()
+      config.maxRequests.toString(),;
+      config.windowMs.toString();
     ) as [number, number, number, number];
 
     return {
@@ -168,7 +163,7 @@ export class RedisRateLimiter {
   /**
    * Get rate limit status for a key
    */
-  public async getRateLimitStatus(key: string, config: RateLimitConfig): Promise<RateLimitResult> {
+  public async getRateLimitStatus(req: Request, res: Response): Promise<void> {
     const redis = redisService.getClient();
     const now = Date.now();
     const windowStart = now - config.windowMs;
@@ -191,8 +186,7 @@ export class RedisRateLimiter {
     } catch (error) {
       logger.error('Error getting rate limit status', {
         key,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       
       // Return permissive values on error
       return {
@@ -207,7 +201,7 @@ export class RedisRateLimiter {
   /**
    * Reset rate limit for a key
    */
-  public async resetRateLimit(key: string): Promise<boolean> {
+  public async resetRateLimit(req: Request, res: Response): Promise<void> {
     try {
       const redis = redisService.getClient();
       const redisKey = this.buildKey(key);
@@ -217,8 +211,7 @@ export class RedisRateLimiter {
     } catch (error) {
       logger.error('Error resetting rate limit', {
         key,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       return false;
     }
   }
@@ -240,7 +233,7 @@ export class RedisRateLimiter {
   /**
    * Clean up expired rate limit entries
    */
-  public async cleanupExpiredEntries(): Promise<number> {
+  public async cleanupExpiredEntries(req: Request, res: Response): Promise<void> {
     try {
       const redis = redisService.getClient();
       const pattern = `${this.keyPrefix}*`;
@@ -272,8 +265,7 @@ export class RedisRateLimiter {
       return cleanedCount;
     } catch (error) {
       logger.error('Error cleaning up rate limit entries', {
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       return 0;
     }
   }

@@ -38,7 +38,6 @@ export class AuthMiddleware {
           message: 'No valid authorization token provided',
           requestId: req.requestId
         });
-        return;
       }
 
       const token = authHeader.substring(7); // Remove 'Bearer ' prefix
@@ -59,7 +58,6 @@ export class AuthMiddleware {
           message: 'The provided token is invalid or expired',
           requestId: req.requestId
         });
-        return;
       }
 
       // Validate token type
@@ -69,7 +67,6 @@ export class AuthMiddleware {
           message: 'Expected access token',
           requestId: req.requestId
         });
-        return;
       }
 
       // Get user data from database
@@ -80,7 +77,6 @@ export class AuthMiddleware {
           message: 'The user associated with this token no longer exists',
           requestId: req.requestId
         });
-        return;
       }
 
       // Attach user to request object
@@ -96,7 +92,7 @@ export class AuthMiddleware {
       next();
 
     } catch (error) {
-      winston.error('Authentication middleware error:', {
+      winston.error('Authentication middleware error: ', {
         error: error,
         requestId: req.requestId,
         ip: req.ip
@@ -111,13 +107,11 @@ export class AuthMiddleware {
   };
 
   // Optional authentication (doesn't fail if no token)
-  optionalAuthenticate = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
-    const authHeader = req.headers.authorization;
+  optionalAuthenticate = async (req: Request, res: Response, next: NextFunction): Promise<void> => { const authHeader = req.headers.authorization;
     
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       // No token provided, continue without user
-      next();
-      return;
+      next(); }
     }
 
     // If token is provided, validate it
@@ -132,7 +126,6 @@ export class AuthMiddleware {
         message: 'User must be authenticated',
         requestId: req.requestId
       });
-      return;
     }
 
     if (!req.user.email_verified) {
@@ -141,7 +134,6 @@ export class AuthMiddleware {
         message: 'Please verify your email address before accessing this resource',
         requestId: req.requestId
       });
-      return;
     }
 
     next();
@@ -174,8 +166,7 @@ export class AuthMiddleware {
           message: `Too many authentication attempts. Try again in ${timeRemaining} minutes.`,
           requestId: req.requestId,
           retryAfter: timeRemaining * 60
-        });
-        return;
+        });`
       }
 
       // Record this attempt

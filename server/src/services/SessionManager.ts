@@ -62,12 +62,7 @@ export class SessionManager {
   /**
    * Create a new session for a user
    */
-  public async createSession(
-    userId: string,
-    username: string,
-    roles: string[] = ['user'],
-    options: CreateSessionOptions = {}
-  ): Promise<SessionData> {
+  public async createSession(req: Request, res: Response): Promise<void> {
     try {
       const redis = redisService.getClient();
       const sessionId = uuidv4();
@@ -116,8 +111,7 @@ export class SessionManager {
       logger.error('Failed to create session', {
         userId,
         username,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       throw new Error('Failed to create session');
     }
   }
@@ -125,7 +119,7 @@ export class SessionManager {
   /**
    * Get session data by session ID
    */
-  public async getSession(sessionId: string): Promise<SessionData | null> {
+  public async getSession(req: Request, res: Response): Promise<void> {
     try {
       const redis = redisService.getClient();
       const sessionKey = this.buildSessionKey(sessionId);
@@ -154,8 +148,7 @@ export class SessionManager {
     } catch (error) {
       logger.error('Failed to get session', {
         sessionId,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       return null;
     }
   }
@@ -163,7 +156,7 @@ export class SessionManager {
   /**
    * Extend session with sliding window TTL
    */
-  public async extendSession(sessionId: string, additionalTTL?: number): Promise<boolean> {
+  public async extendSession(req: Request, res: Response): Promise<void> {
     try {
       const redis = redisService.getClient();
       const sessionKey = this.buildSessionKey(sessionId);
@@ -202,8 +195,7 @@ export class SessionManager {
     } catch (error) {
       logger.error('Failed to extend session', {
         sessionId,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       return false;
     }
   }
@@ -211,7 +203,7 @@ export class SessionManager {
   /**
    * Update session character
    */
-  public async updateSessionCharacter(sessionId: string, characterId: string): Promise<boolean> {
+  public async updateSessionCharacter(req: Request, res: Response): Promise<void> {
     try {
       const sessionData = await this.getSession(sessionId);
       if (!sessionData) {
@@ -245,8 +237,7 @@ export class SessionManager {
       logger.error('Failed to update session character', {
         sessionId,
         characterId,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       return false;
     }
   }
@@ -254,7 +245,7 @@ export class SessionManager {
   /**
    * Destroy a session
    */
-  public async destroySession(sessionId: string): Promise<boolean> {
+  public async destroySession(req: Request, res: Response): Promise<void> {
     try {
       const redis = redisService.getClient();
       
@@ -280,8 +271,7 @@ export class SessionManager {
     } catch (error) {
       logger.error('Failed to destroy session', {
         sessionId,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       return false;
     }
   }
@@ -289,7 +279,7 @@ export class SessionManager {
   /**
    * Get all active sessions for a user
    */
-  public async getUserSessions(userId: string): Promise<SessionData[]> {
+  public async getUserSessions(req: Request, res: Response): Promise<void> {
     try {
       const redis = redisService.getClient();
       const userSessionsKey = this.buildUserSessionsKey(userId);
@@ -311,8 +301,7 @@ export class SessionManager {
     } catch (error) {
       logger.error('Failed to get user sessions', {
         userId,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       return [];
     }
   }
@@ -320,7 +309,7 @@ export class SessionManager {
   /**
    * Destroy all sessions for a user
    */
-  public async destroyUserSessions(userId: string): Promise<number> {
+  public async destroyUserSessions(req: Request, res: Response): Promise<void> {
     try {
       const sessions = await this.getUserSessions(userId);
       let destroyedCount = 0;
@@ -342,8 +331,7 @@ export class SessionManager {
     } catch (error) {
       logger.error('Failed to destroy user sessions', {
         userId,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       return 0;
     }
   }
@@ -351,7 +339,7 @@ export class SessionManager {
   /**
    * Clean up expired sessions
    */
-  public async cleanupExpiredSessions(): Promise<number> {
+  public async cleanupExpiredSessions(req: Request, res: Response): Promise<void> {
     try {
       const redis = redisService.getClient();
       const pattern = `${this.keyPrefix}*`;
@@ -380,8 +368,7 @@ export class SessionManager {
       return cleanedCount;
     } catch (error) {
       logger.error('Failed to cleanup expired sessions', {
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       return 0;
     }
   }
@@ -389,11 +376,7 @@ export class SessionManager {
   /**
    * Get session statistics
    */
-  public async getSessionStats(): Promise<{
-    totalActiveSessions: number;
-    averageSessionDuration: number;
-    uniqueUsers: number;
-  }> {
+  public async getSessionStats(req: Request, res: Response): Promise<void> {
     try {
       const redis = redisService.getClient();
       const pattern = `${this.keyPrefix}*`;
@@ -421,8 +404,8 @@ export class SessionManager {
         }
       } while (cursor !== '0');
 
-      const averageSessionDuration = totalSessions > 0 
-        ? Math.round(totalDuration / totalSessions / 1000) 
+      const averageSessionDuration = totalSessions > 0 ;
+        ? Math.round(totalDuration / totalSessions / 1000);
         : 0;
 
       return {
@@ -432,8 +415,7 @@ export class SessionManager {
       };
     } catch (error) {
       logger.error('Failed to get session stats', {
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
       return {
         totalActiveSessions: 0,
         averageSessionDuration: 0,
@@ -445,7 +427,7 @@ export class SessionManager {
   /**
    * Add session to user's active sessions
    */
-  private async addToUserSessions(userId: string, sessionId: string, ttl: number): Promise<void> {
+  private async addToUserSessions(req: Request, res: Response): Promise<void> {
     const redis = redisService.getClient();
     const userSessionsKey = this.buildUserSessionsKey(userId);
     
@@ -456,7 +438,7 @@ export class SessionManager {
   /**
    * Remove session from user's active sessions
    */
-  private async removeFromUserSessions(userId: string, sessionId: string): Promise<void> {
+  private async removeFromUserSessions(req: Request, res: Response): Promise<void> {
     const redis = redisService.getClient();
     const userSessionsKey = this.buildUserSessionsKey(userId);
     
@@ -466,12 +448,11 @@ export class SessionManager {
   /**
    * Cleanup old sessions for a user (keep only max allowed)
    */
-  private async cleanupUserSessions(userId: string): Promise<void> {
+  private async cleanupUserSessions(req: Request, res: Response): Promise<void> {
     try {
       const sessions = await this.getUserSessions(userId);
       
-      if (sessions.length <= this.maxSessionsPerUser) {
-        return;
+      if (sessions.length <= this.maxSessionsPerUser) {`
       }
 
       // Sort by creation time, oldest first
@@ -492,8 +473,7 @@ export class SessionManager {
     } catch (error) {
       logger.error('Failed to cleanup user sessions', {
         userId,
-        error: getErrorMessage(error)
-      });
+        error: getErrorMessage(error);});
     }
   }
 
