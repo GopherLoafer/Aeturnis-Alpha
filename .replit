@@ -8,6 +8,7 @@ localPort = 3000
 externalPort = 80
 
 [workflows]
+runButton = "CI Pipeline"
 
 [[workflows.workflow]]
 name = "Test with Coverage"
@@ -26,3 +27,21 @@ mode = "sequential"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "npm run lint:ts"
+
+[[workflows.workflow]]
+name = "TypeScript Check"
+author = 44147256
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run lint:ts"
+
+[[workflows.workflow]]
+name = "CI Pipeline"
+author = 44147256
+mode = "sequential"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run ci"
