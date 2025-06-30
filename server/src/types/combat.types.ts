@@ -280,7 +280,10 @@ export const COMBAT_CONSTANTS = {
   MAX_PARTICIPANTS: 8,
   TURN_TIME_LIMIT: 30000, // 30 seconds in milliseconds
   MAX_TURNS: 100,
-  CRITICAL_CHANCE: 0.05, // 5%
+  BASE_CRITICAL_CHANCE: 0.05, // 5% base crit chance
+  CRITICAL_DAMAGE_MULTIPLIER: 1.5, // Critical hits deal 1.5x damage
+  DEXTERITY_CRIT_FACTOR: 200, // DEX/200 adds to crit chance
+  DAMAGE_VARIANCE: 0.3, // ±30% damage variance
   BLOCK_CHANCE: 0.1, // 10%
   MISS_CHANCE: 0.05, // 5%
   FLEE_CHANCE: 0.75, // 75%

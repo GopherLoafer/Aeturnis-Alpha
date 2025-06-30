@@ -7,6 +7,7 @@ import { Pool } from 'pg';
 import { logger } from '../utils/logger';
 import { CacheManager } from './CacheManager';
 import { RealtimeService } from './RealtimeService';
+import { EquipmentService } from './EquipmentService';
 import {
   CombatSession,
   CombatParticipant,
@@ -36,6 +37,7 @@ export class CombatService {
   private db: Pool;
   private cacheManager: CacheManager;
   private realtimeService: RealtimeService;
+  private equipmentService: EquipmentService;
 
   constructor(
     db: Pool,
@@ -45,6 +47,7 @@ export class CombatService {
     this.db = db;
     this.cacheManager = cacheManager;
     this.realtimeService = realtimeService;
+    this.equipmentService = new EquipmentService(db);
   }
 
   /**
@@ -544,6 +547,11 @@ export class CombatService {
     }
 
     const actorStats = await this.getCharacterCombatStats(actorId);
+    let targetStats = null;
+    if (target) {
+      targetStats = await this.getCharacterCombatStats(target.characterId);
+    }
+    
     let damage = 0;
     let healing = 0;
     let mpCost = 0;
@@ -555,9 +563,13 @@ export class CombatService {
 
     switch (actionRequest.actionType) {
       case 'attack':
-        damage = this.calculateAttackDamage(actorStats.strength, actorStats.level);
-        isCritical = Math.random() < COMBAT_CONSTANTS.CRITICAL_CHANCE;
-        if (isCritical) damage *= 2;
+        damage = await this.calculateAttackDamage(
+          actorId, 
+          actorStats.strength, 
+          targetStats?.vitality || 0
+        );
+        isCritical = Math.random() < this.calculateCriticalChance(actorStats.dexterity);
+        if (isCritical) damage *= COMBAT_CONSTANTS.CRITICAL_DAMAGE_MULTIPLIER;
         
         isMissed = Math.random() < COMBAT_CONSTANTS.MISS_CHANCE;
         if (isMissed) damage = 0;
@@ -571,8 +583,8 @@ export class CombatService {
       case 'spell':
         mpCost = this.calculateMpCost(actionRequest.actionName);
         damage = this.calculateSpellDamage(actorStats.intelligence, actorStats.level, actionRequest.actionName);
-        isCritical = Math.random() < COMBAT_CONSTANTS.CRITICAL_CHANCE * 1.5; // Spells have higher crit chance
-        if (isCritical) damage *= 2;
+        isCritical = Math.random() < this.calculateCriticalChance(actorStats.dexterity) * 1.5; // Spells have higher crit chance
+        if (isCritical) damage *= COMBAT_CONSTANTS.CRITICAL_DAMAGE_MULTIPLIER;
         
         statusEffect = this.determineStatusEffect(actionRequest.actionName);
         description = this.generateActionDescription('spell', actor, target || null, damage, isCritical, false, false, statusEffect);
@@ -630,10 +642,22 @@ export class CombatService {
   /**
    * Helper methods for damage calculations
    */
-  private calculateAttackDamage(strength: number, level: number): number {
-    const baseDamage = strength + level;
-    const variance = Math.floor(Math.random() * (baseDamage * 0.3)) + 1;
+  private async calculateAttackDamage(
+    actorId: string, 
+    strength: number, 
+    targetVitality: number
+  ): Promise<number> {
+    const weaponCoef = await this.equipmentService.getWeaponCoefficient(actorId);
+    const baseDamage = Math.max(1, (strength - targetVitality) * weaponCoef);
+    const variance = Math.floor(Math.random() * (baseDamage * COMBAT_CONSTANTS.DAMAGE_VARIANCE)) + 1;
     return baseDamage + variance;
+  }
+
+  /**
+   * Calculate critical hit chance based on dexterity
+   */
+  private calculateCriticalChance(dexterity: number): number {
+    return COMBAT_CONSTANTS.BASE_CRITICAL_CHANCE + (dexterity / COMBAT_CONSTANTS.DEXTERITY_CRIT_FACTOR);
   }
 
   private calculateSpellDamage(intelligence: number, level: number, spellName: string): number {
