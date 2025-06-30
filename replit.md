@@ -1,8 +1,8 @@
-# REST Express Full-Stack Application
+# Blank Slate Development Environment
 
 ## Overview
 
-This is a modern full-stack web application built with React (TypeScript) on the frontend and Express.js on the backend. The application uses PostgreSQL with Drizzle ORM for data persistence and includes a comprehensive UI component library based on shadcn/ui. The project is set up for development on Replit with hot module replacement and modern build tooling.
+This is a minimal full-stack development environment built with React (TypeScript) on the frontend and Express.js on the backend. The project provides a clean foundation for building web applications with modern tooling and architecture patterns.
 
 ## System Architecture
 
@@ -97,7 +97,7 @@ This is a modern full-stack web application built with React (TypeScript) on the
 - **Development fallback** to in-memory storage if database unavailable
 
 ## Changelog
-- June 30, 2025. Initial setup
+- June 30, 2025: Created blank slate development environment with minimal setup
 
 ## User Preferences
 
