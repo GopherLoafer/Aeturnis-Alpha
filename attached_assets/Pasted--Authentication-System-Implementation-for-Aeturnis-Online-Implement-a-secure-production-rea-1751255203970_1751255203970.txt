@@ -1,0 +1,92 @@
+## 🔐 Authentication System Implementation for Aeturnis Online
+
+Implement a secure, production-ready JWT authentication system using Node.js, TypeScript, PostgreSQL, and Redis.
+
+### 📦 Service: `AuthService`
+
+#### 1. User Registration
+- Input validation:
+  - `email`: valid format
+  - `username`: 3–20 chars, alphanumeric and underscores
+  - `password`: minimum 8 chars, must contain uppercase, lowercase, number
+- Check for existing `email` or `username` (case-insensitive)
+- Hash password using **Argon2id** with:
+  - `memoryCost: 65536`
+  - `timeCost: 3`
+  - `parallelism: 4`
+- Generate email verification token (32-byte hex string)
+- Create user inside a transaction
+- Stub out email sending for now
+- Return sanitized user (no password)
+
+#### 2. User Login
+- Accept email **or** username
+- Verify password securely (timing-safe)
+- Rate limit: lock after 5 failed attempts in 15 min
+- Generate:
+  - `accessToken` (15 min expiry)
+  - `refreshToken` (7 day expiry)
+- Store refresh token in Redis by user ID
+- Update `last_login` timestamp
+
+#### 3. Token Management
+- Use separate secrets for access and refresh tokens:
+  - `JWT_SECRET`
+  - `JWT_REFRESH_SECRET`
+- Store refresh tokens in Redis (`refresh:{userId}`)
+- Validate token structure and type
+- Optionally blacklist access tokens on logout
+- Refresh route should verify the Redis token and issue a new access token
+
+#### 4. Password Reset Flow
+- Generate reset token (1-hour expiration)
+- Store in Redis using `reset:{email}`
+- Allow password change via reset flow
+- Invalidate all sessions and refresh tokens on change
+
+---
+
+### 🧱 Middleware: `authMiddleware`
+- Extract `Bearer` token from header
+- Validate and decode JWT
+- Check type = `access`
+- Attach user to `req.user` via lookup
+- Handle token errors gracefully
+
+---
+
+### 📡 API Routes
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `POST /api/auth/refresh`
+- `POST /api/auth/logout`
+- `POST /api/auth/forgot-password`
+- `POST /api/auth/reset-password`
+- `GET /api/auth/me`
+
+---
+
+### 🔐 Security Requirements
+- Use parameterized queries
+- Sanitize all inputs
+- Rate limit:
+  - Global: 100 req / 15 min
+  - Auth: 5 attempts / 15 min
+- No stack traces in production responses
+- Use `httpOnly` secure cookies for refresh tokens (optional)
+- Add `request ID` to logs
+- Audit security-related actions
+
+---
+
+### 📄 Outputs
+- `src/services/AuthService.ts`
+- `src/middleware/auth.ts`
+- `src/routes/auth.routes.ts`
+- `src/types/user.ts`
+- `.env.example` keys:
+  - `JWT_SECRET`
+  - `JWT_REFRESH_SECRET`
+  - `JWT_EXPIRY=15m`
+  - `JWT_REFRESH_EXPIRY=7d`
+- Tests for each route (using Jest or Supertest)
