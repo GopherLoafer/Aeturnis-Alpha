@@ -20,8 +20,7 @@ export class RealtimeService {
    */
   public async broadcastToZone(zoneName: string, event: string, data: any): Promise<void> {
     try {
-      const roomName = `zone:${zoneName  return;
-}`;
+      const roomName = `zone:${zoneName}`;
       this.io.to(roomName).emit(event, data);
       
       this.logBroadcast('zone', zoneName, event);
@@ -42,8 +41,7 @@ export class RealtimeService {
    */
   public async broadcastToUser(userId: string, event: string, data: any): Promise<void> {
     try {
-      const roomName = `user:${userId  return;
-}`;
+      const roomName = `user:${userId}`;
       this.io.to(roomName).emit(event, data);
       
       this.logBroadcast('user', userId, event);
@@ -88,8 +86,7 @@ export class RealtimeService {
       // Verify guild exists
       const guildExists = await this.verifyGuildExists(guildId);
       if (!guildExists) {
-        logger.warn('Attempted to broadcast to non-existent guild', { guildId   return;
-});
+        logger.warn('Attempted to broadcast to non-existent guild', { guildId });
         return;
       }
 
@@ -114,8 +111,7 @@ export class RealtimeService {
    */
   public async broadcastToCombat(sessionId: string, event: string, data: any): Promise<void> {
     try {
-      const roomName = `combat:${sessionId  return;
-}`;
+      const roomName = `combat:${sessionId}`;
       this.io.to(roomName).emit(event, data);
       
       this.logBroadcast('combat', sessionId, event);
@@ -139,8 +135,7 @@ export class RealtimeService {
       this.io.to('global:events').emit(event, data);
       
       this.logBroadcast('global', 'all', event);
-      this.trackMetric(`broadcast.global.${event  return;
-}`);
+      this.trackMetric(`broadcast.global.${event}`);
       
     } catch (error) {
       logger.error('Failed to broadcast globally', {
@@ -294,8 +289,7 @@ export class RealtimeService {
 
   public async joinCombatRoom(socketId: string, sessionId: string): Promise<void> {
     try {
-      const roomName = `combat:${sessionId  return;
-}`;
+      const roomName = `combat:${sessionId}`;
       const socket = this.io?.sockets.sockets.get(socketId);
       
       if (socket) {
@@ -320,8 +314,7 @@ export class RealtimeService {
 
   public async leaveCombatRoom(socketId: string, sessionId: string): Promise<void> {
     try {
-      const roomName = `combat:${sessionId  return;
-}`;
+      const roomName = `combat:${sessionId}`;
       const socket = this.io?.sockets.sockets.get(socketId);
       
       if (socket) {
