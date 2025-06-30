@@ -9,6 +9,7 @@ import { RoomManager } from '../rooms/RoomManager';
 import { PresenceManager } from '../presence/PresenceManager';
 import { logger } from '../../utils/logger';
 import { repositories } from '../../database/repositories';
+import { getErrorMessage } from '../utils/errorUtils';
 
 const roomManager = new RoomManager();
 const presenceManager = new PresenceManager();
@@ -112,7 +113,7 @@ export function registerCombatHandlers(io: SocketIOServer, socket: SocketWithAut
         socketId: socket.id,
         userId: socket.userId,
         sessionId: data.sessionId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
 
       socket.emit('combat:error', {
@@ -207,7 +208,7 @@ export function registerCombatHandlers(io: SocketIOServer, socket: SocketWithAut
         characterId: socket.characterId,
         sessionId: data.sessionId,
         actionType: data.actionType,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
 
       socket.emit('combat:error', {
@@ -291,7 +292,7 @@ export function registerCombatHandlers(io: SocketIOServer, socket: SocketWithAut
         socketId: socket.id,
         characterId: socket.characterId,
         sessionId: data.sessionId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
 
       socket.emit('combat:error', {
@@ -325,7 +326,7 @@ export function registerCombatHandlers(io: SocketIOServer, socket: SocketWithAut
       logger.error('Get combat state error', {
         socketId: socket.id,
         sessionId: data.sessionId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
     }
   });

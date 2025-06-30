@@ -1,4 +1,5 @@
 import { ZodSchema, ZodError } from 'zod';
+import { getErrorMessage } from '../utils/errorUtils';
 
 // Validation result type
 export interface ValidationResult<T> {
@@ -22,7 +23,7 @@ export const validateRequest = <T>(schema: ZodSchema<T>, data: unknown): Validat
         }))
       };
     }
-    return { success: false, error: error instanceof Error ? error.message : 'Validation failed' };
+    return { success: false, error: error instanceof Error ? getErrorMessage(error) : 'Validation failed' };
   }
 };
 

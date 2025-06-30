@@ -6,6 +6,7 @@
 import winston from 'winston';
 import path from 'path';
 import { config } from '../config/environment';
+import { getErrorMessage } from '../utils/errorUtils';
 
 /**
  * Custom log format
@@ -141,7 +142,7 @@ export const queryLogger = (query: string, duration: number, error?: Error) => {
     query: query.replace(/\s+/g, ' ').trim(),
     duration: `${duration}ms`,
     error: error ? {
-      message: error.message,
+      message: getErrorMessage(error),
       code: (error as any).code,
     } : undefined,
   };
@@ -230,7 +231,7 @@ export const shutdown = () => {
 };
 
 // Handle logger errors
-logger.on('error', (error) => {
+logger.on('error', (error: unknown) => {
   console.error('Logger error:', error);
 });
 

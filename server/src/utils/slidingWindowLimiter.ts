@@ -4,6 +4,7 @@
  */
 
 import { CacheManager } from '../services/CacheManager';
+import { getErrorMessage } from '../utils/errorUtils';
 
 export interface SlidingWindowConfig {
   windowSize: number; // Window size in seconds
@@ -77,7 +78,8 @@ export class SlidingWindowLimiter {
    * Reset sliding window for a specific key
    */
   async resetWindow(key: string): Promise<void> {
-    await this.cacheManager.delete(`sliding:${key}`);
+    await this.cacheManager.delete(`sliding:${key  return;
+}`);
   }
 
   /**

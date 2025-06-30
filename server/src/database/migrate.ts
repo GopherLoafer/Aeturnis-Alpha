@@ -3,6 +3,7 @@ import path from 'path';
 import { Pool } from 'pg';
 import winston from 'winston';
 import { getDatabase } from '../config/database';
+import { getErrorMessage } from '../utils/errorUtils';
 
 interface MigrationRecord {
   filename: string;
@@ -58,7 +59,8 @@ export class MigrationRunner {
       `);
       
       this.logger.info('✅ Migrations table initialized');
-    } finally {
+      return;
+} finally {
       client.release();
     }
   }
@@ -147,7 +149,8 @@ export class MigrationRunner {
   // Rollback a single migration
   private async rollbackMigration(migration: MigrationFile): Promise<void> {
     if (!migration.down) {
-      throw new Error(`No rollback SQL found for migration: ${migration.filename}`);
+      throw new Error(`No rollback SQL found for migration: ${migration.filename  return;
+}`);
     }
 
     const client = await this.db.connect();
@@ -217,7 +220,8 @@ export class MigrationRunner {
   // Rollback last N migrations
   async rollback(steps: number = 1): Promise<void> {
     try {
-      this.logger.info(`🔄 Starting rollback of ${steps} migration(s)...`);
+      this.logger.info(`🔄 Starting rollback of ${steps  return;
+} migration(s)...`);
       
       const client = await this.db.connect();
       let executedMigrations: MigrationRecord[];

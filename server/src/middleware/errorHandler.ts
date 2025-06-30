@@ -7,6 +7,7 @@ import { Request, Response, NextFunction } from 'express';
 import { logger } from '../utils/logger';
 import { config } from '../config/environment';
 import { AppError as AppErrorNew, isOperationalError } from '../utils/AppError';
+import { getErrorMessage } from '../utils/errorUtils';
 
 /**
  * Base Application Error Class (Legacy - use AppErrorNew instead)
@@ -162,7 +163,7 @@ const formatErrorResponse = (error: Error, req: Request): ErrorResponse => {
       success: false,
       error: {
         code: error.code,
-        message: error.message,
+        message: getErrorMessage(error),
         requestId: requestId || error.requestId,
         timestamp: error.timestamp,
         path: req.path,
@@ -194,7 +195,7 @@ const formatErrorResponse = (error: Error, req: Request): ErrorResponse => {
       code: 'INTERNAL_SERVER_ERROR',
       message: config.NODE_ENV === 'production' 
         ? 'An unexpected error occurred'
-        : error.message,
+        : getErrorMessage(error),
       requestId,
       timestamp: new Date().toISOString(),
       path: req.path,
@@ -222,7 +223,7 @@ const logError = (error: Error, req: Request): void => {
     if (error.statusCode >= 500) {
       logger.error('Application Error', {
         error: {
-          message: error.message,
+          message: getErrorMessage(error),
           code: error.code,
           statusCode: error.statusCode,
           stack: error.stack,
@@ -232,7 +233,7 @@ const logError = (error: Error, req: Request): void => {
     } else if (error.statusCode >= 400) {
       logger.warn('Client Error', {
         error: {
-          message: error.message,
+          message: getErrorMessage(error),
           code: error.code,
           statusCode: error.statusCode,
         },
@@ -243,7 +244,7 @@ const logError = (error: Error, req: Request): void => {
     // Unexpected errors
     logger.error('Unexpected Error', {
       error: {
-        message: error.message,
+        message: getErrorMessage(error),
         name: error.name,
         stack: error.stack,
       },
@@ -275,7 +276,7 @@ const notifyAdmins = async (error: Error, req: Request): Promise<void> => {
     
     logger.error('CRITICAL ERROR - Admin notification triggered', {
       error: {
-        message: error.message,
+        message: getErrorMessage(error),
         stack: error.stack,
       },
       request: {
@@ -286,7 +287,7 @@ const notifyAdmins = async (error: Error, req: Request): Promise<void> => {
     });
   } catch (notificationError) {
     logger.error('Failed to send admin notification', {
-      originalError: error.message,
+      originalError: getErrorMessage(error),
       notificationError: notificationError instanceof Error ? notificationError.message : notificationError,
     });
   }
@@ -357,7 +358,7 @@ export const handleUncaughtException = (): void => {
   process.on('uncaughtException', (error: Error) => {
     logger.error('Uncaught Exception', {
       error: {
-        message: error.message,
+        message: getErrorMessage(error),
         name: error.name,
         stack: error.stack,
       },
@@ -399,7 +400,7 @@ export const handleDatabaseError = (error: any): DatabaseError => {
         message = 'Database connection failed';
         break;
       default:
-        message = `Database error: ${error.message}`;
+        message = `Database error: ${getErrorMessage(error)}`;
     }
   }
 

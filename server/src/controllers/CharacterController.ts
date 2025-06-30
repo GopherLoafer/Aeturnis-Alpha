@@ -8,6 +8,7 @@ import { body, param, validationResult } from 'express-validator';
 import { CharacterService, CreateCharacterDto } from '../services/CharacterService';
 import { logger } from '../utils/logger';
 import { Gender } from '../types/character.types';
+import { getErrorMessage } from '../utils/errorUtils';
 
 // Use the existing Express Request interface which already has user?: SafeUser
 interface AuthenticatedRequest extends Request {
@@ -75,7 +76,8 @@ export class CharacterController {
           error: {
             code: 'UNAUTHORIZED',
             message: 'Authentication required'
-          }
+            return;
+}
         });
         return;
       }
@@ -93,7 +95,7 @@ export class CharacterController {
     } catch (error) {
       logger.error('Failed to get user characters', {
         userId: req.user?.id,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
 
       res.status(500).json({
@@ -119,7 +121,8 @@ export class CharacterController {
             code: 'VALIDATION_ERROR',
             message: 'Invalid input data',
             details: errors.array()
-          }
+            return;
+}
         });
         return;
       }
@@ -154,46 +157,46 @@ export class CharacterController {
       logger.error('Failed to create character', {
         userId: req.user?.id,
         body: req.body,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
 
       // Handle specific business logic errors
       if (error instanceof Error) {
-        if (error.message.includes('Maximum character limit')) {
+        if (getErrorMessage(error).includes('Maximum character limit')) {
           res.status(409).json({
             error: {
               code: 'CHARACTER_LIMIT_EXCEEDED',
-              message: error.message
+              message: getErrorMessage(error)
             }
           });
           return;
         }
 
-        if (error.message.includes('already taken')) {
+        if (getErrorMessage(error).includes('already taken')) {
           res.status(409).json({
             error: {
               code: 'NAME_UNAVAILABLE',
-              message: error.message
+              message: getErrorMessage(error)
             }
           });
           return;
         }
 
-        if (error.message.includes('Race with ID') && error.message.includes('not found')) {
+        if (getErrorMessage(error).includes('Race with ID') && getErrorMessage(error).includes('not found')) {
           res.status(400).json({
             error: {
               code: 'INVALID_RACE',
-              message: error.message
+              message: getErrorMessage(error)
             }
           });
           return;
         }
 
-        if (error.message.includes('Character name must be')) {
+        if (getErrorMessage(error).includes('Character name must be')) {
           res.status(400).json({
             error: {
               code: 'INVALID_NAME',
-              message: error.message
+              message: getErrorMessage(error)
             }
           });
           return;
@@ -223,7 +226,8 @@ export class CharacterController {
             code: 'VALIDATION_ERROR',
             message: 'Invalid character ID',
             details: errors.array()
-          }
+            return;
+}
         });
         return;
       }
@@ -251,10 +255,10 @@ export class CharacterController {
       logger.error('Failed to get character', {
         userId: req.user?.id,
         characterId: req.params.id,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
 
-      if (error instanceof Error && error.message.includes('not found or access denied')) {
+      if (error instanceof Error && getErrorMessage(error).includes('not found or access denied')) {
         res.status(404).json({
           error: {
             code: 'CHARACTER_NOT_FOUND',
@@ -287,7 +291,8 @@ export class CharacterController {
             code: 'VALIDATION_ERROR',
             message: 'Invalid character ID',
             details: errors.array()
-          }
+            return;
+}
         });
         return;
       }
@@ -319,10 +324,10 @@ export class CharacterController {
       logger.error('Failed to select character', {
         userId: req.user?.id,
         characterId: req.params.id,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
 
-      if (error instanceof Error && error.message.includes('not found or access denied')) {
+      if (error instanceof Error && getErrorMessage(error).includes('not found or access denied')) {
         res.status(404).json({
           error: {
             code: 'CHARACTER_NOT_FOUND',
@@ -355,7 +360,8 @@ export class CharacterController {
             code: 'VALIDATION_ERROR',
             message: 'Invalid character ID',
             details: errors.array()
-          }
+            return;
+}
         });
         return;
       }
@@ -383,10 +389,10 @@ export class CharacterController {
       logger.error('Failed to delete character', {
         userId: req.user?.id,
         characterId: req.params.id,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
 
-      if (error instanceof Error && error.message.includes('not found or access denied')) {
+      if (error instanceof Error && getErrorMessage(error).includes('not found or access denied')) {
         res.status(404).json({
           error: {
             code: 'CHARACTER_NOT_FOUND',
@@ -417,11 +423,12 @@ export class CharacterController {
         success: true,
         data: {
           races
-        }
+          return;
+}
       });
     } catch (error) {
       logger.error('Failed to get races', {
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
 
       res.status(500).json({
@@ -446,7 +453,8 @@ export class CharacterController {
           error: {
             code: 'INVALID_NAME',
             message: 'Name must be 3-20 characters long'
-          }
+            return;
+}
         });
         return;
       }
@@ -463,7 +471,7 @@ export class CharacterController {
     } catch (error) {
       logger.error('Failed to check name availability', {
         name: req.params.name,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
 
       res.status(500).json({

@@ -10,6 +10,7 @@ import { createApp } from './app';
 import { SocketServer } from './sockets/SocketServer';
 import { RealtimeService } from './services/RealtimeService';
 import { 
+import { getErrorMessage } from '../utils/errorUtils';
   initializeDatabase, 
   testDatabaseConnection, 
   testRedisConnection, 
@@ -121,7 +122,7 @@ const startServer = async (): Promise<void> => {
           process.exit(0);
         } catch (error) {
           logger.error('Error during shutdown:', {
-            error: error instanceof Error ? error.message : error,
+            error: error instanceof Error ? getErrorMessage(error) : error,
             stack: error instanceof Error ? error.stack : undefined,
           });
           process.exit(1);
@@ -177,7 +178,7 @@ const startServer = async (): Promise<void> => {
     // Handle uncaught exceptions
     process.on('uncaughtException', (error: Error) => {
       logger.error('Uncaught Exception:', {
-        error: error.message,
+        error: getErrorMessage(error),
         name: error.name,
         stack: error.stack,
       });
@@ -189,7 +190,7 @@ const startServer = async (): Promise<void> => {
 
   } catch (error) {
     logger.error('❌ Failed to start server:', {
-      error: error instanceof Error ? error.message : error,
+      error: error instanceof Error ? getErrorMessage(error) : error,
       stack: error instanceof Error ? error.stack : undefined,
     });
     process.exit(1);
@@ -197,7 +198,7 @@ const startServer = async (): Promise<void> => {
 };
 
 // Start the server
-startServer().catch((error) => {
+startServer().catch((error: unknown) => {
   console.error('Failed to start server:', error);
   process.exit(1);
 });

@@ -10,6 +10,7 @@ import { registerCharacterHandlers } from './character.handler';
 import { registerCombatHandlers } from './combat.handler';
 import { registerChatHandlers } from './chat.handler';
 import { logger } from '../../utils/logger';
+import { getErrorMessage } from '../utils/errorUtils';
 
 export function attachHandlers(io: SocketIOServer): void {
   logger.info('Attaching Socket.io event handlers');
@@ -37,11 +38,11 @@ export function attachHandlers(io: SocketIOServer): void {
     registerChatHandlers(io, socket);
 
     // Error handling
-    socket.on('error', (error) => {
+    socket.on('error', (error: unknown) => {
       logger.error('Socket error', {
         socketId: socket.id,
         userId: socket.userId,
-        error: error.message || error,
+        error: getErrorMessage(error) || error,
         stack: error.stack,
       });
     });

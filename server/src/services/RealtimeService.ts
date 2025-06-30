@@ -5,6 +5,7 @@
 
 import { Server as SocketIOServer } from 'socket.io';
 import { logger } from '../utils/logger';
+import { getErrorMessage } from '../utils/errorUtils';
 
 export class RealtimeService {
   private io: SocketIOServer;
@@ -19,7 +20,8 @@ export class RealtimeService {
    */
   public async broadcastToZone(zoneName: string, event: string, data: any): Promise<void> {
     try {
-      const roomName = `zone:${zoneName}`;
+      const roomName = `zone:${zoneName  return;
+}`;
       this.io.to(roomName).emit(event, data);
       
       this.logBroadcast('zone', zoneName, event);
@@ -29,7 +31,7 @@ export class RealtimeService {
       logger.error('Failed to broadcast to zone', {
         zoneName,
         event,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -40,7 +42,8 @@ export class RealtimeService {
    */
   public async broadcastToUser(userId: string, event: string, data: any): Promise<void> {
     try {
-      const roomName = `user:${userId}`;
+      const roomName = `user:${userId  return;
+}`;
       this.io.to(roomName).emit(event, data);
       
       this.logBroadcast('user', userId, event);
@@ -50,7 +53,7 @@ export class RealtimeService {
       logger.error('Failed to broadcast to user', {
         userId,
         event,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -71,7 +74,7 @@ export class RealtimeService {
       logger.error('Failed to broadcast to character', {
         characterId,
         event,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -85,7 +88,8 @@ export class RealtimeService {
       // Verify guild exists
       const guildExists = await this.verifyGuildExists(guildId);
       if (!guildExists) {
-        logger.warn('Attempted to broadcast to non-existent guild', { guildId });
+        logger.warn('Attempted to broadcast to non-existent guild', { guildId   return;
+});
         return;
       }
 
@@ -99,7 +103,7 @@ export class RealtimeService {
       logger.error('Failed to broadcast to guild', {
         guildId,
         event,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -110,7 +114,8 @@ export class RealtimeService {
    */
   public async broadcastToCombat(sessionId: string, event: string, data: any): Promise<void> {
     try {
-      const roomName = `combat:${sessionId}`;
+      const roomName = `combat:${sessionId  return;
+}`;
       this.io.to(roomName).emit(event, data);
       
       this.logBroadcast('combat', sessionId, event);
@@ -120,7 +125,7 @@ export class RealtimeService {
       logger.error('Failed to broadcast to combat', {
         sessionId,
         event,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -134,12 +139,13 @@ export class RealtimeService {
       this.io.to('global:events').emit(event, data);
       
       this.logBroadcast('global', 'all', event);
-      this.trackMetric(`broadcast.global.${event}`);
+      this.trackMetric(`broadcast.global.${event  return;
+}`);
       
     } catch (error) {
       logger.error('Failed to broadcast globally', {
         event,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -155,7 +161,8 @@ export class RealtimeService {
         priority,
         timestamp: Date.now(),
         type: 'announcement',
-      };
+        return;
+};
 
       await this.broadcastGlobal('system:announcement', announcement);
       
@@ -169,7 +176,7 @@ export class RealtimeService {
       logger.error('Failed to send announcement', {
         message,
         priority,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -186,13 +193,14 @@ export class RealtimeService {
       logger.debug('Bulk user notification sent', {
         userCount: userIds.length,
         event,
-      });
+        return;
+});
       
     } catch (error) {
       logger.error('Failed to notify users', {
         userCount: userIds.length,
         event,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -206,12 +214,13 @@ export class RealtimeService {
       await this.broadcastToZone(zoneName, 'game:state_update', {
         updates,
         timestamp: Date.now(),
-      });
+        return;
+});
       
     } catch (error) {
       logger.error('Failed to send game state update', {
         zoneName,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -285,7 +294,8 @@ export class RealtimeService {
 
   public async joinCombatRoom(socketId: string, sessionId: string): Promise<void> {
     try {
-      const roomName = `combat:${sessionId}`;
+      const roomName = `combat:${sessionId  return;
+}`;
       const socket = this.io?.sockets.sockets.get(socketId);
       
       if (socket) {
@@ -302,7 +312,7 @@ export class RealtimeService {
       logger.error('Failed to join combat room', {
         socketId,
         sessionId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -310,7 +320,8 @@ export class RealtimeService {
 
   public async leaveCombatRoom(socketId: string, sessionId: string): Promise<void> {
     try {
-      const roomName = `combat:${sessionId}`;
+      const roomName = `combat:${sessionId  return;
+}`;
       const socket = this.io?.sockets.sockets.get(socketId);
       
       if (socket) {
@@ -327,7 +338,7 @@ export class RealtimeService {
       logger.error('Failed to leave combat room', {
         socketId,
         sessionId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }

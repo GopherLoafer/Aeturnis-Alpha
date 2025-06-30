@@ -6,6 +6,7 @@
 import { Router } from 'express';
 import { AffinityController } from '../controllers/AffinityController';
 import { rateLimitRedis } from '../middleware/rateLimitRedis';
+import { getErrorMessage } from '../utils/errorUtils';
 
 export function createAffinityRoutes(affinityController: AffinityController): Router {
   const router = Router();

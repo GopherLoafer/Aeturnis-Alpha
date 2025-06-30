@@ -5,6 +5,7 @@
 
 import { Server as SocketIOServer } from 'socket.io';
 import { logger } from '../../utils/logger';
+import { getErrorMessage } from '../utils/errorUtils';
 
 export interface ConnectionMetrics {
   totalConnections: number;
@@ -49,7 +50,7 @@ export class SocketMonitoringService {
 
   private setupMonitoring(): void {
     // Track connections
-    this.io.on('connection', (socket) => {
+    this.io.on('connection', (socket: any) => {
       this.metrics.totalConnections++;
       this.metrics.activeConnections++;
       this.connectionStartTimes.set(socket.id, Date.now());
@@ -96,7 +97,7 @@ export class SocketMonitoringService {
             logger.error('Socket event error', {
               socketId: socket.id,
               event,
-              error: error instanceof Error ? error.message : error,
+              error: error instanceof Error ? getErrorMessage(error) : error,
             });
             throw error;
           }

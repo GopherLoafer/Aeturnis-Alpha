@@ -9,6 +9,7 @@ import { CacheManager } from '../../src/services/CacheManager';
 import { RealtimeService } from '../../src/services/RealtimeService';
 import { EquipmentService } from '../../src/services/EquipmentService';
 import { COMBAT_CONSTANTS } from '../../src/types/combat.types';
+import { getErrorMessage } from '../utils/errorUtils';
 
 // Mock the dependencies
 const mockDb = {} as Pool;

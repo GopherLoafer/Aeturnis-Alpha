@@ -8,6 +8,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { logger, requestLogger, performanceLogger } from '../utils/logger';
 import { config } from '../config/environment';
 import { MaintenanceError, AuthenticationError } from './errorHandler';
+import { getErrorMessage } from '../utils/errorUtils';
 
 /**
  * Request context interface

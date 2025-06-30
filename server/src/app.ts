@@ -42,6 +42,7 @@ import { sanitizeRequestBody, validateContentType } from './middleware/validatio
 import healthRoutes from './routes/health.routes';
 import authRoutes from './routes/auth.routes';
 import realtimeRoutes from './routes/realtime.routes';
+import { getErrorMessage } from '../utils/errorUtils';
 
 /**
  * Create and configure Express application
@@ -113,7 +114,7 @@ export const createApp = (): express.Application => {
     },
     standardHeaders: true,
     legacyHeaders: false,
-    handler: (req, res) => {
+    handler: (req: any, res: any) => {
       logger.warn('Global rate limit exceeded', {
         ip: req.ip,
         userAgent: req.get('User-Agent'),
@@ -145,7 +146,7 @@ export const createApp = (): express.Application => {
     },
     standardHeaders: true,
     legacyHeaders: false,
-    handler: (req, res) => {
+    handler: (req: any, res: any) => {
       logger.warn('Auth rate limit exceeded', {
         ip: req.ip,
         userAgent: req.get('User-Agent'),
@@ -177,7 +178,7 @@ export const createApp = (): express.Application => {
     },
     standardHeaders: true,
     legacyHeaders: false,
-    handler: (req, res) => {
+    handler: (req: any, res: any) => {
       logger.warn('API rate limit exceeded', {
         ip: req.ip,
         userAgent: req.get('User-Agent'),
@@ -205,7 +206,7 @@ export const createApp = (): express.Application => {
   // Compression with threshold
   app.use(compression({
     threshold: config.COMPRESSION_THRESHOLD,
-    filter: (req, res) => {
+    filter: (req: any, res: any) => {
       if (req.headers['x-no-compression']) {
         return false;
       }
@@ -373,7 +374,7 @@ export const createApp = (): express.Application => {
     }));
     
     // JSON endpoint for API spec
-    app.get('/api-docs', (req, res) => {
+    app.get('/api-docs', (req: any, res: any) => {
       res.setHeader('Content-Type', 'application/json');
       res.json(swaggerSpec);
     });
@@ -399,7 +400,7 @@ export const createApp = (): express.Application => {
   /**
    * Root endpoint
    */
-  app.get('/', (req, res) => {
+  app.get('/', (req: any, res: any) => {
     res.success({
       message: 'Aeturnis Online API',
       version: config.APP_VERSION,
@@ -416,7 +417,7 @@ export const createApp = (): express.Application => {
   });
 
   // API info endpoint
-  app.get('/api', (req, res) => {
+  app.get('/api', (req: any, res: any) => {
     res.success({
       message: 'Aeturnis Online API v1',
       version: config.APP_VERSION,

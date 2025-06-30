@@ -8,6 +8,7 @@ import { ExtendedError } from 'socket.io/dist/namespace';
 import { getRedis } from '../../config/database';
 import { logger } from '../../utils/logger';
 import { SocketWithAuth } from './auth';
+import { getErrorMessage } from '../utils/errorUtils';
 
 interface RateLimitConfig {
   points: number;
@@ -90,7 +91,7 @@ export async function rateLimitMiddleware(
     logger.error('Rate limiting middleware error', {
       socketId: socket.id,
       ip: socket.handshake.address,
-      error: error instanceof Error ? error.message : error,
+      error: error instanceof Error ? getErrorMessage(error) : error,
     });
 
     // Fail open - if rate limiting fails, allow the connection
@@ -118,7 +119,7 @@ async function checkGlobalRateLimit(socket: Socket): Promise<{
 
   } catch (error) {
     logger.error('Failed to check global rate limit', {
-      error: error instanceof Error ? error.message : error,
+      error: error instanceof Error ? getErrorMessage(error) : error,
     });
     
     // Fail open
@@ -169,7 +170,7 @@ function setupEventRateLimiting(socket: SocketWithAuth): void {
           socketId: socket.id,
           userId: socket.userId,
           event,
-          error: error instanceof Error ? error.message : error,
+          error: error instanceof Error ? getErrorMessage(error) : error,
         });
       }
     };
@@ -208,7 +209,7 @@ async function checkEventRateLimit(socket: SocketWithAuth, event: string): Promi
   } catch (error) {
     logger.error('Failed to check event rate limit', {
       event,
-      error: error instanceof Error ? error.message : error,
+      error: error instanceof Error ? getErrorMessage(error) : error,
     });
     
     // Fail open
@@ -297,7 +298,7 @@ export async function getRateLimitStatus(socket: SocketWithAuth, event: string):
   } catch (error) {
     logger.error('Failed to get rate limit status', {
       event,
-      error: error instanceof Error ? error.message : error,
+      error: error instanceof Error ? getErrorMessage(error) : error,
     });
     
     return null;

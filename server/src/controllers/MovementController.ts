@@ -9,6 +9,7 @@ import { logger } from '../utils/logger';
 import { MovementService } from '../services/MovementService';
 import { ZoneService } from '../services/ZoneService';
 import { 
+import { getErrorMessage } from '../utils/errorUtils';
   Direction, 
   MovementErrorCode,
   ZoneQueryParams 
@@ -101,7 +102,8 @@ export class MovementController {
           success: false,
           message: 'Validation failed',
           errors: errors.array()
-        });
+          return;
+});
         return;
       }
 
@@ -156,7 +158,7 @@ export class MovementController {
       logger.error('Movement API error', {
         characterId: req.session?.characterId,
         direction: req.body?.direction,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
 
       res.status(500).json({
@@ -180,7 +182,8 @@ export class MovementController {
           success: false,
           message: 'Validation failed',
           errors: errors.array()
-        });
+          return;
+});
         return;
       }
 
@@ -205,7 +208,7 @@ export class MovementController {
     } catch (error) {
       logger.error('Get zone info API error', {
         zoneId: req.params?.zoneId,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
 
       res.status(500).json({
@@ -229,7 +232,8 @@ export class MovementController {
           success: false,
           message: 'Validation failed',
           errors: errors.array()
-        });
+          return;
+});
         return;
       }
 
@@ -281,7 +285,7 @@ export class MovementController {
       logger.error('Look direction API error', {
         characterId: req.session?.characterId,
         direction: req.params?.direction,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
 
       res.status(500).json({
@@ -309,7 +313,8 @@ export class MovementController {
         layer: req.query.layer ? parseInt(req.query.layer as string) : undefined,
         limit: req.query.limit ? parseInt(req.query.limit as string) : 20,
         offset: req.query.offset ? parseInt(req.query.offset as string) : 0
-      };
+        return;
+};
 
       // Remove undefined values
       Object.keys(queryParams).forEach(key => {
@@ -333,7 +338,7 @@ export class MovementController {
     } catch (error) {
       logger.error('Search zones API error', {
         query: req.query,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
 
       res.status(500).json({
@@ -356,7 +361,8 @@ export class MovementController {
         res.status(401).json({
           success: false,
           message: 'No active character. Please select a character first.'
-        });
+          return;
+});
         return;
       }
 
@@ -378,7 +384,7 @@ export class MovementController {
     } catch (error) {
       logger.error('Get movement history API error', {
         characterId: req.session?.characterId,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
 
       res.status(500).json({
@@ -401,7 +407,8 @@ export class MovementController {
         res.status(401).json({
           success: false,
           message: 'No active character. Please select a character first.'
-        });
+          return;
+});
         return;
       }
 
@@ -428,7 +435,7 @@ export class MovementController {
     } catch (error) {
       logger.error('Get current location API error', {
         characterId: req.session?.characterId,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
 
       res.status(500).json({
@@ -452,7 +459,8 @@ export class MovementController {
           success: false,
           message: 'Validation failed',
           errors: errors.array()
-        });
+          return;
+});
         return;
       }
 
@@ -501,7 +509,7 @@ export class MovementController {
       logger.error('Teleport API error', {
         characterId: req.body?.characterId || req.session?.characterId,
         targetZoneId: req.body?.targetZoneId,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
 
       res.status(500).json({

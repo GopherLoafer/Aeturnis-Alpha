@@ -6,6 +6,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { redisService } from '../services/RedisService';
 import { logger } from './logger';
+import { getErrorMessage } from '../utils/errorUtils';
 
 export interface LockOptions {
   retryCount?: number;
@@ -84,7 +85,7 @@ export class DistributedLock {
         logger.error('Error acquiring distributed lock', {
           resource,
           attempt: attempt + 1,
-          error: error.message
+          error: getErrorMessage(error)
         });
       }
     }
@@ -133,7 +134,7 @@ export class DistributedLock {
     } catch (error) {
       logger.error('Error releasing distributed lock', {
         resource: lock.resource,
-        error: error.message
+        error: getErrorMessage(error)
       });
       return false;
     }
@@ -179,7 +180,7 @@ export class DistributedLock {
     } catch (error) {
       logger.error('Error extending distributed lock', {
         resource: lock.resource,
-        error: error.message
+        error: getErrorMessage(error)
       });
       return false;
     }
@@ -230,7 +231,7 @@ export class DistributedLock {
     } catch (error) {
       logger.error('Error checking lock status', {
         resource,
-        error: error.message
+        error: getErrorMessage(error)
       });
       return false;
     }
@@ -267,7 +268,7 @@ export class DistributedLock {
     } catch (error) {
       logger.error('Error getting lock info', {
         resource,
-        error: error.message
+        error: getErrorMessage(error)
       });
       return { isLocked: false };
     }
@@ -292,7 +293,7 @@ export class DistributedLock {
     } catch (error) {
       logger.error('Error force releasing lock', {
         resource,
-        error: error.message
+        error: getErrorMessage(error)
       });
       return false;
     }
@@ -333,7 +334,7 @@ export class DistributedLock {
       return cleanedCount;
     } catch (error) {
       logger.error('Error cleaning up expired locks', {
-        error: error.message
+        error: getErrorMessage(error)
       });
       return 0;
     }
@@ -379,7 +380,7 @@ export class DistributedLock {
       };
     } catch (error) {
       logger.error('Error getting lock stats', {
-        error: error.message
+        error: getErrorMessage(error)
       });
       return {
         totalLocks: 0,

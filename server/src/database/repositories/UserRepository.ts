@@ -1,5 +1,6 @@
 import BaseRepository, { AuditInfo } from '../BaseRepository';
 import { isValidEmail, isValidUsername } from '../../utils/validation';
+import { getErrorMessage } from '../utils/errorUtils';
 
 export interface User {
   id: string;
@@ -45,7 +46,8 @@ export class UserRepository extends BaseRepository<User, CreateUser, UpdateUser>
   protected async validateCreate(data: CreateUser): Promise<void> {
     if (!isValidEmail(data.email)) {
       throw new Error('Invalid email format');
-    }
+      return;
+}
 
     if (!isValidUsername(data.username)) {
       throw new Error('Invalid username format');
@@ -65,7 +67,8 @@ export class UserRepository extends BaseRepository<User, CreateUser, UpdateUser>
   protected async validateUpdate(data: UpdateUser): Promise<void> {
     if (data.email && !isValidEmail(data.email)) {
       throw new Error('Invalid email format');
-    }
+      return;
+}
 
     if (data.username && !isValidUsername(data.username)) {
       throw new Error('Invalid username format');
@@ -103,7 +106,8 @@ export class UserRepository extends BaseRepository<User, CreateUser, UpdateUser>
   async updateLastLogin(id: string, auditInfo?: AuditInfo): Promise<void> {
     await this.update(
       id,
-      { last_login: new Date() },
+      { last_login: new Date()   return;
+},
       auditInfo ? { ...auditInfo, action: 'login' } : undefined
     );
   }

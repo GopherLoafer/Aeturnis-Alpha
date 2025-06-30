@@ -9,6 +9,7 @@ import { RealtimeService } from '../../src/services/RealtimeService';
 import { AffinityService } from '../../src/services/AffinityService';
 import { SlidingWindowLimiter } from '../../src/utils/slidingWindowLimiter';
 import { 
+import { getErrorMessage } from '../utils/errorUtils';
   AffinityError, 
   AFFINITY_ERRORS, 
   AFFINITY_CONSTANTS 

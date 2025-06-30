@@ -6,6 +6,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { redisService } from './RedisService';
 import { logger } from '../utils/logger';
+import { getErrorMessage } from '../utils/errorUtils';
 
 export interface SessionMetadata {
   ipAddress?: string;
@@ -115,7 +116,7 @@ export class SessionManager {
       logger.error('Failed to create session', {
         userId,
         username,
-        error: error.message
+        error: getErrorMessage(error)
       });
       throw new Error('Failed to create session');
     }
@@ -153,7 +154,7 @@ export class SessionManager {
     } catch (error) {
       logger.error('Failed to get session', {
         sessionId,
-        error: error.message
+        error: getErrorMessage(error)
       });
       return null;
     }
@@ -201,7 +202,7 @@ export class SessionManager {
     } catch (error) {
       logger.error('Failed to extend session', {
         sessionId,
-        error: error.message
+        error: getErrorMessage(error)
       });
       return false;
     }
@@ -244,7 +245,7 @@ export class SessionManager {
       logger.error('Failed to update session character', {
         sessionId,
         characterId,
-        error: error.message
+        error: getErrorMessage(error)
       });
       return false;
     }
@@ -279,7 +280,7 @@ export class SessionManager {
     } catch (error) {
       logger.error('Failed to destroy session', {
         sessionId,
-        error: error.message
+        error: getErrorMessage(error)
       });
       return false;
     }
@@ -310,7 +311,7 @@ export class SessionManager {
     } catch (error) {
       logger.error('Failed to get user sessions', {
         userId,
-        error: error.message
+        error: getErrorMessage(error)
       });
       return [];
     }
@@ -341,7 +342,7 @@ export class SessionManager {
     } catch (error) {
       logger.error('Failed to destroy user sessions', {
         userId,
-        error: error.message
+        error: getErrorMessage(error)
       });
       return 0;
     }
@@ -379,7 +380,7 @@ export class SessionManager {
       return cleanedCount;
     } catch (error) {
       logger.error('Failed to cleanup expired sessions', {
-        error: error.message
+        error: getErrorMessage(error)
       });
       return 0;
     }
@@ -431,7 +432,7 @@ export class SessionManager {
       };
     } catch (error) {
       logger.error('Failed to get session stats', {
-        error: error.message
+        error: getErrorMessage(error)
       });
       return {
         totalActiveSessions: 0,
@@ -450,7 +451,8 @@ export class SessionManager {
     
     await redis.sadd(userSessionsKey, sessionId);
     await redis.expire(userSessionsKey, ttl + 3600); // Extra hour for cleanup
-  }
+    return;
+}
 
   /**
    * Remove session from user's active sessions
@@ -460,7 +462,8 @@ export class SessionManager {
     const userSessionsKey = this.buildUserSessionsKey(userId);
     
     await redis.srem(userSessionsKey, sessionId);
-  }
+    return;
+}
 
   /**
    * Cleanup old sessions for a user (keep only max allowed)
@@ -491,7 +494,7 @@ export class SessionManager {
     } catch (error) {
       logger.error('Failed to cleanup user sessions', {
         userId,
-        error: error.message
+        error: getErrorMessage(error)
       });
     }
   }

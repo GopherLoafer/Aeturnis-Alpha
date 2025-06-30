@@ -7,6 +7,7 @@ import { Request, Response } from 'express';
 import { body, param, validationResult } from 'express-validator';
 import { AffinityService } from '../services/AffinityService';
 import {
+import { getErrorMessage } from '../utils/errorUtils';
   AffinityError,
   AFFINITY_ERRORS,
   AFFINITY_VALIDATION
@@ -73,14 +74,15 @@ export class AffinityController {
           success: false,
           error: 'Validation failed',
           details: errors.array()
-        });
+          return;
+});
         return;
       }
 
       const { character_id, affinity_name, experience_amount, source = 'combat', session_id } = req.body;
 
       // Verify character ownership (if session available)
-      if (req.session?.characterId && req.session.characterId !== character_id) {
+      if (req.session?.characterId && req.session?.characterId || "" !== character_id) {
         res.status(403).json({
           success: false,
           error: 'Unauthorized',
@@ -120,7 +122,7 @@ export class AffinityController {
         res.status(error.statusCode).json({
           success: false,
           error: error.code,
-          message: error.message
+          message: getErrorMessage(error)
         });
       } else {
         console.error('Affinity experience award error:', error);
@@ -144,11 +146,12 @@ export class AffinityController {
           success: false,
           error: 'UNAUTHORIZED',
           message: 'Active character required'
-        });
+          return;
+});
         return;
       }
 
-      const affinities = await this.affinityService.getCharacterAffinities(req.session.characterId);
+      const affinities = await this.affinityService.getCharacterAffinities(req.session?.characterId || "");
 
       // Convert BigInt values to strings for JSON serialization
       const serializedAffinities = affinities.map(affinity => ({
@@ -186,7 +189,8 @@ export class AffinityController {
           success: false,
           error: 'Validation failed',
           details: errors.array()
-        });
+          return;
+});
         return;
       }
 
@@ -213,11 +217,11 @@ export class AffinityController {
       }
 
       // Get character's progression in this affinity
-      const characterAffinities = await this.affinityService.getCharacterAffinities(req.session.characterId);
+      const characterAffinities = await this.affinityService.getCharacterAffinities(req.session?.characterId || "");
       const characterAffinity = characterAffinities.find(ca => ca.affinity_name === name);
 
       // Get current bonus percentage
-      const bonusPercentage = await this.affinityService.getAffinityBonus(req.session.characterId, name);
+      const bonusPercentage = await this.affinityService.getAffinityBonus(req.session?.characterId || "", name);
 
       const responseData = {
         affinity,
@@ -257,7 +261,8 @@ export class AffinityController {
         success: true,
         data: affinities,
         count: affinities.length
-      });
+        return;
+});
 
     } catch (error) {
       console.error('Get all affinities error:', error);
@@ -281,7 +286,8 @@ export class AffinityController {
           success: false,
           error: 'Validation failed',
           details: errors.array()
-        });
+          return;
+});
         return;
       }
 
@@ -295,13 +301,13 @@ export class AffinityController {
       }
 
       const { name } = req.params;
-      const bonusPercentage = await this.affinityService.getAffinityBonus(req.session.characterId, name);
+      const bonusPercentage = await this.affinityService.getAffinityBonus(req.session?.characterId || "", name);
 
       res.status(200).json({
         success: true,
         data: {
           affinity_name: name,
-          character_id: req.session.characterId,
+          character_id: req.session?.characterId || "",
           bonus_percentage: bonusPercentage
         }
       });
@@ -327,11 +333,12 @@ export class AffinityController {
           success: false,
           error: 'UNAUTHORIZED',
           message: 'Active character required'
-        });
+          return;
+});
         return;
       }
 
-      const affinities = await this.affinityService.getCharacterAffinities(req.session.characterId);
+      const affinities = await this.affinityService.getCharacterAffinities(req.session?.characterId || "");
 
       // Calculate additional progression data
       const summary = affinities.map(affinity => {

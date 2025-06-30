@@ -6,6 +6,7 @@
 import Joi from 'joi';
 import dotenv from 'dotenv';
 import path from 'path';
+import { getErrorMessage } from '../utils/errorUtils';
 
 // Load environment files in order of precedence
 const loadEnvironmentFiles = (): void => {

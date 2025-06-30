@@ -5,6 +5,7 @@
 
 import { SocketWithAuth } from '../middleware/auth';
 import { logger } from '../../utils/logger';
+import { getErrorMessage } from '../utils/errorUtils';
 
 export interface SecurityValidationResult {
   isValid: boolean;
@@ -103,7 +104,7 @@ export class SocketSecurityService {
       logger.error('Movement validation error', {
         userId,
         position,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       
       return {
@@ -156,7 +157,7 @@ export class SocketSecurityService {
       logger.error('Action validation error', {
         userId,
         action,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       
       return {

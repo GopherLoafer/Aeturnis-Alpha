@@ -1,6 +1,7 @@
 import { Pool, PoolConfig } from 'pg';
 import Redis from 'ioredis';
 import winston from 'winston';
+import { getErrorMessage } from '../utils/errorUtils';
 
 // Database configuration interface
 export interface DatabaseConfig {

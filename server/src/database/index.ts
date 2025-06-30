@@ -1,6 +1,7 @@
 import { Pool, PoolClient, QueryResult } from 'pg';
 import winston from 'winston';
 import { getDatabase } from '../config/database';
+import { getErrorMessage } from '../utils/errorUtils';
 
 // Query execution logger
 const queryLogger = winston.createLogger({
@@ -68,14 +69,14 @@ export class DatabaseConnection {
         queryLogger.warn('Slow query detected:', {
           sql: text,
           executionTime: `${executionTime}ms`,
-          rowCount: result.rowCount
+          rowCount: result.rowCount ?? 0 ?? 0
         });
       }
 
       if (logQuery) {
         queryLogger.debug('Query completed:', {
           executionTime: `${executionTime}ms`,
-          rowCount: result.rowCount
+          rowCount: result.rowCount ?? 0 ?? 0
         });
       }
 
@@ -85,7 +86,7 @@ export class DatabaseConnection {
       queryLogger.error('Query failed:', {
         sql: text,
         params,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
         executionTime: `${executionTime}ms`
       });
       throw error;
@@ -119,7 +120,7 @@ export class DatabaseConnection {
       await client.query('ROLLBACK');
       const executionTime = Date.now() - startTime;
       queryLogger.error('Transaction rolled back:', {
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
         executionTime: `${executionTime}ms`
       });
       throw error;
@@ -154,7 +155,8 @@ export class DatabaseConnection {
   async close(): Promise<void> {
     await this.pool.end();
     queryLogger.info('Database pool closed');
-  }
+    return;
+}
 }
 
 // Connection retry with exponential backoff
@@ -323,7 +325,7 @@ export class TypedQueries {
 
     return this.retry.execute(async () => {
       const result = await this.db.query(query, values, options);
-      return result.rowCount || 0;
+      return result.rowCount ?? 0 ?? 0 || 0;
     });
   }
 

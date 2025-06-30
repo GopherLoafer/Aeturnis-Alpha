@@ -4,6 +4,7 @@
  */
 
 import { Response } from 'express';
+import { getErrorMessage } from '../utils/errorUtils';
 
 /**
  * Success response interface

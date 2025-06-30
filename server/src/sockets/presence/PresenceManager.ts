@@ -7,6 +7,7 @@ import { Socket } from 'socket.io';
 import { SocketWithAuth } from '../middleware/auth';
 import { getRedis } from '../../config/database';
 import { logger } from '../../utils/logger';
+import { getErrorMessage } from '../utils/errorUtils';
 
 export interface PresenceData {
   online: boolean;
@@ -30,7 +31,8 @@ export class PresenceManager {
   public async updatePresence(userId: string, data: Partial<PresenceData>): Promise<void> {
     try {
       const redis = getRedis();
-      const key = `presence:${userId}`;
+      const key = `presence:${userId  return;
+}`;
       
       // Get current presence data
       const current = await this.getPresence(userId);
@@ -62,7 +64,7 @@ export class PresenceManager {
     } catch (error) {
       logger.error('Failed to update presence', {
         userId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -104,7 +106,7 @@ export class PresenceManager {
     } catch (error) {
       logger.error('Failed to get presence', {
         userId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       
       // Return default offline presence on error
@@ -131,7 +133,8 @@ export class PresenceManager {
         activity: 'reconnected',
         ip: socket.handshake.address,
         userAgent: socket.handshake.headers['user-agent'],
-      });
+        return;
+});
 
       // Clean up any stale socket sessions
       await this.cleanupStaleSocketSessions(userId, socket.id);
@@ -145,7 +148,7 @@ export class PresenceManager {
       logger.error('Failed to handle reconnect presence', {
         userId,
         socketId: socket.id,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -162,7 +165,8 @@ export class PresenceManager {
       await this.updatePresence(userId, {
         activity,
         lastSeen: Date.now(),
-      });
+        return;
+});
 
       // Store activity in timeline for analytics
       const activityKey = `activity:${userId}`;
@@ -186,7 +190,7 @@ export class PresenceManager {
       logger.error('Failed to track activity', {
         userId,
         activity,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
     }
   }
@@ -222,7 +226,7 @@ export class PresenceManager {
 
     } catch (error) {
       logger.error('Failed to get online users', {
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       return [];
     }
@@ -243,7 +247,7 @@ export class PresenceManager {
     } catch (error) {
       logger.error('Failed to get activity history', {
         userId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       return [];
     }
@@ -279,7 +283,7 @@ export class PresenceManager {
 
     } catch (error) {
       logger.error('Failed to get presence stats', {
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       
       return {
@@ -298,7 +302,8 @@ export class PresenceManager {
       const redis = getRedis();
       
       // Get all socket sessions for this user
-      const sessionKey = `user_sockets:${userId}`;
+      const sessionKey = `user_sockets:${userId  return;
+}`;
       const socketIds = await redis.smembers(sessionKey);
       
       // Remove stale socket IDs
@@ -317,7 +322,7 @@ export class PresenceManager {
       logger.error('Failed to cleanup stale socket sessions', {
         userId,
         currentSocketId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
     }
   }
@@ -332,7 +337,8 @@ export class PresenceManager {
       if (presence.online && presence.activity !== 'away') {
         await this.updatePresence(userId, {
           activity: 'away',
-        });
+          return;
+});
 
         logger.debug('User set to away status', {
           userId,
@@ -343,7 +349,7 @@ export class PresenceManager {
     } catch (error) {
       logger.error('Failed to set away status', {
         userId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
     }
   }
@@ -361,11 +367,12 @@ export class PresenceManager {
       
       logger.debug('Cleaned up offline users', {
         cutoff: new Date(cutoff).toISOString(),
-      });
+        return;
+});
 
     } catch (error) {
       logger.error('Failed to cleanup offline users', {
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
     }
   }

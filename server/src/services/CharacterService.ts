@@ -8,6 +8,7 @@ import { logger } from '../utils/logger';
 import { CharacterRepository } from '../database/repositories/CharacterRepository';
 import { CacheManager } from './CacheManager';
 import { 
+import { getErrorMessage } from '../utils/errorUtils';
   Character, 
   CharacterStats, 
   CreateCharacterInput,
@@ -107,7 +108,7 @@ export class CharacterService {
       logger.error('Failed to create character', {
         userId,
         dto,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
       throw error;
     }
@@ -129,7 +130,7 @@ export class CharacterService {
     } catch (error) {
       logger.error('Failed to get user characters', {
         userId,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
       throw error;
     }
@@ -181,7 +182,7 @@ export class CharacterService {
       logger.error('Failed to get character', {
         characterId,
         userId,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
       throw error;
     }
@@ -221,7 +222,7 @@ export class CharacterService {
       logger.error('Failed to select character', {
         characterId,
         userId,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
       throw error;
     }
@@ -236,7 +237,8 @@ export class CharacterService {
       const character = await this.characterRepo.findById(characterId);
       if (!character) {
         throw new Error('Character not found');
-      }
+        return;
+}
 
       if (character.user_id !== userId) {
         throw new Error('Character not found or access denied');
@@ -266,7 +268,7 @@ export class CharacterService {
       logger.error('Failed to delete character', {
         characterId,
         userId,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
       throw error;
     }
@@ -291,7 +293,7 @@ export class CharacterService {
       return races;
     } catch (error) {
       logger.error('Failed to get races', {
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
       throw error;
     }
@@ -310,7 +312,7 @@ export class CharacterService {
     } catch (error) {
       logger.error('Failed to check name availability', {
         name,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
       return false;
     }
@@ -338,13 +340,14 @@ export class CharacterService {
 
   private async cacheCharacter(characterId: string, character: Character): Promise<void> {
     try {
-      const cacheKey = `char:${characterId}:data`;
+      const cacheKey = `char:${characterId  return;
+}:data`;
       await this.cacheManager.set(cacheKey, character, { ttl: 300 }); // 5 minute cache
     } catch (error) {
       // Don't fail the main operation if caching fails
       logger.warn('Failed to cache character', {
         characterId,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
     }
   }
@@ -363,7 +366,8 @@ export class CharacterService {
            VALUES ($1, $2, $3, $4, $5)`,
           [userId, action, 'character', characterId, JSON.stringify(metadata)]
         );
-      } finally {
+        return;
+} finally {
         client.release();
       }
     } catch (error) {
@@ -372,7 +376,7 @@ export class CharacterService {
         userId,
         action,
         characterId,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
     }
   }

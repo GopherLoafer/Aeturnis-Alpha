@@ -7,6 +7,7 @@ import { Router } from 'express';
 import { MovementController } from '../controllers/MovementController';
 import { AuthMiddleware } from '../middleware/auth';
 import { movementRateLimit, apiRateLimit } from '../middleware/rateLimitRedis';
+import { getErrorMessage } from '../utils/errorUtils';
 
 export function createMovementRoutes(movementController: MovementController): Router {
   const router = Router();

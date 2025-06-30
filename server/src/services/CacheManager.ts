@@ -6,6 +6,7 @@
 
 import { redisService } from './RedisService';
 import { logger } from '../utils/logger';
+import { getErrorMessage } from '../utils/errorUtils';
 
 export interface CacheOptions {
   ttl?: number; // Time to live in seconds
@@ -55,7 +56,7 @@ export class CacheManager {
     } catch (error) {
       logger.error('Cache get operation failed', {
         key,
-        error: error.message
+        error: getErrorMessage(error)
       });
       return null;
     }
@@ -92,7 +93,7 @@ export class CacheManager {
     } catch (error) {
       logger.error('Cache set operation failed', {
         key,
-        error: error.message
+        error: getErrorMessage(error)
       });
       return false;
     }
@@ -111,7 +112,7 @@ export class CacheManager {
     } catch (error) {
       logger.error('Cache delete operation failed', {
         key,
-        error: error.message
+        error: getErrorMessage(error)
       });
       return false;
     }
@@ -130,7 +131,7 @@ export class CacheManager {
     } catch (error) {
       logger.error('Cache exists operation failed', {
         key,
-        error: error.message
+        error: getErrorMessage(error)
       });
       return false;
     }
@@ -158,7 +159,7 @@ export class CacheManager {
     } catch (error) {
       logger.error('Cache mget operation failed', {
         keys,
-        error: error.message
+        error: getErrorMessage(error)
       });
       return keys.map(() => null);
     }
@@ -195,7 +196,7 @@ export class CacheManager {
     } catch (error) {
       logger.error('Cache mset operation failed', {
         itemCount: items.length,
-        error: error.message
+        error: getErrorMessage(error)
       });
       return false;
     }
@@ -242,7 +243,7 @@ export class CacheManager {
     } catch (error) {
       logger.error('Cache delete pattern operation failed', {
         pattern,
-        error: error.message
+        error: getErrorMessage(error)
       });
       return 0;
     }
@@ -262,7 +263,7 @@ export class CacheManager {
       logger.error('Cache increment operation failed', {
         key,
         amount,
-        error: error.message
+        error: getErrorMessage(error)
       });
       throw error;
     }
@@ -282,7 +283,7 @@ export class CacheManager {
       logger.error('Cache decrement operation failed', {
         key,
         amount,
-        error: error.message
+        error: getErrorMessage(error)
       });
       throw error;
     }
@@ -304,7 +305,7 @@ export class CacheManager {
     } catch (error) {
       logger.error('Cache add to set operation failed', {
         key,
-        error: error.message
+        error: getErrorMessage(error)
       });
       return false;
     }
@@ -330,7 +331,7 @@ export class CacheManager {
     } catch (error) {
       logger.error('Cache get set members operation failed', {
         key,
-        error: error.message
+        error: getErrorMessage(error)
       });
       return [];
     }
@@ -352,7 +353,7 @@ export class CacheManager {
     } catch (error) {
       logger.error('Cache push to list operation failed', {
         key,
-        error: error.message
+        error: getErrorMessage(error)
       });
       return 0;
     }
@@ -378,7 +379,7 @@ export class CacheManager {
     } catch (error) {
       logger.error('Cache get list operation failed', {
         key,
-        error: error.message
+        error: getErrorMessage(error)
       });
       return [];
     }
@@ -398,7 +399,7 @@ export class CacheManager {
       logger.error('Cache expire operation failed', {
         key,
         ttl,
-        error: error.message
+        error: getErrorMessage(error)
       });
       return false;
     }
@@ -417,7 +418,7 @@ export class CacheManager {
     } catch (error) {
       logger.error('Cache TTL operation failed', {
         key,
-        error: error.message
+        error: getErrorMessage(error)
       });
       return -1;
     }
@@ -446,7 +447,7 @@ export class CacheManager {
         logger.debug(`Cache warming function ${index + 1} completed`);
       } catch (error) {
         logger.error(`Cache warming function ${index + 1} failed`, {
-          error: error.message
+          error: getErrorMessage(error)
         });
       }
     });
@@ -480,7 +481,7 @@ export class CacheManager {
       };
     } catch (error) {
       logger.error('Cache stats operation failed', {
-        error: error.message
+        error: getErrorMessage(error)
       });
       return {
         totalKeys: 0,

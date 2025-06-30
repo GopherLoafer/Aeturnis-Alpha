@@ -6,6 +6,7 @@
 import { AuthService } from '../../src/services/AuthService';
 import { Pool } from 'pg';
 import Redis from 'ioredis';
+import { getErrorMessage } from '../utils/errorUtils';
 
 // Mock dependencies
 jest.mock('pg');

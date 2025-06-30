@@ -3,6 +3,7 @@ import jwt from 'jsonwebtoken';
 import winston from 'winston';
 import { AccessTokenPayload, SafeUser } from '../types/index';
 import { AuthService } from '../services/AuthService';
+import { getErrorMessage } from '../utils/errorUtils';
 
 // Extend Express Request interface
 declare global {

@@ -8,6 +8,7 @@ import { body, param, query, validationResult } from 'express-validator';
 import { logger } from '../utils/logger';
 import { CombatService } from '../services/CombatService';
 import {
+import { getErrorMessage } from '../utils/errorUtils';
   CombatActionRequest,
   CreateCombatSessionDto,
   CombatType,
@@ -109,7 +110,8 @@ export class CombatController {
           success: false,
           message: 'Validation failed',
           errors: errors.array()
-        });
+          return;
+});
         return;
       }
 
@@ -154,11 +156,11 @@ export class CombatController {
 
     } catch (error) {
       logger.error('Failed to start combat encounter', {
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
         body: req.body
       });
 
-      if (error instanceof Error && error.message.includes('already in combat')) {
+      if (error instanceof Error && getErrorMessage(error).includes('already in combat')) {
         res.status(409).json({
           success: false,
           message: 'Character is already in combat',
@@ -186,7 +188,8 @@ export class CombatController {
           success: false,
           message: 'Validation failed',
           errors: errors.array()
-        });
+          return;
+});
         return;
       }
 
@@ -246,7 +249,7 @@ export class CombatController {
     } catch (error) {
       logger.error('Failed to perform combat action', {
         sessionId: req.params.sessionId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
         body: req.body
       });
 
@@ -269,7 +272,8 @@ export class CombatController {
           success: false,
           message: 'Validation failed',
           errors: errors.array()
-        });
+          return;
+});
         return;
       }
 
@@ -301,7 +305,7 @@ export class CombatController {
     } catch (error) {
       logger.error('Failed to get combat session', {
         sessionId: req.params.sessionId,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
 
       res.status(500).json({
@@ -323,7 +327,8 @@ export class CombatController {
           success: false,
           message: 'Validation failed',
           errors: errors.array()
-        });
+          return;
+});
         return;
       }
 
@@ -350,7 +355,7 @@ export class CombatController {
     } catch (error) {
       logger.error('Failed to get combat statistics', {
         sessionId: req.params.sessionId,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
 
       res.status(500).json({
@@ -372,7 +377,8 @@ export class CombatController {
           success: false,
           message: 'Validation failed',
           errors: errors.array()
-        });
+          return;
+});
         return;
       }
 
@@ -415,7 +421,7 @@ export class CombatController {
     } catch (error) {
       logger.error('Failed to flee from combat', {
         sessionId: req.params.sessionId,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
 
       res.status(500).json({
@@ -436,7 +442,8 @@ export class CombatController {
         res.status(401).json({
           success: false,
           message: 'No active character selected'
-        });
+          return;
+});
         return;
       }
 
@@ -479,7 +486,7 @@ export class CombatController {
 
     } catch (error) {
       logger.error('Failed to get active combat', {
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
 
       res.status(500).json({
@@ -501,7 +508,8 @@ export class CombatController {
           success: false,
           message: 'Validation failed',
           errors: errors.array()
-        });
+          return;
+});
         return;
       }
 
@@ -525,7 +533,7 @@ export class CombatController {
     } catch (error) {
       logger.error('Failed to end combat session', {
         sessionId: req.params.sessionId,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
 
       res.status(500).json({

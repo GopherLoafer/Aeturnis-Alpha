@@ -6,6 +6,7 @@
  */
 
 import { migrationRunner } from '../database/migrate';
+import { getErrorMessage } from '../utils/errorUtils';
 
 async function main() {
   const command = process.argv[2];
@@ -53,7 +54,7 @@ Examples:
     process.exit(0);
     
   } catch (error) {
-    console.error('\n❌ Migration failed:', error instanceof Error ? error.message : error);
+    console.error('\n❌ Migration failed:', error instanceof Error ? getErrorMessage(error) : error);
     process.exit(1);
   }
 }

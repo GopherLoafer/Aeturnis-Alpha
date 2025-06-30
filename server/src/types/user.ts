@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { getErrorMessage } from '../utils/errorUtils';
 
 // User database schema
 export interface User {

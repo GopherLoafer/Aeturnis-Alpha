@@ -8,6 +8,7 @@ import { body, param, query, validationResult } from 'express-validator';
 import { ProgressionService } from '../services/ProgressionService';
 import { logger } from '../utils/logger';
 import { ExperienceSource } from '../types/progression.types';
+import { getErrorMessage } from '../utils/errorUtils';
 
 export class ProgressionController {
   private progressionService: ProgressionService;
@@ -94,7 +95,8 @@ export class ProgressionController {
             code: 'VALIDATION_ERROR',
             message: 'Invalid input data',
             details: errors.array()
-          }
+            return;
+}
         });
         return;
       }
@@ -137,10 +139,10 @@ export class ProgressionController {
       logger.error('Failed to award experience', {
         characterId: req.params.characterId,
         userId: req.user?.id,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
 
-      if (error instanceof Error && error.message.includes('not found')) {
+      if (error instanceof Error && getErrorMessage(error).includes('not found')) {
         res.status(404).json({
           error: {
             code: 'CHARACTER_NOT_FOUND',
@@ -172,7 +174,8 @@ export class ProgressionController {
             code: 'VALIDATION_ERROR',
             message: 'Invalid character ID',
             details: errors.array()
-          }
+            return;
+}
         });
         return;
       }
@@ -218,7 +221,7 @@ export class ProgressionController {
       logger.error('Failed to get character progression', {
         characterId: req.params.characterId,
         userId: req.user?.id,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
 
       res.status(500).json({
@@ -243,7 +246,8 @@ export class ProgressionController {
             code: 'VALIDATION_ERROR',
             message: 'Invalid character ID',
             details: errors.array()
-          }
+            return;
+}
         });
         return;
       }
@@ -282,7 +286,7 @@ export class ProgressionController {
       logger.error('Failed to get progression stats', {
         characterId: req.params.characterId,
         userId: req.user?.id,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
 
       res.status(500).json({
@@ -307,7 +311,8 @@ export class ProgressionController {
             code: 'VALIDATION_ERROR',
             message: 'Invalid character ID',
             details: errors.array()
-          }
+            return;
+}
         });
         return;
       }
@@ -348,7 +353,7 @@ export class ProgressionController {
       logger.error('Failed to get experience history', {
         characterId: req.params.characterId,
         userId: req.user?.id,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
 
       res.status(500).json({
@@ -373,7 +378,8 @@ export class ProgressionController {
             code: 'VALIDATION_ERROR',
             message: 'Invalid character ID',
             details: errors.array()
-          }
+            return;
+}
         });
         return;
       }
@@ -409,7 +415,7 @@ export class ProgressionController {
       logger.error('Failed to get level up history', {
         characterId: req.params.characterId,
         userId: req.user?.id,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
 
       res.status(500).json({
@@ -434,7 +440,8 @@ export class ProgressionController {
             code: 'VALIDATION_ERROR',
             message: 'Invalid parameters',
             details: errors.array()
-          }
+            return;
+}
         });
         return;
       }
@@ -456,7 +463,7 @@ export class ProgressionController {
       logger.error('Failed to calculate experience curve', {
         startLevel: req.query.startLevel,
         endLevel: req.query.endLevel,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
 
       res.status(500).json({
@@ -474,7 +481,8 @@ export class ProgressionController {
    */
   async getProgressionPhases(req: Request, res: Response): Promise<void> {
     try {
-      const { PROGRESSION_PHASES } = await import('../types/progression.types');
+      const { PROGRESSION_PHASES   return;
+} = await import('../types/progression.types');
       
       res.json({
         success: true,
@@ -491,7 +499,7 @@ export class ProgressionController {
       });
     } catch (error) {
       logger.error('Failed to get progression phases', {
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
 
       res.status(500).json({
@@ -509,7 +517,8 @@ export class ProgressionController {
    */
   async calculateLevelFromExperience(req: Request, res: Response): Promise<void> {
     try {
-      const { experience } = req.body;
+      const { experience   return;
+} = req.body;
 
       if (!experience || typeof experience !== 'string') {
         res.status(400).json({
@@ -557,7 +566,7 @@ export class ProgressionController {
     } catch (error) {
       logger.error('Failed to calculate level from experience', {
         experience: req.body.experience,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
 
       res.status(500).json({

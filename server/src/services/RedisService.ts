@@ -6,6 +6,7 @@
 import Redis from 'ioredis';
 import { config } from '../config/environment';
 import { logger } from '../utils/logger';
+import { getErrorMessage, parseDelay } from '../utils/errorUtils';
 
 export interface RedisConfig {
   host: string;
@@ -76,7 +77,7 @@ export class RedisService {
         db: redisConfig.db
       });
     } catch (error) {
-      logger.error('Failed to connect to Redis', { error: error.message });
+      logger.error('Failed to connect to Redis', { error: getErrorMessage(error) });
       await this.handleConnectionFailure();
       throw error;
     }
@@ -98,8 +99,8 @@ export class RedisService {
       logger.info('Redis client ready to receive commands');
     });
 
-    this.redis.on('error', (error) => {
-      logger.error('Redis connection error', { error: error.message });
+    this.redis.on('error', (error: unknown) => {
+      logger.error('Redis connection error', { error: getErrorMessage(error) });
       this.isConnected = false;
     });
 
@@ -108,7 +109,7 @@ export class RedisService {
       this.isConnected = false;
     });
 
-    this.redis.on('reconnecting', (delay) => {
+    this.redis.on('reconnecting', (delay: number) => {
       this.reconnectAttempts++;
       logger.info('Redis reconnecting', { 
         attempt: this.reconnectAttempts,
@@ -129,7 +130,8 @@ export class RedisService {
     if (this.reconnectAttempts >= this.maxReconnectAttempts) {
       logger.error('Max Redis reconnection attempts reached', {
         attempts: this.reconnectAttempts
-      });
+        return;
+});
       return;
     }
 
@@ -148,7 +150,7 @@ export class RedisService {
     try {
       await this.connect();
     } catch (error) {
-      logger.error('Redis reconnection failed', { error: error.message });
+      logger.error('Redis reconnection failed', { error: getErrorMessage(error) });
     }
   }
 
@@ -189,7 +191,7 @@ export class RedisService {
     } catch (error) {
       return {
         status: 'unhealthy',
-        error: error.message
+        error: getErrorMessage(error)
       };
     }
   }
@@ -224,8 +226,9 @@ export class RedisService {
       try {
         await this.redis.quit();
         logger.info('Redis connection closed gracefully');
-      } catch (error) {
-        logger.error('Error during Redis shutdown', { error: error.message });
+        return;
+} catch (error) {
+        logger.error('Error during Redis shutdown', { error: getErrorMessage(error) });
         // Force disconnect if graceful shutdown fails
         this.redis.disconnect();
       } finally {
@@ -252,7 +255,7 @@ export class RedisService {
       return result;
     } catch (error) {
       logger.error(`Redis command failed: ${commandName}`, {
-        error: error.message
+        error: getErrorMessage(error)
       });
       throw error;
     }

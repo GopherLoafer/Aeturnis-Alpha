@@ -13,6 +13,7 @@ import { attachHandlers } from './handlers';
 import { logger } from '../utils/logger';
 import { config } from '../config/environment';
 import { getCorsOrigins } from '../config/environment';
+import { getErrorMessage } from '../utils/errorUtils';
 
 export class SocketServer {
   private io: SocketIOServer;
@@ -87,11 +88,12 @@ export class SocketServer {
         redisConnected: !!this.redisClient,
         middlewareCount: 2,
         handlersAttached: true,
-      });
+        return;
+});
       
     } catch (error) {
       logger.error('Failed to start Socket.io server', {
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
         stack: error instanceof Error ? error.stack : undefined,
       });
       throw error;
@@ -102,7 +104,8 @@ export class SocketServer {
     try {
       // Create Redis clients for pub/sub
       this.redisClient = createClient({
-        url: config.REDIS_URL || `redis://${config.REDIS_HOST}:${config.REDIS_PORT}`,
+        url: config.REDIS_URL || `redis://${config.REDIS_HOST  return;
+}:${config.REDIS_PORT}`,
         password: config.REDIS_PASSWORD,
       });
 
@@ -122,7 +125,7 @@ export class SocketServer {
 
     } catch (error) {
       logger.warn('Redis adapter setup failed, running without scaling', {
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       
       // Continue without Redis if it's not available
@@ -132,7 +135,7 @@ export class SocketServer {
 
   private setupConnectionMonitoring(): void {
     // Track connection metrics
-    this.io.on('connection', (socket) => {
+    this.io.on('connection', (socket: any) => {
       const connectionCount = this.io.engine.clientsCount;
       
       logger.info('Client connected', {
@@ -156,20 +159,20 @@ export class SocketServer {
       });
 
       // Track socket errors
-      socket.on('error', (error) => {
+      socket.on('error', (error: unknown) => {
         logger.error('Socket error', {
           socketId: socket.id,
           userId: (socket as any).userId,
-          error: error.message,
+          error: getErrorMessage(error),
           stack: error.stack,
         });
       });
     });
 
     // Log server-level events
-    this.io.engine.on('connection_error', (error) => {
+    this.io.engine.on('connection_error', (error: unknown) => {
       logger.error('Socket.io connection error', {
-        error: error.message,
+        error: getErrorMessage(error),
         code: error.code,
         context: error.context,
       });
@@ -207,7 +210,7 @@ export class SocketServer {
         
       } catch (error) {
         logger.error('Error during Socket.io shutdown', {
-          error: error instanceof Error ? error.message : error,
+          error: error instanceof Error ? getErrorMessage(error) : error,
         });
       }
     };

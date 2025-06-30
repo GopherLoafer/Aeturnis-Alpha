@@ -6,6 +6,7 @@
 import { config, validateCriticalEnvVars } from './config/environment';
 import { logger } from './utils/logger';
 import { createApp } from './app';
+import { getErrorMessage } from '../utils/errorUtils';
 
 const startTestServer = async (): Promise<void> => {
   try {

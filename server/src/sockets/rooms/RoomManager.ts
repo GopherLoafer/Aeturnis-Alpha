@@ -7,6 +7,7 @@ import { Server as SocketIOServer, Socket } from 'socket.io';
 import { SocketWithAuth } from '../middleware/auth';
 import { getRedis } from '../../config/database';
 import { logger } from '../../utils/logger';
+import { getErrorMessage } from '../utils/errorUtils';
 
 export interface RoomAccess {
   userId: string;
@@ -26,7 +27,8 @@ export class RoomManager {
    * Join user's personal room for direct messages and notifications
    */
   public async joinUserRoom(socket: SocketWithAuth, userId: string): Promise<void> {
-    const roomName = `user:${userId}`;
+    const roomName = `user:${userId  return;
+}`;
     
     try {
       await socket.join(roomName);
@@ -45,7 +47,7 @@ export class RoomManager {
         socketId: socket.id,
         userId,
         roomName,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -55,7 +57,8 @@ export class RoomManager {
    * Join character-specific room for player events
    */
   public async joinCharacterRoom(socket: SocketWithAuth, characterId: string): Promise<void> {
-    const roomName = `character:${characterId}`;
+    const roomName = `character:${characterId  return;
+}`;
     
     try {
       // Verify character ownership
@@ -87,7 +90,7 @@ export class RoomManager {
         socketId: socket.id,
         userId: socket.userId,
         characterId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -97,7 +100,8 @@ export class RoomManager {
    * Join zone room for area-specific events
    */
   public async joinZone(socket: SocketWithAuth, zoneName: string): Promise<void> {
-    const roomName = `zone:${zoneName}`;
+    const roomName = `zone:${zoneName  return;
+}`;
     
     try {
       // Verify character is in zone
@@ -135,7 +139,7 @@ export class RoomManager {
         socketId: socket.id,
         userId: socket.userId,
         zoneName,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -145,7 +149,8 @@ export class RoomManager {
    * Join combat room for battle instances
    */
   public async joinCombat(socket: SocketWithAuth, sessionId: string): Promise<void> {
-    const roomName = `combat:${sessionId}`;
+    const roomName = `combat:${sessionId  return;
+}`;
     
     try {
       // Verify player is in combat session
@@ -176,7 +181,7 @@ export class RoomManager {
         socketId: socket.id,
         userId: socket.userId,
         sessionId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -186,7 +191,8 @@ export class RoomManager {
    * Join guild room for guild communications
    */
   public async joinGuild(socket: SocketWithAuth, guildId: string): Promise<void> {
-    const roomName = `guild:${guildId}`;
+    const roomName = `guild:${guildId  return;
+}`;
     
     try {
       // Verify guild membership
@@ -212,7 +218,7 @@ export class RoomManager {
         socketId: socket.id,
         userId: socket.userId,
         guildId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -228,7 +234,8 @@ export class RoomManager {
       for (const roomName of globalRooms) {
         await socket.join(roomName);
         await this.trackRoomMembership(socket.userId, roomName, 'global');
-      }
+        return;
+}
       
       logger.debug('User joined global rooms', {
         socketId: socket.id,
@@ -240,7 +247,7 @@ export class RoomManager {
       logger.error('Failed to join global rooms', {
         socketId: socket.id,
         userId: socket.userId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -257,7 +264,8 @@ export class RoomManager {
       // Leave all rooms
       for (const roomName of userRooms) {
         socket.leave(roomName);
-      }
+        return;
+}
 
       // Clean up tracking data
       await this.clearRoomMembership(userId);
@@ -272,7 +280,7 @@ export class RoomManager {
       logger.error('Failed to cleanup user rooms', {
         socketId: socket.id,
         userId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
     }
   }
@@ -297,7 +305,8 @@ export class RoomManager {
             case 'character':
               if (socket.characterId) {
                 await this.joinCharacterRoom(socket, socket.characterId);
-              }
+                return;
+}
               break;
             case 'zone':
               // Validate current zone access
@@ -313,7 +322,7 @@ export class RoomManager {
           logger.warn('Failed to restore room access', {
             userId,
             roomName,
-            error: error instanceof Error ? error.message : error,
+            error: error instanceof Error ? getErrorMessage(error) : error,
           });
         }
       }
@@ -328,7 +337,7 @@ export class RoomManager {
       logger.error('Failed to restore user rooms', {
         socketId: socket.id,
         userId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
     }
   }
@@ -365,7 +374,7 @@ export class RoomManager {
         userId: socket.userId,
         roomType,
         roomId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       return false;
     }
@@ -376,7 +385,8 @@ export class RoomManager {
   private async trackRoomMembership(userId: string, roomName: string, roomType: string, metadata?: any): Promise<void> {
     try {
       const redis = getRedis();
-      const key = `user_rooms:${userId}`;
+      const key = `user_rooms:${userId  return;
+}`;
       const membershipData = {
         roomName,
         roomType,
@@ -391,7 +401,7 @@ export class RoomManager {
       logger.error('Failed to track room membership', {
         userId,
         roomName,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
     }
   }
@@ -405,7 +415,7 @@ export class RoomManager {
     } catch (error) {
       logger.error('Failed to get user rooms', {
         userId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       return [];
     }
@@ -414,12 +424,13 @@ export class RoomManager {
   private async clearRoomMembership(userId: string): Promise<void> {
     try {
       const redis = getRedis();
-      const key = `user_rooms:${userId}`;
+      const key = `user_rooms:${userId  return;
+}`;
       await redis.del(key);
     } catch (error) {
       logger.error('Failed to clear room membership', {
         userId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
     }
   }
@@ -431,7 +442,8 @@ export class RoomManager {
     
     for (const roomName of zoneRooms) {
       socket.leave(roomName);
-    }
+      return;
+}
   }
 
   private async validateCharacterAccess(userId: string, characterId: string): Promise<boolean> {
@@ -467,5 +479,6 @@ export class RoomManager {
   private async updateCharacterPresence(userId: string, characterId: string, online: boolean): Promise<void> {
     // TODO: Implement character presence update
     // This would update the character's online status
-  }
+    return;
+}
 }

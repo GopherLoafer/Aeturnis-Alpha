@@ -6,6 +6,7 @@
 import { Router, Request, Response } from 'express';
 import { asyncWrapper } from '../middleware/errorHandler';
 import { logger } from '../utils/logger';
+import { getErrorMessage } from '../utils/errorUtils';
 
 const router = Router();
 

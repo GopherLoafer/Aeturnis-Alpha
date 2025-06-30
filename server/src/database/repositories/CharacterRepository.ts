@@ -6,6 +6,7 @@
 import { Pool, PoolClient } from 'pg';
 import { logger } from '../../utils/logger';
 import { 
+import { getErrorMessage } from '../utils/errorUtils';
   Character, 
   Race, 
   CharacterStats, 
@@ -49,7 +50,7 @@ export class CharacterRepository {
       }
     } catch (error) {
       logger.error('Failed to get races', {
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -74,7 +75,7 @@ export class CharacterRepository {
     } catch (error) {
       logger.error('Failed to get race by ID', {
         raceId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -153,7 +154,7 @@ export class CharacterRepository {
       logger.error('Failed to create character', {
         userId,
         data,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -178,7 +179,7 @@ export class CharacterRepository {
     } catch (error) {
       logger.error('Failed to get character by ID', {
         id,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -203,7 +204,7 @@ export class CharacterRepository {
     } catch (error) {
       logger.error('Failed to get characters by user ID', {
         userId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -228,7 +229,7 @@ export class CharacterRepository {
     } catch (error) {
       logger.error('Failed to get character stats', {
         id,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -272,7 +273,7 @@ export class CharacterRepository {
       logger.error('Failed to update character stats', {
         id,
         partialStats,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -303,7 +304,7 @@ export class CharacterRepository {
         zone,
         x,
         y,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -350,7 +351,7 @@ export class CharacterRepository {
         id,
         health,
         mana,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -368,14 +369,14 @@ export class CharacterRepository {
           [id]
         );
         
-        return result.rowCount > 0;
+        return result.rowCount ?? 0 ?? 0 > 0;
       } finally {
         client.release();
       }
     } catch (error) {
       logger.error('Failed to soft delete character', {
         id,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -400,7 +401,7 @@ export class CharacterRepository {
     } catch (error) {
       logger.error('Failed to check character name availability', {
         name,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -425,7 +426,7 @@ export class CharacterRepository {
     } catch (error) {
       logger.error('Failed to get characters in zone', {
         zoneId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -451,7 +452,7 @@ export class CharacterRepository {
       logger.error('Failed to update character status', {
         id,
         status,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }

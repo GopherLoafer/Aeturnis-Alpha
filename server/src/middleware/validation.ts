@@ -6,6 +6,7 @@
 import { body, param, query, header, validationResult, ValidationChain } from 'express-validator';
 import { Request, Response, NextFunction } from 'express';
 import { ValidationError } from './errorHandler';
+import { getErrorMessage } from '../utils/errorUtils';
 
 /**
  * Common validation rules

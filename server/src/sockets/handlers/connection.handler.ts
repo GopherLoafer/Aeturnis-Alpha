@@ -8,6 +8,7 @@ import { SocketWithAuth } from '../middleware/auth';
 import { RoomManager } from '../rooms/RoomManager';
 import { PresenceManager } from '../presence/PresenceManager';
 import { logger } from '../../utils/logger';
+import { getErrorMessage } from '../utils/errorUtils';
 
 const roomManager = new RoomManager();
 const presenceManager = new PresenceManager();
@@ -29,7 +30,7 @@ export function handleConnection(io: SocketIOServer, socket: SocketWithAuth): vo
       logger.error('Failed to join user room', {
         socketId: socket.id,
         userId: socket.userId,
-        error: error.message,
+        error: getErrorMessage(error),
       });
     });
 
@@ -45,7 +46,7 @@ export function handleConnection(io: SocketIOServer, socket: SocketWithAuth): vo
     logger.error('Failed to update presence on connection', {
       socketId: socket.id,
       userId: socket.userId,
-      error: error.message,
+      error: getErrorMessage(error),
     });
   });
 
@@ -55,7 +56,7 @@ export function handleConnection(io: SocketIOServer, socket: SocketWithAuth): vo
       logger.error('Failed to send initial sync data', {
         socketId: socket.id,
         userId: socket.userId,
-        error: error.message,
+        error: getErrorMessage(error),
       });
     });
 
@@ -89,7 +90,7 @@ export function handleDisconnect(socket: SocketWithAuth, reason: string): void {
     logger.error('Failed to update presence on disconnect', {
       socketId: socket.id,
       userId: socket.userId,
-      error: error.message,
+      error: getErrorMessage(error),
     });
   });
 
@@ -99,7 +100,7 @@ export function handleDisconnect(socket: SocketWithAuth, reason: string): void {
       logger.error('Failed to cleanup rooms on disconnect', {
         socketId: socket.id,
         userId: socket.userId,
-        error: error.message,
+        error: getErrorMessage(error),
       });
     });
 
@@ -111,7 +112,7 @@ export function handleDisconnect(socket: SocketWithAuth, reason: string): void {
           socketId: socket.id,
           userId: socket.userId,
           characterId: socket.characterId,
-          error: error.message,
+          error: getErrorMessage(error),
         });
       });
   }
@@ -146,7 +147,7 @@ export function handleReconnect(socket: SocketWithAuth): void {
       logger.error('Failed to restore presence on reconnect', {
         socketId: socket.id,
         userId: socket.userId,
-        error: error.message,
+        error: getErrorMessage(error),
       });
     });
 
@@ -162,7 +163,7 @@ export function handleReconnect(socket: SocketWithAuth): void {
       logger.error('Failed to restore rooms on reconnect', {
         socketId: socket.id,
         userId: socket.userId,
-        error: error.message,
+        error: getErrorMessage(error),
       });
     });
 
@@ -172,7 +173,7 @@ export function handleReconnect(socket: SocketWithAuth): void {
       logger.error('Failed to send reconnect sync data', {
         socketId: socket.id,
         userId: socket.userId,
-        error: error.message,
+        error: getErrorMessage(error),
       });
     });
 
@@ -217,7 +218,7 @@ async function sendInitialSyncData(socket: SocketWithAuth): Promise<void> {
     logger.error('Error sending initial sync data', {
       socketId: socket.id,
       userId: socket.userId,
-      error: error instanceof Error ? error.message : error,
+      error: error instanceof Error ? getErrorMessage(error) : error,
     });
     
     // Send error response
@@ -250,7 +251,7 @@ async function sendReconnectSyncData(socket: SocketWithAuth): Promise<void> {
     logger.error('Error sending reconnect sync data', {
       socketId: socket.id,
       userId: socket.userId,
-      error: error instanceof Error ? error.message : error,
+      error: error instanceof Error ? getErrorMessage(error) : error,
     });
   }
 }
@@ -277,7 +278,7 @@ async function broadcastCharacterOffline(socket: SocketWithAuth): Promise<void> 
       socketId: socket.id,
       userId: socket.userId,
       characterId: socket.characterId,
-      error: error instanceof Error ? error.message : error,
+      error: error instanceof Error ? getErrorMessage(error) : error,
     });
   }
 }

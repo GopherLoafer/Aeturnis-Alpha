@@ -13,6 +13,7 @@ import { config, getCorsOrigins } from './config/environment';
 import { responseMiddleware } from './utils/response';
 import { globalErrorHandler, handle404 } from './middleware/errorHandler';
 import healthRoutes from './routes/health.routes';
+import { getErrorMessage } from '../utils/errorUtils';
 
 console.log('🔧 Debug Express App - Testing components incrementally...');
 
@@ -72,7 +73,7 @@ app.use('/health', healthRoutes);
 
 // 8. Basic route
 console.log('8. Adding Basic Routes...');
-app.get('/', (req, res) => {
+app.get('/', (req: any, res: any) => {
   res.json({
     success: true,
     message: 'Aeturnis Online API',
@@ -97,7 +98,7 @@ const server = app.listen(config.PORT, config.HOST, () => {
 });
 
 server.on('error', (error: any) => {
-  console.error('❌ Server startup error:', error.message);
+  console.error('❌ Server startup error:', getErrorMessage(error));
   process.exit(1);
 });
 

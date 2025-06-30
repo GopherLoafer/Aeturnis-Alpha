@@ -7,6 +7,7 @@ import { Router } from 'express';
 import { CombatController } from '../controllers/CombatController';
 import { AuthMiddleware } from '../middleware/auth';
 import { combatRateLimit, apiRateLimit } from '../middleware/rateLimitRedis';
+import { getErrorMessage } from '../utils/errorUtils';
 
 export function createCombatRoutes(combatController: CombatController): Router {
   const router = Router();

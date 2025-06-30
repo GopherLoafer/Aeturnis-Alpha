@@ -5,6 +5,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { SessionManager } from '../../src/services/SessionManager';
 import { redisService } from '../../src/services/RedisService';
+import { getErrorMessage } from '../utils/errorUtils';
 
 // Mock Redis service
 jest.mock('../../src/services/RedisService', () => ({

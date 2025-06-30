@@ -5,6 +5,7 @@
 
 import { Pool, PoolClient } from 'pg';
 import { logger } from '../../utils/logger';
+import { getErrorMessage } from '../utils/errorUtils';
 
 export interface CombatSession {
   id: string;
@@ -111,7 +112,7 @@ export class CombatRepository {
     } catch (error) {
       logger.error('Failed to create combat session', {
         data,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -136,7 +137,7 @@ export class CombatRepository {
     } catch (error) {
       logger.error('Failed to get combat session', {
         sessionId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -234,7 +235,7 @@ export class CombatRepository {
       logger.error('Failed to join combat session', {
         sessionId,
         characterId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -259,7 +260,7 @@ export class CombatRepository {
     } catch (error) {
       logger.error('Failed to get combat participants', {
         sessionId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -316,7 +317,7 @@ export class CombatRepository {
       logger.error('Failed to record combat action', {
         sessionId,
         actionData,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -370,7 +371,7 @@ export class CombatRepository {
       logger.error('Failed to update combat session', {
         sessionId,
         updates,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -397,7 +398,7 @@ export class CombatRepository {
     } catch (error) {
       logger.error('Failed to get active combat sessions', {
         zoneId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -432,7 +433,7 @@ export class CombatRepository {
     } catch (error) {
       logger.error('Failed to end combat session', {
         sessionId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }

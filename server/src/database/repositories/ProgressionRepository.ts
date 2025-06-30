@@ -6,6 +6,7 @@
 import { Pool, PoolClient } from 'pg';
 import { logger } from '../../utils/logger';
 import { 
+import { getErrorMessage } from '../utils/errorUtils';
   ExperienceLogEntry,
   LevelUpLogEntry,
   MilestoneReward,
@@ -81,14 +82,14 @@ export class ProgressionRepository {
       const result = await client.query(updateQuery, params);
 
       await client.query('COMMIT');
-      return (result.rowCount || 0) > 0;
+      return (result.rowCount ?? 0 ?? 0 || 0) > 0;
     } catch (error) {
       await client.query('ROLLBACK');
       logger.error('Failed to update character progression', {
         characterId,
         level,
         experience: experience.toString(),
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
       throw error;
     } finally {
@@ -128,7 +129,7 @@ export class ProgressionRepository {
       logger.error('Failed to add character title', {
         characterId,
         title,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
       throw error;
     } finally {
@@ -164,7 +165,7 @@ export class ProgressionRepository {
       logger.error('Failed to log experience', {
         characterId: entry.characterId,
         amount: entry.amount.toString(),
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
       throw error;
     } finally {
@@ -199,7 +200,7 @@ export class ProgressionRepository {
         characterId: entry.characterId,
         oldLevel: entry.oldLevel,
         newLevel: entry.newLevel,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
       throw error;
     } finally {
@@ -237,7 +238,7 @@ export class ProgressionRepository {
         characterId,
         milestoneLevel,
         achievementType,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
       throw error;
     } finally {
@@ -359,12 +360,13 @@ export class ProgressionRepository {
            last_updated = CURRENT_TIMESTAMP`,
         [characterId, totalEarned, available]
       );
-    } catch (error) {
+      return;
+} catch (error) {
       logger.error('Failed to update stat points tracking', {
         characterId,
         totalEarned,
         available,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
       throw error;
     } finally {
@@ -423,7 +425,7 @@ export class ProgressionRepository {
       await client.query('ROLLBACK');
       logger.error('Failed to perform level up transaction', {
         characterId,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
       throw error;
     } finally {
@@ -456,7 +458,8 @@ export class ProgressionRepository {
       : [characterId, data.level, data.experience.toString(), data.nextLevelExp.toString(), data.availableStatPoints];
 
     await client.query(updateQuery, params);
-  }
+    return;
+}
 
   private async logExperienceWithClient(
     client: PoolClient,
@@ -470,7 +473,8 @@ export class ProgressionRepository {
         entry.characterId,
         entry.amount.toString(),
         entry.source,
-        JSON.stringify(entry.sourceDetails || {}),
+        JSON.stringify(entry.sourceDetails || {  return;
+}),
         entry.oldLevel,
         entry.newLevel,
         entry.oldExperience.toString(),
@@ -496,7 +500,8 @@ export class ProgressionRepository {
         JSON.stringify(entry.milestoneRewards)
       ]
     );
-  }
+    return;
+}
 
   private async logMilestoneAchievementWithClient(
     client: PoolClient,
@@ -512,7 +517,8 @@ export class ProgressionRepository {
        ON CONFLICT (character_id, milestone_level, achievement_type) DO NOTHING`,
       [characterId, milestoneLevel, achievementType, JSON.stringify(rewardData)]
     );
-  }
+    return;
+}
 
   private async addCharacterTitleWithClient(
     client: PoolClient,
@@ -534,7 +540,8 @@ export class ProgressionRepository {
           'UPDATE characters SET titles = $2 WHERE id = $1',
           [characterId, JSON.stringify(updatedTitles)]
         );
-      }
+        return;
+}
     }
   }
 }

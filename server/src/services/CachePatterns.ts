@@ -5,6 +5,7 @@
 
 import { cacheManager } from './CacheManager';
 import { logger } from '../utils/logger';
+import { getErrorMessage } from '../utils/errorUtils';
 
 export interface CacheAsideOptions {
   ttl?: number;
@@ -74,7 +75,7 @@ export class CachePatterns {
     } catch (error) {
       logger.error('Cache-aside operation failed', {
         key,
-        error: error.message
+        error: getErrorMessage(error)
       });
       
       // Fallback to data source on cache error
@@ -107,7 +108,7 @@ export class CachePatterns {
         lastError = error;
         logger.warn(`Write-through data store write failed, attempt ${attempt}`, {
           key,
-          error: error.message
+          error: getErrorMessage(error)
         });
         
         if (attempt < writeRetries) {
@@ -132,7 +133,7 @@ export class CachePatterns {
     } catch (error) {
       logger.warn('Write-through cache update failed', {
         key,
-        error: error.message
+        error: getErrorMessage(error)
       });
     }
   }
@@ -161,7 +162,7 @@ export class CachePatterns {
       } catch (error) {
         logger.error('Write-behind data store update failed', {
           key,
-          error: error.message
+          error: getErrorMessage(error)
         });
         // TODO: Could implement a retry queue here
       }
@@ -185,7 +186,7 @@ export class CachePatterns {
     } catch (error) {
       logger.error('Cache warming failed', {
         key,
-        error: error.message
+        error: getErrorMessage(error)
       });
       return false;
     }
@@ -254,7 +255,7 @@ export class CachePatterns {
     } catch (error) {
       logger.error('Cache refresh failed', {
         key,
-        error: error.message
+        error: getErrorMessage(error)
       });
       throw error;
     }
@@ -282,7 +283,7 @@ export class CachePatterns {
     } catch (error) {
       logger.error('Cache invalidation failed', {
         key,
-        error: error.message
+        error: getErrorMessage(error)
       });
       return false;
     }
@@ -299,7 +300,7 @@ export class CachePatterns {
     } catch (error) {
       logger.error('Cache pattern invalidation failed', {
         pattern,
-        error: error.message
+        error: getErrorMessage(error)
       });
       return 0;
     }
@@ -347,7 +348,7 @@ export class CachePatterns {
     } catch (error) {
       logger.error('Tag-based cache invalidation failed', {
         tag,
-        error: error.message
+        error: getErrorMessage(error)
       });
       return 0;
     }
@@ -375,7 +376,7 @@ export class CachePatterns {
       } catch (error) {
         logger.error('Background refresh failed', {
           key,
-          error: error.message
+          error: getErrorMessage(error)
         });
       } finally {
         this.backgroundRefreshTasks.delete(key);

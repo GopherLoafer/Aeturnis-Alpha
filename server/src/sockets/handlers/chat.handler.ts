@@ -9,6 +9,7 @@ import { PresenceManager } from '../presence/PresenceManager';
 import { getRedis } from '../../config/database';
 import { logger } from '../../utils/logger';
 import { repositories } from '../../database/repositories';
+import { getErrorMessage } from '../utils/errorUtils';
 
 const presenceManager = new PresenceManager();
 
@@ -103,7 +104,7 @@ export function registerChatHandlers(io: SocketIOServer, socket: SocketWithAuth)
         socketId: socket.id,
         userId: socket.userId,
         channel: data.channel,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
 
       socket.emit('chat:error', {
@@ -194,7 +195,7 @@ export function registerChatHandlers(io: SocketIOServer, socket: SocketWithAuth)
         socketId: socket.id,
         userId: socket.userId,
         targetUserId: data.targetUserId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
 
       socket.emit('chat:error', {
@@ -274,7 +275,7 @@ export function registerChatHandlers(io: SocketIOServer, socket: SocketWithAuth)
         socketId: socket.id,
         characterId: socket.characterId,
         emote: data.emote,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
 
       socket.emit('chat:error', {
@@ -312,7 +313,7 @@ export function registerChatHandlers(io: SocketIOServer, socket: SocketWithAuth)
       logger.error('Chat history error', {
         socketId: socket.id,
         channel: data.channel,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
 
       socket.emit('chat:error', {
@@ -351,7 +352,7 @@ export function registerChatHandlers(io: SocketIOServer, socket: SocketWithAuth)
     } catch (error) {
       logger.error('Chat typing error', {
         socketId: socket.id,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
     }
   });
@@ -467,7 +468,7 @@ async function storeChatMessage(userId: string, data: ChatMessageData): Promise<
   } catch (error) {
     logger.error('Failed to store chat message', {
       userId,
-      error: error instanceof Error ? error.message : error,
+      error: error instanceof Error ? getErrorMessage(error) : error,
     });
     return `temp_${Date.now()}`;
   }
@@ -506,7 +507,7 @@ async function storeWhisperMessage(userId: string, data: WhisperData): Promise<s
   } catch (error) {
     logger.error('Failed to store whisper message', {
       userId,
-      error: error instanceof Error ? error.message : error,
+      error: error instanceof Error ? getErrorMessage(error) : error,
     });
     return `temp_${Date.now()}`;
   }
@@ -589,7 +590,7 @@ async function getChatHistory(channel: string, limit: number): Promise<any[]> {
   } catch (error) {
     logger.error('Failed to get chat history', {
       channel,
-      error: error instanceof Error ? error.message : error,
+      error: error instanceof Error ? getErrorMessage(error) : error,
     });
     return [];
   }

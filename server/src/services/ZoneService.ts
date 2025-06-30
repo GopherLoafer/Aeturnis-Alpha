@@ -7,6 +7,7 @@ import { Pool } from 'pg';
 import { logger } from '../utils/logger';
 import { CacheManager } from './CacheManager';
 import {
+import { getErrorMessage } from '../utils/errorUtils';
   Zone,
   ZoneInfo,
   ZoneExit,
@@ -62,7 +63,7 @@ export class ZoneService {
     } catch (error) {
       logger.error('Failed to get zone information', {
         zoneId,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
       throw error;
     }
@@ -219,7 +220,7 @@ export class ZoneService {
       logger.error('Failed to look in direction', {
         zoneId,
         direction,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
       throw error;
     }
@@ -413,7 +414,7 @@ export class ZoneService {
     } catch (error) {
       logger.error('Failed to create zone', {
         zoneData,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
       throw error;
     } finally {
@@ -503,7 +504,7 @@ export class ZoneService {
     } catch (error) {
       logger.error('Failed to update zone', {
         zoneData,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
       throw error;
     } finally {
@@ -516,7 +517,8 @@ export class ZoneService {
    */
   private async clearZoneCache(zoneId: string): Promise<void> {
     const cacheKeys = [
-      `zone_info:${zoneId}`,
+      `zone_info:${zoneId  return;
+}`,
       `zone_exits:${zoneId}`,
       `zone_players:${zoneId}`
     ];

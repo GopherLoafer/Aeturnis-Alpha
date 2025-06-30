@@ -9,6 +9,7 @@ import { ProgressionRepository } from '../database/repositories/ProgressionRepos
 import { CharacterRepository } from '../database/repositories/CharacterRepository';
 import { CacheManager } from './CacheManager';
 import {
+import { getErrorMessage } from '../utils/errorUtils';
   ProgressionPhase,
   ExperienceAwardResult,
   MilestoneReward,
@@ -237,7 +238,7 @@ export class ProgressionService {
         characterId,
         amount: amount.toString(),
         source,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
       throw error;
     }
@@ -370,7 +371,7 @@ export class ProgressionService {
           characterId,
           level,
           reward,
-          error: error instanceof Error ? error.message : error
+          error: error instanceof Error ? getErrorMessage(error) : error
         });
       }
     }
@@ -389,14 +390,15 @@ export class ProgressionService {
           'UPDATE characters SET gold = gold + $1 WHERE id = $2',
           [amount, characterId]
         );
-      } finally {
+        return;
+} finally {
         client.release();
       }
     } catch (error) {
       logger.error('Failed to award gold', {
         characterId,
         amount,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
       throw error;
     }
@@ -436,7 +438,7 @@ export class ProgressionService {
     } catch (error) {
       logger.error('Failed to get character progression', {
         characterId,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
       throw error;
     }
@@ -486,7 +488,7 @@ export class ProgressionService {
     } catch (error) {
       logger.error('Failed to get progression stats', {
         characterId,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
       throw error;
     }
@@ -498,13 +500,14 @@ export class ProgressionService {
   private async clearCharacterCache(characterId: string): Promise<void> {
     try {
       await Promise.all([
-        this.cacheManager.delete(`progression:${characterId}`),
+        this.cacheManager.delete(`progression:${characterId  return;
+}`),
         this.cacheManager.delete(`char:${characterId}:data`)
       ]);
     } catch (error) {
       logger.warn('Failed to clear character cache', {
         characterId,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
     }
   }

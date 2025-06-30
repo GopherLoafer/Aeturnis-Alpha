@@ -10,6 +10,7 @@ import { RealtimeService } from './RealtimeService';
 import { EquipmentService } from './EquipmentService';
 import { AffinityService } from './AffinityService';
 import {
+import { getErrorMessage } from '../utils/errorUtils';
   CombatSession,
   CombatParticipant,
   CombatAction,
@@ -95,7 +96,7 @@ export class CombatService {
       const participants: CombatParticipant[] = [];
       for (let i = 0; i < sessionData.participants.length; i++) {
         const participantData = sessionData.participants[i];
-        const characterStats = await this.getCharacterCombatStats(participantData.characterId);
+        const characterStats = await this.getCharacterCombatStats(participantData?.characterId);
         
         const initiative = this.calculateInitiative(characterStats.dexterity, characterStats.level);
         
@@ -107,11 +108,11 @@ export class CombatService {
           RETURNING *
         `, [
           session.id,
-          participantData.characterId,
-          participantData.participantType,
-          participantData.side,
+          participantData?.characterId,
+          participantData?.participantType,
+          participantData?.side,
           initiative,
-          participantData.position || i,
+          participantData?.position || i,
           characterStats.hp,
           characterStats.hp,
           characterStats.mp,
@@ -161,7 +162,7 @@ export class CombatService {
       await client.query('ROLLBACK');
       logger.error('Failed to start combat encounter', {
         sessionData,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
       throw error;
     } finally {
@@ -298,7 +299,7 @@ export class CombatService {
         sessionId,
         actorId,
         actionRequest,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
       throw error;
     } finally {
@@ -360,7 +361,8 @@ export class CombatService {
       const participants = await this.getSessionParticipants(sessionId);
       for (const participant of participants) {
         await this.updateCharacterCombatStatus(participant.characterId, 'idle');
-      }
+        return;
+}
 
       // Award experience and rewards if there's a winner
       if (winner && reason === CombatEndReason.VICTORY) {
@@ -698,7 +700,7 @@ export class CombatService {
         logger.warn('Failed to get weapon affinity bonus', {
           actorId,
           weaponAffinity,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? getErrorMessage(error) : 'Unknown error'
         });
       }
     }
@@ -778,7 +780,7 @@ export class CombatService {
         logger.warn('Failed to get magic affinity bonus', {
           actorId,
           magicAffinity,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? getErrorMessage(error) : 'Unknown error'
         });
       }
     }
@@ -811,7 +813,7 @@ export class CombatService {
         logger.warn('Failed to get magic affinity bonus for healing', {
           actorId,
           magicAffinity,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? getErrorMessage(error) : 'Unknown error'
         });
       }
     }
@@ -976,7 +978,8 @@ export class CombatService {
             END
         WHERE id = $1
       `, [sessionId]);
-    } finally {
+      return;
+} finally {
       client.release();
     }
   }
@@ -1009,7 +1012,8 @@ export class CombatService {
         UPDATE characters SET status = $1, updated_at = CURRENT_TIMESTAMP
         WHERE id = $2
       `, [status, characterId]);
-    } finally {
+      return;
+} finally {
       client.release();
     }
   }
@@ -1032,7 +1036,8 @@ export class CombatService {
 
       // Award to winner's character (integrate with progression system)
       // This would call the ProgressionService to award experience
-    } finally {
+      return;
+} finally {
       client.release();
     }
   }
@@ -1059,7 +1064,8 @@ export class CombatService {
       turnOrder: session.turnOrder,
       currentTurn: session.turnOrder[session.currentTurn],
       message: 'Combat has begun!'
-    };
+      return;
+};
 
     this.realtimeService.broadcastToCombat(session.id, 'combat:start', event);
   }
@@ -1098,7 +1104,8 @@ export class CombatService {
       reason,
       stats,
       rewards,
-      message: `Combat ended! Winner: ${winner}`
+      message: `Combat ended! Winner: ${winner  return;
+}`
     };
 
     this.realtimeService.broadcastToCombat(sessionId, 'combat:end', event);
@@ -1108,7 +1115,8 @@ export class CombatService {
    * Clear combat-related cache
    */
   private async clearCombatCache(sessionId: string): Promise<void> {
-    await this.cacheManager.deletePattern(`combat:session:${sessionId}*`);
+    await this.cacheManager.deletePattern(`combat:session:${sessionId  return;
+}*`);
   }
 
   /**

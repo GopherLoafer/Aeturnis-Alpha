@@ -20,6 +20,7 @@ import {
   AffinityExpGainEvent
 } from '../types/affinity.types';
 import winston from 'winston';
+import { getErrorMessage } from '../utils/errorUtils';
 
 export class AffinityService {
   private db: Pool;
@@ -392,7 +393,7 @@ export class AffinityService {
         this.logger.warn('Failed to award weapon affinity experience', {
           characterId,
           weaponAffinity,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? getErrorMessage(error) : 'Unknown error'
         });
       }
     }
@@ -419,7 +420,7 @@ export class AffinityService {
         this.logger.warn('Failed to award magic affinity experience', {
           characterId,
           magicAffinity,
-          error: error instanceof Error ? error.message : 'Unknown error'
+          error: error instanceof Error ? getErrorMessage(error) : 'Unknown error'
         });
       }
     }
@@ -485,7 +486,8 @@ export class AffinityService {
       total_experience: result.total_experience,
       experience_to_next_tier: result.experience_to_next_tier,
       timestamp: new Date()
-    };
+      return;
+};
 
     // Broadcast to character's socket rooms
     this.realtimeService.broadcastToUser(characterId, 'affinity:levelup', event);
@@ -511,7 +513,8 @@ export class AffinityService {
       bonus_percentage: result.bonus_percentage,
       source,
       timestamp: new Date()
-    };
+      return;
+};
 
     this.realtimeService.broadcastToUser(characterId, 'affinity:exp_gain', event);
   }
@@ -521,7 +524,8 @@ export class AffinityService {
    */
   private async invalidateAffinityCache(characterId: string): Promise<void> {
     const patterns = [
-      `character:affinities:${characterId}`,
+      `character:affinities:${characterId  return;
+}`,
       `affinity:bonus:${characterId}:*`
     ];
 

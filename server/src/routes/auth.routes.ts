@@ -8,6 +8,7 @@ import {
   resetPasswordSchema
 } from '../types/index';
 import winston from 'winston';
+import { getErrorMessage } from '../utils/errorUtils';
 
 const router = Router();
 const authService = new AuthService();
@@ -17,7 +18,7 @@ const validateRequest = (schema: any, data: any) => {
   try {
     return { success: true, data: schema.parse(data) };
   } catch (error) {
-    return { success: false, error: error.errors || error.message };
+    return { success: false, error: error.errors || getErrorMessage(error) };
   }
 };
 

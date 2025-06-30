@@ -5,6 +5,7 @@
 
 import { Pool } from 'pg';
 import { logger } from '../utils/logger';
+import { getErrorMessage } from '../utils/errorUtils';
 
 export interface WeaponStats {
   id: string;
@@ -71,7 +72,7 @@ export class EquipmentService {
     } catch (error) {
       logger.error('Failed to get weapon coefficient', {
         characterId,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
       return 1.0; // Safe default
     }
@@ -97,7 +98,7 @@ export class EquipmentService {
     } catch (error) {
       logger.error('Failed to get equipped weapon', {
         characterId,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
       return null;
     }
@@ -124,7 +125,7 @@ export class EquipmentService {
     } catch (error) {
       logger.error('Failed to get equipped items', {
         characterId,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
       return [];
     }
@@ -143,7 +144,7 @@ export class EquipmentService {
     } catch (error) {
       logger.error('Failed to get armor coefficient', {
         characterId,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
       return 1.0; // Safe default
     }
@@ -162,7 +163,7 @@ export class EquipmentService {
       logger.error('Failed to check equipped item', {
         characterId,
         slot,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
       return false;
     }

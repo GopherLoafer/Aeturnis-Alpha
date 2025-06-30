@@ -7,6 +7,7 @@ import { Router } from 'express';
 import { CharacterController } from '../controllers/CharacterController';
 import { AuthMiddleware } from '../middleware/auth';
 import { chatRateLimit, authRateLimit } from '../middleware/rateLimitRedis';
+import { getErrorMessage } from '../utils/errorUtils';
 
 export function createCharacterRoutes(characterController: CharacterController): Router {
   const router = Router();

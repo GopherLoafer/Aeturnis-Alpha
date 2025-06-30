@@ -7,6 +7,7 @@ import { Router } from 'express';
 import { ProgressionController } from '../controllers/ProgressionController';
 import { AuthMiddleware } from '../middleware/auth';
 import { authRateLimit, chatRateLimit } from '../middleware/rateLimitRedis';
+import { getErrorMessage } from '../utils/errorUtils';
 
 export function createProgressionRoutes(progressionController: ProgressionController): Router {
   const router = Router();

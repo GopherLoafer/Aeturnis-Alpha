@@ -9,6 +9,7 @@ import jwt from 'jsonwebtoken';
 import { getRedis } from '../../config/database';
 import { logger } from '../../utils/logger';
 import { config } from '../../config/environment';
+import { getErrorMessage } from '../utils/errorUtils';
 
 export interface SocketWithAuth extends Socket {
   userId: string;
@@ -125,7 +126,7 @@ export async function authenticateSocket(
       logger.warn('Socket authentication failed: Invalid token', {
         socketId: socket.id,
         ip: socket.handshake.address,
-        error: error.message,
+        error: getErrorMessage(error),
         authTime,
       });
       
@@ -135,7 +136,7 @@ export async function authenticateSocket(
     logger.error('Socket authentication error', {
       socketId: socket.id,
       ip: socket.handshake.address,
-      error: error instanceof Error ? error.message : error,
+      error: error instanceof Error ? getErrorMessage(error) : error,
       stack: error instanceof Error ? error.stack : undefined,
       authTime,
     });
@@ -199,7 +200,7 @@ async function checkTokenBlacklist(token: string): Promise<boolean> {
     return result === 1;
   } catch (error) {
     logger.error('Failed to check token blacklist', {
-      error: error instanceof Error ? error.message : error,
+      error: error instanceof Error ? getErrorMessage(error) : error,
     });
     
     // Fail open - if Redis is down, allow the connection
@@ -249,7 +250,7 @@ async function checkRateLimit(socket: Socket): Promise<{
 
   } catch (error) {
     logger.error('Failed to check auth rate limit', {
-      error: error instanceof Error ? error.message : error,
+      error: error instanceof Error ? getErrorMessage(error) : error,
     });
     
     // Fail open - if Redis is down, allow the connection
@@ -278,7 +279,7 @@ async function trackFailedAttempt(socket: Socket): Promise<void> {
 
   } catch (error) {
     logger.error('Failed to track failed auth attempt', {
-      error: error instanceof Error ? error.message : error,
+      error: error instanceof Error ? getErrorMessage(error) : error,
     });
   }
 }
@@ -293,7 +294,7 @@ async function clearFailedAttempts(socket: Socket): Promise<void> {
 
   } catch (error) {
     logger.error('Failed to clear failed auth attempts', {
-      error: error instanceof Error ? error.message : error,
+      error: error instanceof Error ? getErrorMessage(error) : error,
     });
   }
 }
@@ -322,7 +323,7 @@ async function trackSuccessfulAuth(socket: Socket, payload: TokenPayload): Promi
 
   } catch (error) {
     logger.error('Failed to track successful auth', {
-      error: error instanceof Error ? error.message : error,
+      error: error instanceof Error ? getErrorMessage(error) : error,
     });
   }
 }

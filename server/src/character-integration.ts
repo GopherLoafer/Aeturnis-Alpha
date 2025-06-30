@@ -10,6 +10,7 @@ import { CharacterController } from './controllers/CharacterController';
 import { CacheManager } from './services/CacheManager';
 import { createCharacterRoutes } from './routes/character.routes';
 import { logger } from './utils/logger';
+import { getErrorMessage } from '../utils/errorUtils';
 
 export interface CharacterSystemConfig {
   app: Application;
@@ -54,7 +55,7 @@ export class CharacterSystemIntegration {
       });
     } catch (error) {
       logger.error('Failed to initialize character system', {
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
       throw error;
     }

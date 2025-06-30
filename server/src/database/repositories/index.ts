@@ -8,6 +8,7 @@ import { getDatabase } from '../../config/database';
 import { CharacterRepository } from './CharacterRepository';
 import { CombatRepository } from './CombatRepository';
 import { ChatRepository } from './ChatRepository';
+import { getErrorMessage } from '../utils/errorUtils';
 
 export class RepositoryService {
   private static instance: RepositoryService;

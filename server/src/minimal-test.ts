@@ -4,13 +4,14 @@
 
 import express from 'express';
 import { config } from './config/environment';
+import { getErrorMessage } from '../utils/errorUtils';
 
 console.log('Starting minimal Express test...');
 
 const app = express();
 
 // Basic health endpoint
-app.get('/health', (req, res) => {
+app.get('/health', (req: any, res: any) => {
   res.json({ 
     success: true, 
     message: 'Server is healthy',
@@ -26,7 +27,7 @@ const server = app.listen(config.PORT, config.HOST, () => {
 });
 
 server.on('error', (error: any) => {
-  console.error('❌ Server error:', error.message);
+  console.error('❌ Server error:', getErrorMessage(error));
   process.exit(1);
 });
 

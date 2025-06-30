@@ -9,6 +9,7 @@ import { RoomManager } from '../rooms/RoomManager';
 import { PresenceManager } from '../presence/PresenceManager';
 import { logger } from '../../utils/logger';
 import { repositories } from '../../database/repositories';
+import { getErrorMessage } from '../utils/errorUtils';
 
 const roomManager = new RoomManager();
 const presenceManager = new PresenceManager();
@@ -111,7 +112,7 @@ export function registerCharacterHandlers(io: SocketIOServer, socket: SocketWith
         socketId: socket.id,
         userId: socket.userId,
         characterId: data.characterId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
 
       socket.emit('character:error', {
@@ -192,7 +193,7 @@ export function registerCharacterHandlers(io: SocketIOServer, socket: SocketWith
         socketId: socket.id,
         userId: socket.userId,
         characterId: socket.characterId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
 
       socket.emit('character:error', {
@@ -263,7 +264,7 @@ export function registerCharacterHandlers(io: SocketIOServer, socket: SocketWith
         userId: socket.userId,
         characterId: socket.characterId,
         action: data.action,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
 
       socket.emit('character:error', {
@@ -301,7 +302,7 @@ export function registerCharacterHandlers(io: SocketIOServer, socket: SocketWith
       logger.error('Character status update error', {
         socketId: socket.id,
         characterId: socket.characterId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
     }
   });
@@ -320,7 +321,7 @@ async function validateCharacterOwnership(userId: string, characterId: string): 
     logger.error('Failed to validate character ownership', {
       userId,
       characterId,
-      error: error instanceof Error ? error.message : error,
+      error: error instanceof Error ? getErrorMessage(error) : error,
     });
     return false;
   }
@@ -359,7 +360,7 @@ async function loadCharacterData(characterId: string, userId: string): Promise<a
   } catch (error) {
     logger.error('Failed to load character data', {
       characterId,
-      error: error instanceof Error ? error.message : error,
+      error: error instanceof Error ? getErrorMessage(error) : error,
     });
     return null;
   }
@@ -379,7 +380,7 @@ async function updateCharacterPosition(characterId: string, movement: MovementDa
     logger.error('Failed to update character position', {
       characterId,
       movement,
-      error: error instanceof Error ? error.message : error,
+      error: error instanceof Error ? getErrorMessage(error) : error,
     });
     throw error;
   }
@@ -453,7 +454,7 @@ async function broadcastAction(socket: SocketWithAuth, actionResult: any): Promi
     logger.error('Failed to broadcast action', {
       socketId: socket.id,
       characterId: socket.characterId,
-      error: error instanceof Error ? error.message : error,
+      error: error instanceof Error ? getErrorMessage(error) : error,
     });
   }
 }

@@ -6,6 +6,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { redisService } from '../services/RedisService';
 import { logger } from '../utils/logger';
+import { getErrorMessage } from '../utils/errorUtils';
 
 export interface RateLimitConfig {
   windowMs: number;
@@ -97,7 +98,7 @@ export class RedisRateLimiter {
         next();
       } catch (error) {
         logger.error('Rate limiting error', {
-          error: error.message,
+          error: getErrorMessage(error),
           ip: req.ip
         });
         // On error, allow the request to proceed
@@ -190,7 +191,7 @@ export class RedisRateLimiter {
     } catch (error) {
       logger.error('Error getting rate limit status', {
         key,
-        error: error.message
+        error: getErrorMessage(error)
       });
       
       // Return permissive values on error
@@ -216,7 +217,7 @@ export class RedisRateLimiter {
     } catch (error) {
       logger.error('Error resetting rate limit', {
         key,
-        error: error.message
+        error: getErrorMessage(error)
       });
       return false;
     }
@@ -271,7 +272,7 @@ export class RedisRateLimiter {
       return cleanedCount;
     } catch (error) {
       logger.error('Error cleaning up rate limit entries', {
-        error: error.message
+        error: getErrorMessage(error)
       });
       return 0;
     }

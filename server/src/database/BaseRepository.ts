@@ -1,5 +1,6 @@
 import { PoolClient, QueryResult } from 'pg';
 import { queries, TypedQueries, QueryOptions } from './index';
+import { getErrorMessage } from '../utils/errorUtils';
 
 export interface PaginationOptions {
   page?: number;
@@ -418,7 +419,8 @@ export abstract class BaseRepository<T = any, CreateT = Partial<T>, UpdateT = Pa
         auditInfo.userAgent || null
       ]
     );
-  }
+    return;
+}
 }
 
 export default BaseRepository;

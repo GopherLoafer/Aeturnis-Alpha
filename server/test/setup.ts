@@ -5,6 +5,7 @@
 
 import { config } from 'dotenv';
 import { logger } from '../src/utils/logger';
+import { getErrorMessage } from '../utils/errorUtils';
 
 // Load test environment variables
 config({ path: '.env.test' });

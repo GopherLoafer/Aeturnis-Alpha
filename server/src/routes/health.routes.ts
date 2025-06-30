@@ -8,6 +8,7 @@ import { createHealthCheckResponse } from '../utils/response';
 import { testDatabaseConnection } from '../config/database';
 import { logger } from '../utils/logger';
 import { config } from '../config/environment';
+import { getErrorMessage } from '../utils/errorUtils';
 
 const router = Router();
 
@@ -32,7 +33,7 @@ const checkDatabase = async (): Promise<{ status: 'up' | 'down' | 'degraded'; re
     return {
       status: 'down',
       responseTime,
-      message: error instanceof Error ? error.message : 'Unknown error',
+      message: error instanceof Error ? getErrorMessage(error) : 'Unknown error',
       lastChecked: new Date().toISOString(),
     };
   }
@@ -82,7 +83,7 @@ const checkRedis = async (): Promise<{ status: 'up' | 'down' | 'degraded'; respo
     return {
       status: 'down',
       responseTime,
-      message: error instanceof Error ? error.message : 'Redis service unavailable',
+      message: error instanceof Error ? getErrorMessage(error) : 'Redis service unavailable',
       lastChecked: new Date().toISOString(),
     };
   }
@@ -158,7 +159,7 @@ router.get('/health', async (req: Request, res: Response) => {
     res.status(statusCode).json(healthResponse);
   } catch (error) {
     logger.error('Health check failed', {
-      error: error instanceof Error ? error.message : error,
+      error: error instanceof Error ? getErrorMessage(error) : error,
       stack: error instanceof Error ? error.stack : undefined,
     });
 
@@ -202,7 +203,7 @@ router.get('/health/ready', async (req: Request, res: Response) => {
     res.status(503).json({
       status: 'not_ready',
       timestamp: new Date().toISOString(),
-      error: error instanceof Error ? error.message : 'Unknown error',
+      error: error instanceof Error ? getErrorMessage(error) : 'Unknown error',
     });
   }
 });
@@ -267,7 +268,7 @@ router.get('/health/detailed', async (req: Request, res: Response) => {
     res.status(statusCode).json(healthResponse);
   } catch (error) {
     logger.error('Detailed health check failed', {
-      error: error instanceof Error ? error.message : error,
+      error: error instanceof Error ? getErrorMessage(error) : error,
       stack: error instanceof Error ? error.stack : undefined,
     });
 
@@ -295,7 +296,7 @@ router.get('/health/database', async (req: Request, res: Response) => {
     res.status(503).json({
       service: 'database',
       status: 'down',
-      message: error instanceof Error ? error.message : 'Unknown error',
+      message: error instanceof Error ? getErrorMessage(error) : 'Unknown error',
       lastChecked: new Date().toISOString(),
     });
   }
@@ -317,7 +318,7 @@ router.get('/health/redis', async (req: Request, res: Response) => {
     res.status(503).json({
       service: 'redis',
       status: 'down',
-      message: error instanceof Error ? error.message : 'Unknown error',
+      message: error instanceof Error ? getErrorMessage(error) : 'Unknown error',
       lastChecked: new Date().toISOString(),
     });
   }

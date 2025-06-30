@@ -5,6 +5,7 @@
 
 import { Pool, PoolClient } from 'pg';
 import { logger } from '../../utils/logger';
+import { getErrorMessage } from '../utils/errorUtils';
 
 export interface ChatChannel {
   id: number;
@@ -89,7 +90,7 @@ export class ChatRepository {
     } catch (error) {
       logger.error('Failed to get chat channel', {
         channelId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -114,7 +115,7 @@ export class ChatRepository {
     } catch (error) {
       logger.error('Failed to get chat channel by name', {
         name,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -154,7 +155,7 @@ export class ChatRepository {
     } catch (error) {
       logger.error('Failed to create chat message', {
         data,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -186,7 +187,7 @@ export class ChatRepository {
         channelId,
         limit,
         offset,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -212,7 +213,7 @@ export class ChatRepository {
       logger.error('Failed to check channel membership', {
         channelId,
         userId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -261,7 +262,7 @@ export class ChatRepository {
       logger.error('Failed to join channel', {
         channelId,
         userId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -295,7 +296,7 @@ export class ChatRepository {
       logger.error('Failed to create direct message', {
         senderId,
         recipientId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -324,7 +325,7 @@ export class ChatRepository {
       logger.error('Failed to get conversation', {
         userId1,
         userId2,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -348,7 +349,8 @@ export class ChatRepository {
           messageId,
           reason,
           flaggedBy,
-        });
+          return;
+});
       } finally {
         client.release();
       }
@@ -357,7 +359,7 @@ export class ChatRepository {
         messageId,
         reason,
         flaggedBy,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -382,7 +384,7 @@ export class ChatRepository {
       }
     } catch (error) {
       logger.error('Failed to get public channels', {
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }
@@ -407,7 +409,7 @@ export class ChatRepository {
     } catch (error) {
       logger.error('Failed to get zone channels', {
         zoneId,
-        error: error instanceof Error ? error.message : error,
+        error: error instanceof Error ? getErrorMessage(error) : error,
       });
       throw error;
     }

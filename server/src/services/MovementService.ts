@@ -9,6 +9,7 @@ import { ZoneService } from './ZoneService';
 import { CacheManager } from './CacheManager';
 import { RealtimeService } from '../services/RealtimeService';
 import {
+import { getErrorMessage } from '../utils/errorUtils';
   MoveResult,
   Direction,
   MovementValidation,
@@ -144,7 +145,7 @@ export class MovementService {
       logger.error('Character movement failed', {
         characterId,
         direction,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
       
       throw error;
@@ -285,7 +286,7 @@ export class MovementService {
         characterId,
         zoneId,
         direction,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
       
       return {
@@ -394,7 +395,8 @@ export class MovementService {
 
       // Clear character cache
       await this.clearCharacterCache(characterId);
-    } catch (error) {
+      return;
+} catch (error) {
       await client.query('ROLLBACK');
       throw error;
     } finally {
@@ -443,7 +445,7 @@ export class MovementService {
         fromZoneId,
         toZoneId,
         direction,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
     }
   }
@@ -479,7 +481,8 @@ export class MovementService {
           characterId,
           message: `A character has left the area.`,
           timestamp: Date.now()
-        });
+          return;
+});
       }
 
       // Broadcast zone entry to new zone
@@ -495,7 +498,7 @@ export class MovementService {
         characterId,
         fromZoneId,
         toZoneId,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
     }
   }
@@ -591,7 +594,7 @@ export class MovementService {
       logger.error('Character teleport failed', {
         characterId,
         targetZoneId,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
       throw error;
     }
@@ -626,7 +629,7 @@ export class MovementService {
         characterId,
         fromZoneId,
         toZoneId,
-        error: error instanceof Error ? error.message : error
+        error: error instanceof Error ? getErrorMessage(error) : error
       });
     }
   }
@@ -636,7 +639,8 @@ export class MovementService {
    */
   private async clearCharacterCache(characterId: string): Promise<void> {
     const cacheKeys = [
-      `character_location:${characterId}`,
+      `character_location:${characterId  return;
+}`,
       `character_info:${characterId}`
     ];
     

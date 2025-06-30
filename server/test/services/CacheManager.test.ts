@@ -5,6 +5,7 @@
 // Jest testing framework is globally available
 import { CacheManager } from '../../src/services/CacheManager';
 import { redisService } from '../../src/services/RedisService';
+import { getErrorMessage } from '../utils/errorUtils';
 
 // Mock Redis service
 jest.mock('../../src/services/RedisService', () => ({

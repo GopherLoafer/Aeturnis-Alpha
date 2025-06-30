@@ -6,6 +6,7 @@
 import request from 'supertest';
 import { createApp } from '../../src/app';
 import { Application } from 'express';
+import { getErrorMessage } from '../utils/errorUtils';
 
 describe('API Integration Tests', () => {
   let app: Application;
