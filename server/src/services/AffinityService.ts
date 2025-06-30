@@ -6,6 +6,7 @@
 import { Pool } from 'pg';
 import { CacheManager } from './CacheManager';
 import { RealtimeService } from './RealtimeService';
+import { SlidingWindowLimiter } from '../utils/slidingWindowLimiter';
 import {
   Affinity,
   CharacterAffinity,
@@ -24,6 +25,7 @@ export class AffinityService {
   private db: Pool;
   private cacheManager: CacheManager;
   private realtimeService: RealtimeService;
+  private slidingWindowLimiter: SlidingWindowLimiter;
   private logger: winston.Logger;
 
   constructor(
@@ -34,6 +36,7 @@ export class AffinityService {
     this.db = db;
     this.cacheManager = cacheManager;
     this.realtimeService = realtimeService;
+    this.slidingWindowLimiter = new SlidingWindowLimiter(cacheManager);
     this.logger = winston.createLogger({
       level: 'info',
       format: winston.format.combine(
@@ -54,7 +57,33 @@ export class AffinityService {
     source: string = 'combat',
     sessionId?: string
   ): Promise<AffinityResult> {
-    // Rate limiting check
+    // Max experience guard
+    if (amount > BigInt(AFFINITY_CONSTANTS.MAX_EXP_AWARD)) {
+      throw new AffinityError(
+        `Experience amount ${amount} exceeds maximum allowed (${AFFINITY_CONSTANTS.MAX_EXP_AWARD})`,
+        AFFINITY_ERRORS.INVALID_EXPERIENCE_AMOUNT,
+        400
+      );
+    }
+
+    // Sliding window rate limiting check
+    const slidingWindowResult = await this.slidingWindowLimiter.checkLimit(
+      `affinity:window:${characterId}`,
+      {
+        windowSize: AFFINITY_CONSTANTS.SLIDING_WINDOW_DURATION,
+        maxRequests: AFFINITY_CONSTANTS.SLIDING_WINDOW_LIMIT
+      }
+    );
+
+    if (!slidingWindowResult.allowed) {
+      throw new AffinityError(
+        `Experience award rate limited. ${slidingWindowResult.remaining} requests remaining. Reset at ${new Date(slidingWindowResult.resetTime).toISOString()}`,
+        AFFINITY_ERRORS.RATE_LIMITED,
+        429
+      );
+    }
+
+    // Per-affinity cooldown check
     const rateLimitKey = `affinity:ratelimit:${characterId}:${affinityName}`;
     const isRateLimited = await this.cacheManager.get(rateLimitKey);
     
@@ -66,8 +95,8 @@ export class AffinityService {
       );
     }
 
-    // Set rate limit
-    await this.cacheManager.set(rateLimitKey, 'true', AFFINITY_CONSTANTS.EXP_AWARD_COOLDOWN / 1000);
+    // Set per-affinity rate limit
+    await this.cacheManager.set(rateLimitKey, 'true', { ttl: AFFINITY_CONSTANTS.EXP_AWARD_COOLDOWN / 1000 });
 
     const client = await this.db.connect();
     
@@ -156,8 +185,8 @@ export class AffinityService {
 
       await client.query('COMMIT');
 
-      // Cache invalidation
-      await this.invalidateAffinityCache(characterId);
+      // Granular cache invalidation - only invalidate specific affinity
+      await this.cacheManager.delete(`affinity:${characterId}:${affinityName}`);
 
       // Real-time events
       if (result.tier_up) {

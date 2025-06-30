@@ -101,7 +101,10 @@ export const AFFINITY_CONSTANTS = {
   MIN_TIER: 1,
   
   // Rate limiting
-  EXP_AWARD_COOLDOWN: 500, // 500ms between awards per affinity
+  EXP_AWARD_COOLDOWN: 1500, // 1500ms between awards per affinity
+  MAX_EXP_AWARD: 10000, // Maximum experience per single award
+  SLIDING_WINDOW_LIMIT: 10, // Max 10 awards per minute per character
+  SLIDING_WINDOW_DURATION: 60, // 60 seconds window
   
   // Experience award amounts
   COMBAT_BASE_EXP: 10,
