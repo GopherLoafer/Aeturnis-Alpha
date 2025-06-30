@@ -21,6 +21,7 @@ function autoOrganizeReports() {
       file.includes('Implementation Report.md') ||
       file.includes('_IMPLEMENTATION_REPORTS.md') ||
       file.includes('Validation Report.md') ||
+      file.startsWith('_implementation_report_') ||
       /Step \d+\.\d+: .* - Implementation Report\.md/.test(file)
     );
   
