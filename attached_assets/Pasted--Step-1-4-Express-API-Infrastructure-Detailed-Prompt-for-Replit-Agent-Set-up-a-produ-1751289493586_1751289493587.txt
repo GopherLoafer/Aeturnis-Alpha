@@ -1,0 +1,99 @@
+### Step 1.4: Express API Infrastructure
+**Detailed Prompt for Replit Agent:**
+```
+Set up a production-ready Express API with enterprise-grade middleware and error handling:
+
+MAIN SERVER FILE (src/index.ts):
+Initialize Express application with:
+
+1. Environment Configuration:
+   - Load and validate environment variables using Joi schema
+   - Set different configs for development/staging/production
+   - Fail fast if required variables are missing
+   - Support .env.local for local overrides
+
+2. Security Middleware Stack (in order):
+   - Helmet with custom CSP policy for game assets
+   - CORS with dynamic origin validation based on environment
+   - Rate limiting: Global 100/15min, Auth endpoints 5/15min, API 1000/15min
+   - Request size limit: JSON 10mb, URL-encoded 10mb
+   - XSS protection and SQL injection prevention
+   - CSRF protection for state-changing operations
+
+3. Request Processing:
+   - Compression with threshold 1kb
+   - JSON and URL-encoded body parsing
+   - Request ID generation using UUID
+   - Request/Response logging with Winston
+   - API versioning through headers and URL
+
+4. Custom Middleware:
+   - Request context (ID, timestamp, user info)
+   - Performance monitoring (response time)
+   - API key validation for external access
+   - Maintenance mode with bypass for admins
+
+ERROR HANDLING SYSTEM (src/middleware/errorHandler.ts):
+Create comprehensive error handling:
+
+1. Custom Error Classes:
+   class AppError extends Error {
+     statusCode: number
+     code: string
+     isOperational: boolean
+   }
+   
+   - ValidationError (400)
+   - AuthenticationError (401)
+   - AuthorizationError (403)
+   - NotFoundError (404)
+   - ConflictError (409)
+   - RateLimitError (429)
+   - DatabaseError (500)
+
+2. Global Error Handler:
+   - Catch all errors (sync and async)
+   - Log full error with stack trace
+   - Send appropriate response based on environment
+   - Track error metrics
+   - Notify admins for critical errors
+   - Handle database connection errors
+   - Handle unhandled rejections
+
+3. Async Error Wrapper:
+   - Wrap all async route handlers
+   - Properly propagate errors to global handler
+   - Maintain request context
+
+VALIDATION SYSTEM (src/middleware/validation.ts):
+Implement request validation:
+- Use express-validator for input validation
+- Create reusable validation chains
+- Sanitize inputs (trim, escape HTML)
+- Custom validators for game-specific rules
+- Return detailed validation errors
+
+RESPONSE FORMATTING (src/utils/response.ts):
+Standardize API responses:
+- Success: { success: true, data: any, meta?: any }
+- Error: { success: false, error: { code: string, message: string, details?: any } }
+- Pagination: { data: [], pagination: { page, limit, total, hasNext } }
+- Include request ID in all responses
+
+HEALTH CHECK ENDPOINT (src/routes/health.routes.ts):
+GET /health - Returns:
+- API status
+- Database connectivity
+- Redis connectivity  
+- Memory usage
+- Uptime
+- Version info
+
+DOCUMENTATION:
+- Use JSDoc comments for all endpoints
+- Generate OpenAPI/Swagger documentation
+- Include request/response examples
+- Document error codes
+
+Create modular route structure where each feature has its own route file, and all routes are aggregated in a central router.
+```
