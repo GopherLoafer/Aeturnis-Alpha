@@ -41,35 +41,48 @@ const checkDatabase = async (): Promise<{ status: 'up' | 'down' | 'degraded'; re
 /**
  * Test Redis connectivity (if configured)
  */
-const checkRedis = async (): Promise<{ status: 'up' | 'down' | 'degraded'; responseTime?: number; message?: string; lastChecked: string }> => {
-  if (!config.REDIS_URL && !config.REDIS_HOST) {
-    return {
-      status: 'up',
-      message: 'Redis not configured',
-      lastChecked: new Date().toISOString(),
-    };
-  }
-
+const checkRedis = async (): Promise<{ status: 'up' | 'down' | 'degraded'; responseTime?: number; message?: string; lastChecked: string; stats?: any }> => {
   const startTime = Date.now();
   
   try {
-    // Import Redis client here to avoid issues if Redis is not configured
-    const { testRedisConnection } = await import('../config/database');
-    const isConnected = await testRedisConnection();
+    const { redisService } = await import('../services/RedisService');
+    const { cacheManager } = await import('../services/CacheManager');
+    
+    // Test Redis connection health
+    const healthCheck = await redisService.healthCheck();
     const responseTime = Date.now() - startTime;
     
-    return {
-      status: isConnected ? 'up' : 'down',
-      responseTime,
-      message: isConnected ? 'Connected successfully' : 'Connection failed',
-      lastChecked: new Date().toISOString(),
-    };
+    if (healthCheck.status === 'healthy') {
+      // Get cache statistics
+      const cacheStats = await cacheManager.getStats();
+      
+      return {
+        status: 'up',
+        responseTime: healthCheck.latency || responseTime,
+        message: 'Redis and cache services operational',
+        lastChecked: new Date().toISOString(),
+        stats: {
+          connection: {
+            isHealthy: redisService.isHealthy(),
+            latency: healthCheck.latency
+          },
+          cache: cacheStats
+        }
+      };
+    } else {
+      return {
+        status: 'down',
+        responseTime,
+        message: healthCheck.error || 'Redis connection failed',
+        lastChecked: new Date().toISOString(),
+      };
+    }
   } catch (error) {
     const responseTime = Date.now() - startTime;
     return {
       status: 'down',
       responseTime,
-      message: error instanceof Error ? error.message : 'Unknown error',
+      message: error instanceof Error ? error.message : 'Redis service unavailable',
       lastChecked: new Date().toISOString(),
     };
   }

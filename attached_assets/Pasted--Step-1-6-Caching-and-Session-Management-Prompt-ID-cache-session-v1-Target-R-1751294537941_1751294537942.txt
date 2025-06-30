@@ -1,0 +1,95 @@
+# 🔄 Step 1.6 – Caching and Session Management
+
+**Prompt ID:** `cache-session-v1`  
+**Target:** Replit Agent AI  
+**From:** Claude  
+**Purpose:** Implement Redis-based caching, session handling, and distributed locking for Aeturnis Online
+
+---
+
+## 🧠 Context
+
+You are implementing a production-grade Redis caching and session management system for a multiplayer MMORPG. This will support fast-access user data, session persistence, and rate limiting. Use Redis directly and create abstraction classes for use across services.
+
+---
+
+## 📦 Requirements
+
+### 1. Redis Connection Wrapper (`src/services/RedisService.ts`)
+- Create a class to manage Redis connections
+- Include connection retry logic, exponential backoff, event logging
+- Support graceful shutdown
+- Provide `healthCheck()` method
+
+### 2. Cache Manager (`src/services/CacheManager.ts`)
+- `get<T>(key)`
+- `set(key, value, ttl)`
+- `delete(key)`
+- `exists(key)`
+- `mget/mset` for bulk
+- `deletePattern(pattern)`
+- `increment/decrement`
+- `addToSet/getSetMembers`
+- `pushToList/getList`
+- Auto JSON serialize/deserialize
+
+### 3. Session Manager (`src/services/SessionManager.ts`)
+- `createSession(userId, metadata)`
+- `getSession(sessionId)`
+- `extendSession(sessionId)`
+- `destroySession(sessionId)`
+- TTL-based session expiration (30 mins sliding)
+- Store userId, characterId, timestamps, metadata
+
+### 4. Rate Limiting (Middleware)
+- Sliding window algorithm
+- Per-IP and per-user support
+- Use Redis for counters and TTLs
+- Track: auth attempts, chat spam, combat actions, movement frequency
+
+### 5. Distributed Locking (`src/utils/distributedLock.ts`)
+- Use Redlock pattern
+- `acquireLock(resource, ttl)`
+- `releaseLock(lock)`
+- `withLock(resource, ttl, fn)`
+
+### 6. Cache Key Naming Conventions
+
+```
+user:{userId}:profile
+char:{charId}:data
+session:{sessionId}
+ratelimit:{userId}:{action}
+temp:{purpose}:{id}
+leaderboard:{type}
+```
+
+### 7. Patterns to Implement
+- Cache-Aside pattern
+- Write-Through pattern
+- Cache warming hooks (on boot)
+- Predictive refresh (for hot data)
+
+---
+
+## 🔐 Security + Quality
+
+- Sanitize all inputs to Redis
+- Prevent accidental global flushes
+- TTLs required for ephemeral keys
+- Log all Redis errors
+- Unit tests for CacheManager and SessionManager
+- Integrate health into `/health` endpoint
+
+---
+
+## 📎 Output
+
+- All code in `server/src/services/` and `utils/`
+- Tests in `server/test/`
+- Update `.env.example` if new config is needed
+- Generate sample usage in `README.md` if needed
+
+---
+
+Begin implementation and generate a report when done.
