@@ -1,0 +1,106 @@
+# 🔁 Step 2.3 – Infinite Progression System
+
+**Prompt ID:** `progression-system-v1`  
+**From:** Claude  
+**To:** Replit Agent AI  
+**Purpose:** Build scalable level progression system with experience curve, stat rewards, and milestone tracking
+
+---
+
+## 🎯 Overview
+
+Implement an infinite character leveling system for Aeturnis Online that supports exponential experience scaling, phase-based titles/bonuses, stat point rewards, and milestone triggers. This system should support billions of XP, handle long-term player growth, and provide rich reward mechanics.
+
+---
+
+## 📦 Requirements
+
+### 1. ProgressionService (`src/services/ProgressionService.ts`)
+
+```ts
+class ProgressionService {
+  calculateExpForLevel(level: number): bigint
+  calculateTotalExpForLevel(level: number): bigint
+  getProgressionPhase(level: number): ProgressionPhase
+  awardExperience(characterId: string, amount: bigint, source: string): Promise<ExperienceAwardResult>
+}
+```
+
+- Use exponential EXP curve (`baseExp * (1.15 ^ level)`)
+- Use BigInt/Decimal.js for high-level precision
+- Calculate total cumulative EXP for level-up checks
+
+---
+
+### 2. Progression Phases
+
+Define named brackets:
+```ts
+[
+  { level: 1–25, name: 'Novice', bonusMultiplier: 1.0, title: 'the Novice' },
+  { level: 26–50, name: 'Apprentice', bonusMultiplier: 1.1, title: 'the Apprentice' },
+  { level: 51–100, name: 'Journeyman', bonusMultiplier: 1.25, title: 'the Journeyman' },
+  { level: 101–200, name: 'Expert', bonusMultiplier: 1.5, title: 'the Expert' },
+  { level: 201–500, name: 'Master', bonusMultiplier: 2.0, title: 'the Master' },
+  { level: 501–1000, name: 'Grandmaster', bonusMultiplier: 3.0, title: 'the Grandmaster' },
+  { level: 1001+, name: 'Legendary', bonusMultiplier: 5.0, title: 'of Legend' }
+]
+```
+
+Each phase should:
+- Grant a title if not already earned
+- Apply bonus EXP multiplier
+- Increase stat point reward per level
+
+---
+
+### 3. EXP Award Logic
+
+In `awardExperience`:
+- Load character and current race bonuses
+- Calculate final EXP: `amount * race_bonus * phase_bonus`
+- Determine new level based on total EXP
+- If leveled up:
+  - Add stat points
+  - Award title
+  - Trigger milestone rewards if thresholds passed
+
+---
+
+### 4. Milestone Rewards
+
+- Trigger on level thresholds (10, 25, 50, 100, 250, etc.)
+- Log in `experience_log` table
+- Reward types: stat points, items, titles, gold
+- Define method: `awardLevelUpRewards(characterId, fromLevel, toLevel)`
+
+---
+
+### 5. Logging
+
+- Log all experience gains to `experience_log`
+- Include: characterId, amount, source, old level, new level, timestamp
+- If level changed, log in `level_up_log` or similar
+
+---
+
+## 🔐 Best Practices
+
+- Use transactions
+- Handle large EXP values with BigInt
+- Prevent overflows or infinite loops
+- Use constants for baseExp and scalingFactor
+- Provide fallbacks for missing character data
+
+---
+
+## 📎 Output Files
+
+- `src/services/ProgressionService.ts`
+- `src/types/progression.types.ts`
+- Update `src/types/character.types.ts` if needed
+- Optional: `src/repositories/ProgressionRepository.ts` for logs
+
+---
+
+Begin implementation and return a full report.
