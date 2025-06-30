@@ -8,6 +8,7 @@ import { logger } from '../utils/logger';
 import { CacheManager } from './CacheManager';
 import { RealtimeService } from './RealtimeService';
 import { EquipmentService } from './EquipmentService';
+import { AffinityService } from './AffinityService';
 import {
   CombatSession,
   CombatParticipant,
@@ -38,16 +39,19 @@ export class CombatService {
   private cacheManager: CacheManager;
   private realtimeService: RealtimeService;
   private equipmentService: EquipmentService;
+  private affinityService: AffinityService;
 
   constructor(
     db: Pool,
     cacheManager: CacheManager,
-    realtimeService: RealtimeService
+    realtimeService: RealtimeService,
+    affinityService: AffinityService
   ) {
     this.db = db;
     this.cacheManager = cacheManager;
     this.realtimeService = realtimeService;
     this.equipmentService = new EquipmentService(db);
+    this.affinityService = affinityService;
   }
 
   /**
@@ -239,6 +243,27 @@ export class CombatService {
       } else {
         // Advance turn
         await this.advanceTurn(sessionId);
+      }
+
+      // Award affinity experience for the action
+      if (actionResult.damage > 0 || actionResult.healing > 0) {
+        try {
+          await this.affinityService.awardCombatAffinityExp(
+            actorId,
+            actionRequest.actionName,
+            actionResult.damage,
+            actionResult.isCritical,
+            sessionId
+          );
+        } catch (affinityError) {
+          // Log error but don't fail combat
+          logger.warn('Failed to award affinity experience', {
+            sessionId,
+            actorId,
+            actionName: actionRequest.actionName,
+            error: affinityError instanceof Error ? affinityError.message : 'Unknown error'
+          });
+        }
       }
 
       // Get next turn info
@@ -566,7 +591,8 @@ export class CombatService {
         damage = await this.calculateAttackDamage(
           actorId, 
           actorStats.strength, 
-          targetStats?.vitality || 0
+          targetStats?.vitality || 0,
+          actionRequest.actionName
         );
         isCritical = Math.random() < this.calculateCriticalChance(actorStats.dexterity);
         if (isCritical) damage *= COMBAT_CONSTANTS.CRITICAL_DAMAGE_MULTIPLIER;
@@ -582,7 +608,12 @@ export class CombatService {
 
       case 'spell':
         mpCost = this.calculateMpCost(actionRequest.actionName);
-        damage = this.calculateSpellDamage(actorStats.intelligence, actorStats.level, actionRequest.actionName);
+        damage = await this.calculateSpellDamage(
+          actorId,
+          actorStats.intelligence, 
+          actorStats.level, 
+          actionRequest.actionName
+        );
         isCritical = Math.random() < this.calculateCriticalChance(actorStats.dexterity) * 1.5; // Spells have higher crit chance
         if (isCritical) damage *= COMBAT_CONSTANTS.CRITICAL_DAMAGE_MULTIPLIER;
         
@@ -592,7 +623,12 @@ export class CombatService {
 
       case 'heal':
         mpCost = this.calculateMpCost(actionRequest.actionName);
-        healing = this.calculateHealingAmount(actorStats.wisdom, actorStats.level);
+        healing = await this.calculateHealingAmount(
+          actorId,
+          actorStats.wisdom, 
+          actorStats.level,
+          actionRequest.actionName
+        );
         description = this.generateActionDescription('heal', actor, target || null, 0, false, false, false, undefined, healing);
         break;
 
@@ -645,12 +681,73 @@ export class CombatService {
   private async calculateAttackDamage(
     actorId: string, 
     strength: number, 
-    targetVitality: number
+    targetVitality: number,
+    actionName: string = 'basic_attack'
   ): Promise<number> {
     const weaponCoef = await this.equipmentService.getWeaponCoefficient(actorId);
+    
+    // Get weapon affinity from action name mapping
+    const weaponAffinity = this.getWeaponAffinityFromAction(actionName);
+    let affinityBonus = 0;
+    
+    if (weaponAffinity) {
+      try {
+        affinityBonus = await this.affinityService.getAffinityBonus(actorId, weaponAffinity);
+      } catch (error) {
+        // Log error but continue without bonus
+        logger.warn('Failed to get weapon affinity bonus', {
+          actorId,
+          weaponAffinity,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
+    }
+    
     const baseDamage = Math.max(1, (strength - targetVitality) * weaponCoef);
-    const variance = Math.floor(Math.random() * (baseDamage * COMBAT_CONSTANTS.DAMAGE_VARIANCE)) + 1;
-    return baseDamage + variance;
+    
+    // Apply affinity bonus (percentage increase)
+    const affinityMultiplier = 1 + (affinityBonus / 100);
+    const enhancedDamage = Math.floor(baseDamage * affinityMultiplier);
+    
+    const variance = Math.floor(Math.random() * (enhancedDamage * COMBAT_CONSTANTS.DAMAGE_VARIANCE)) + 1;
+    return enhancedDamage + variance;
+  }
+
+  /**
+   * Get weapon affinity from action name
+   */
+  private getWeaponAffinityFromAction(actionName: string): string | null {
+    const weaponMap: Record<string, string> = {
+      'basic_attack': 'sword',
+      'heavy_strike': 'sword',
+      'quick_slash': 'dagger',
+      'power_attack': 'axe',
+      'precise_shot': 'bow',
+      'staff_strike': 'staff',
+      'crushing_blow': 'mace',
+      'thrust': 'spear',
+      'martial_arts': 'unarmed'
+    };
+    
+    return weaponMap[actionName] || null;
+  }
+
+  /**
+   * Get magic affinity from spell name
+   */
+  private getMagicAffinityFromSpell(spellName: string): string | null {
+    const magicMap: Record<string, string> = {
+      'fireball': 'fire',
+      'heal': 'light',
+      'lightning_bolt': 'lightning',
+      'ice_shard': 'ice',
+      'stone_armor': 'earth',
+      'water_healing': 'water',
+      'shadow_strike': 'shadow',
+      'arcane_missile': 'arcane'
+    };
+    
+    return magicMap[spellName] || null;
   }
 
   /**
@@ -660,17 +757,71 @@ export class CombatService {
     return COMBAT_CONSTANTS.BASE_CRITICAL_CHANCE + (dexterity / COMBAT_CONSTANTS.DEXTERITY_CRIT_FACTOR);
   }
 
-  private calculateSpellDamage(intelligence: number, level: number, spellName: string): number {
+  private async calculateSpellDamage(
+    actorId: string,
+    intelligence: number, 
+    level: number, 
+    spellName: string
+  ): Promise<number> {
     const baseDamage = intelligence * 1.5 + level;
     const spellMultiplier = this.getSpellMultiplier(spellName);
-    const variance = Math.floor(Math.random() * (baseDamage * 0.2)) + 1;
-    return Math.floor((baseDamage + variance) * spellMultiplier);
+    
+    // Get magic affinity from spell name mapping
+    const magicAffinity = this.getMagicAffinityFromSpell(spellName);
+    let affinityBonus = 0;
+    
+    if (magicAffinity) {
+      try {
+        affinityBonus = await this.affinityService.getAffinityBonus(actorId, magicAffinity);
+      } catch (error) {
+        // Log error but continue without bonus
+        logger.warn('Failed to get magic affinity bonus', {
+          actorId,
+          magicAffinity,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
+    }
+    
+    // Apply affinity bonus (percentage increase)
+    const affinityMultiplier = 1 + (affinityBonus / 100);
+    const enhancedBaseDamage = Math.floor(baseDamage * affinityMultiplier);
+    
+    const variance = Math.floor(Math.random() * (enhancedBaseDamage * 0.2)) + 1;
+    return Math.floor((enhancedBaseDamage + variance) * spellMultiplier);
   }
 
-  private calculateHealingAmount(wisdom: number, level: number): number {
+  private async calculateHealingAmount(
+    actorId: string,
+    wisdom: number, 
+    level: number,
+    spellName: string = 'heal'
+  ): Promise<number> {
     const baseHealing = wisdom * 1.2 + level;
-    const variance = Math.floor(Math.random() * (baseHealing * 0.2)) + 1;
-    return Math.floor(baseHealing + variance);
+    
+    // Get magic affinity from spell name mapping
+    const magicAffinity = this.getMagicAffinityFromSpell(spellName);
+    let affinityBonus = 0;
+    
+    if (magicAffinity) {
+      try {
+        affinityBonus = await this.affinityService.getAffinityBonus(actorId, magicAffinity);
+      } catch (error) {
+        // Log error but continue without bonus
+        logger.warn('Failed to get magic affinity bonus for healing', {
+          actorId,
+          magicAffinity,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
+    }
+    
+    // Apply affinity bonus (percentage increase)
+    const affinityMultiplier = 1 + (affinityBonus / 100);
+    const enhancedHealing = Math.floor(baseHealing * affinityMultiplier);
+    
+    const variance = Math.floor(Math.random() * (enhancedHealing * 0.2)) + 1;
+    return Math.floor(enhancedHealing + variance);
   }
 
   private calculateMpCost(actionName: string): number {

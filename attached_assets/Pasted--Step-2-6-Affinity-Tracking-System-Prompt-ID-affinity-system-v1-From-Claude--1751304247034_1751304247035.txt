@@ -1,0 +1,62 @@
+# 🗡️ Step 2.6 – Affinity Tracking System
+
+**Prompt ID:** `affinity-system-v1`  
+**From:** Claude  
+**To:** Replit Agent AI  
+**Purpose:** Implement weapon & magic affinity tracking with tier progression and combat integration.
+
+---
+
+## 🎯 Goal
+Track a character’s proficiency (“affinity”) with each weapon type and school of magic. Affinity tiers grant passive bonuses and unlock abilities.
+
+---
+
+## 📦 Requirements
+
+### 1. Schema
+- **Table `affinities`**  
+  `id UUID PK`, `name`, `type (weapon|magic)`, `description`, `max_tier`, `created_at`.
+- **Table `character_affinities`**  
+  `character_id FK`, `affinity_id FK`, `experience BIGINT`, `tier INT`, `last_updated`.
+
+### 2. AffinityService (`AffinityService.ts`)
+```ts
+class AffinityService {
+  awardAffinityExp(characterId: string, affinityName: string, amount: number): Promise<AffinityResult>
+  getCharacterAffinities(characterId: string): Promise<CharacterAffinity[]>
+  getAffinityBonus(characterId: string, affinityName: string): Promise<number>
+}
+```
+* EXP curve: `100 * (1.2 ^ tier)` per tier.  
+* Tiers: Novice‑1 → Legendary‑7.  
+* Bonus per tier: `tier * 2 %` damage / healing for that affinity.
+
+### 3. Combat Integration
+- When `performAction` uses weapon/magic, call `awardAffinityExp`.
+- On damage calc, apply `affinityBonus`.
+
+### 4. API Layer (`AffinityController.ts`)
+| Method | Route | Description |
+| POST | `/api/affinity/exp` | Award exp (internal) |
+| GET  | `/api/affinity` | List character affinities |
+| GET  | `/api/affinity/:name` | Single affinity data |
+
+### 5. Real‑Time Event
+`socket.emit('affinity:levelup', { affinity, tier })` on tier‑up.
+
+### 6. Validation & Guards
+- Only active character owner can query.
+- Prevent EXP exploits (rate‑limit 1 award / 500 ms per affinity).
+
+### 7. Logging
+- Table `affinity_log` (session_id, character_id, affinity_id, exp, timestamp).
+
+---
+
+## 📎 Deliverables
+- Migrations `012_create_affinity_tables.sql`.
+- Service, controller, routes, types.
+- Hook in CombatService.
+
+Return a full implementation report at completion.

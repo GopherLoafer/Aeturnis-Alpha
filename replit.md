@@ -151,6 +151,20 @@ The setup suggests preparation for containerized deployment or cloud platform ho
 - Comprehensive unit test suite validating damage calculations and critical hit scaling
 - Performance optimized with Redis caching, connection pooling, and sub-100ms action processing
 
+### Affinity System Integration (June 30, 2025) - Step 2.6
+- Complete affinity database schema with character_affinities and affinity_experience_log tables  
+- Production-ready AffinityService with tier progression system (Novice to Grandmaster)
+- Comprehensive experience calculation system with exponential tier requirements
+- 7 weapon affinities: sword, dagger, axe, bow, staff, mace, spear, unarmed
+- 7 magic schools: fire, light, lightning, ice, earth, water, shadow, arcane
+- Tier-based bonus system providing 0-50% damage/healing bonuses
+- Full combat integration with automatic affinity experience awarding and damage bonuses
+- Combat damage calculations enhanced with weapon/magic affinity bonuses
+- Healing spells benefit from light magic affinity progression bonuses
+- AffinityController with 6 REST API endpoints for progression tracking
+- Real-time broadcasting for tier-up events and experience gains
+- Redis-based caching for affinity data with performance optimization
+
 ### Caching and Session Management System (June 30, 2025)
 - Production-ready Redis connection service with automatic reconnection and health monitoring
 - Comprehensive cache manager with JSON serialization, bulk operations, and statistics
@@ -203,6 +217,7 @@ The setup suggests preparation for containerized deployment or cloud platform ho
 
 ```
 Changelog:
+- June 30, 2025. Affinity System Integration completed with combat bonuses (Step 2.6)
 - June 30, 2025. Combat System Foundation completed with formula alignment patch (Step 2.5) 
 - June 30, 2025. Zone and Movement System implemented (Step 2.4)
 - June 30, 2025. Infinite Progression System implemented (Step 2.3)
