@@ -414,6 +414,15 @@ export const handle404 = (req: Request, res: Response, next: NextFunction): void
 };
 
 /**
+ * Async wrapper for route handlers
+ */
+export const asyncWrapper = (fn: Function) => {
+  return (req: Request, res: Response, next: NextFunction) => {
+    Promise.resolve(fn(req, res, next)).catch(next);
+  };
+};
+
+/**
  * Initialize error handling
  */
 export const initializeErrorHandling = (): void => {

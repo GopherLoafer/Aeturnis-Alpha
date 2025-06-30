@@ -1,0 +1,387 @@
+🚀 Implement Real-Time Communication Layer for Aeturnis Online
+Project Context
+Build a production-ready Socket.io real-time communication system for Aeturnis Online MMORPG. This layer handles all real-time events including character movement, combat actions, chat messages, and game state synchronization across multiple server instances using Redis.
+
+🏗️ Implementation Requirements
+1. Socket.io Server Setup
+Create src/sockets/SocketServer.ts:
+
+typescript
+import { Server as HTTPServer } from 'http';
+import { Server as SocketIOServer } from 'socket.io';
+import { createAdapter } from '@socket.io/redis-adapter';
+import { createClient } from 'redis';
+import { authenticateSocket } from './middleware/auth';
+import { rateLimitMiddleware } from './middleware/rateLimit';
+import { attachHandlers } from './handlers';
+import logger from '../utils/logger';
+
+export class SocketServer {
+  private io: SocketIOServer;
+  private redisClient: any;
+  private redisSub: any;
+
+  constructor(httpServer: HTTPServer) {
+    // Initialize with proper CORS matching Express API config
+    // Set up Redis adapter for horizontal scaling
+    // Configure transport upgrade: polling → websocket
+    // Implement connection recovery with exponential backoff
+  }
+
+  public async start(): Promise<void> {
+    // Connect to Redis
+    // Apply authentication middleware
+    // Apply rate limiting
+    // Attach all event handlers
+    // Start listening
+  }
+
+  public getIO(): SocketIOServer {
+    return this.io;
+  }
+}
+Key requirements:
+
+CORS must match Express API configuration from src/config/cors.ts
+Redis adapter configuration with pub/sub clients
+Transport settings: ['polling', 'websocket'] with upgrade timeout
+Reconnection settings: max delay 10s, randomization factor 0.5
+2. Authentication Middleware
+Create src/sockets/middleware/auth.ts:
+
+typescript
+import { Socket } from 'socket.io';
+import { verifyToken } from '../../services/AuthService';
+import { ExtendedError } from 'socket.io/dist/namespace';
+
+interface SocketWithAuth extends Socket {
+  userId: string;
+  characterId?: string;
+  roles: string[];
+}
+
+export async function authenticateSocket(
+  socket: SocketWithAuth, 
+  next: (err?: ExtendedError) => void
+): Promise<void> {
+  // Extract JWT from socket.handshake.auth.token
+  // Verify token using AuthService
+  // Attach userId, roles to socket instance
+  // Handle expired tokens with specific error
+  // Track failed attempts in Redis (rate limiting)
+}
+Requirements:
+
+JWT verification using existing AuthService
+Graceful handling of expired/invalid tokens
+Attach user metadata to socket for authorization
+Rate limit failed connection attempts (5 per minute per IP)
+3. Room Structure Implementation
+Create src/sockets/rooms/RoomManager.ts:
+
+typescript
+export class RoomManager {
+  private io: SocketIOServer;
+  
+  // Room naming conventions:
+  // - user:{userId} - for direct messages
+  // - character:{characterId} - for player-specific events
+  // - zone:{zoneName} - for area events (e.g., "zone:starting_village")
+  // - combat:{sessionId} - for battle instances
+  // - guild:{guildId} - for guild communications
+  // - global:chat - for world chat
+  // - global:events - for server-wide announcements
+
+  public async joinUserRoom(socket: Socket, userId: string): Promise<void> {
+    // Join user's personal room
+    // Log room join
+  }
+
+  public async joinCharacterRoom(socket: Socket, characterId: string): Promise<void> {
+    // Verify character ownership
+    // Join character room
+    // Update presence
+  }
+
+  public async joinZone(socket: Socket, zoneName: string): Promise<void> {
+    // Verify character is in zone
+    // Leave previous zone room
+    // Join new zone room
+    // Broadcast arrival to zone
+  }
+
+  public async joinCombat(socket: Socket, sessionId: string): Promise<void> {
+    // Verify player is in combat session
+    // Join combat room
+    // Send current combat state
+  }
+
+  public async validateRoomAccess(socket: Socket, roomType: string, roomId: string): Promise<boolean> {
+    // Implement access control logic
+  }
+}
+4. Event Handlers
+Create modular handlers in src/sockets/handlers/:
+
+Connection Handler (connection.handler.ts):
+
+typescript
+export function handleConnection(io: SocketIOServer, socket: SocketWithAuth): void {
+  // Log connection with user info
+  // Join user's personal room
+  // Restore socket presence from Redis
+  // Send initial sync data
+  // Set up disconnect cleanup
+}
+
+export function handleDisconnect(socket: SocketWithAuth): void {
+  // Update presence to offline
+  // Clean up rooms
+  // Store last known state
+  // Broadcast to relevant rooms
+}
+
+export function handleReconnect(socket: SocketWithAuth): void {
+  // Restore previous state
+  // Rejoin rooms
+  // Send missed events (if applicable)
+}
+Character Handler (character.handler.ts):
+
+typescript
+export function registerCharacterHandlers(io: SocketIOServer, socket: SocketWithAuth): void {
+  socket.on('character:select', async (data: CharacterSelectData) => {
+    // Validate character ownership
+    // Load character data
+    // Join character and zone rooms
+    // Broadcast character online
+  });
+
+  socket.on('character:move', async (data: MovementData) => {
+    // Validate movement
+    // Update position in database
+    // Broadcast to zone
+  });
+
+  socket.on('character:action', async (data: ActionData) => {
+    // Validate action
+    // Process action
+    // Broadcast results
+  });
+}
+Combat Handler (combat.handler.ts):
+
+typescript
+export function registerCombatHandlers(io: SocketIOServer, socket: SocketWithAuth): void {
+  socket.on('combat:join', async (data: CombatJoinData) => {
+    // Verify combat session exists
+    // Add player to session
+    // Join combat room
+    // Send combat state
+  });
+
+  socket.on('combat:action', async (data: CombatActionData) => {
+    // Validate turn order
+    // Process action
+    // Update combat state
+    // Broadcast to combat room
+  });
+
+  socket.on('combat:flee', async (data: CombatFleeData) => {
+    // Process flee attempt
+    // Update combat state
+    // Leave combat room
+  });
+}
+Chat Handler (chat.handler.ts):
+
+typescript
+export function registerChatHandlers(io: SocketIOServer, socket: SocketWithAuth): void {
+  socket.on('chat:message', async (data: ChatMessageData) => {
+    // Validate message content
+    // Check chat permissions
+    // Rate limit check
+    // Store in chat history
+    // Broadcast to appropriate room
+  });
+
+  socket.on('chat:whisper', async (data: WhisperData) => {
+    // Validate target exists
+    // Check block list
+    // Send to target's user room
+  });
+
+  socket.on('chat:emote', async (data: EmoteData) => {
+    // Validate emote
+    // Broadcast to zone
+  });
+}
+5. State Sync & Presence System
+Create src/sockets/presence/PresenceManager.ts:
+
+typescript
+export class PresenceManager {
+  private redis: RedisClient;
+  
+  public async updatePresence(userId: string, data: PresenceData): Promise<void> {
+    // Store in Redis with TTL
+    // Key format: presence:{userId}
+    // Data: { online, lastSeen, socketId, characterId, zone, activity }
+  }
+
+  public async getPresence(userId: string): Promise<PresenceData | null> {
+    // Retrieve from Redis
+  }
+
+  public async handleReconnect(socket: Socket, userId: string): Promise<void> {
+    // Restore socket ID
+    // Rejoin previous rooms
+    // Update presence
+  }
+
+  public async trackActivity(userId: string, activity: string): Promise<void> {
+    // Update activity in presence
+    // Track for analytics
+  }
+}
+6. Realtime Service
+Create src/services/RealtimeService.ts:
+
+typescript
+export class RealtimeService {
+  private io: SocketIOServer;
+  
+  public async broadcastToZone(zoneName: string, event: string, data: any): Promise<void> {
+    this.io.to(`zone:${zoneName}`).emit(event, data);
+    this.logBroadcast('zone', zoneName, event);
+  }
+
+  public async broadcastToUser(userId: string, event: string, data: any): Promise<void> {
+    this.io.to(`user:${userId}`).emit(event, data);
+    this.logBroadcast('user', userId, event);
+  }
+
+  public async broadcastToGuild(guildId: string, event: string, data: any): Promise<void> {
+    // Check guild exists
+    this.io.to(`guild:${guildId}`).emit(event, data);
+    this.logBroadcast('guild', guildId, event);
+  }
+
+  public async broadcastGlobal(event: string, data: any): Promise<void> {
+    this.io.to('global:events').emit(event, data);
+    this.logBroadcast('global', 'all', event);
+  }
+
+  private logBroadcast(type: string, target: string, event: string): void {
+    // Log to Winston
+    // Track metrics
+  }
+}
+7. Monitoring & Metrics
+Create src/sockets/monitoring/SocketMetrics.ts:
+
+typescript
+export class SocketMetrics {
+  private metrics: {
+    connections: number;
+    rooms: Map<string, number>;
+    events: Map<string, number>;
+    errors: Map<string, number>;
+  };
+
+  public trackConnection(connected: boolean): void {
+    // Increment/decrement connection count
+  }
+
+  public trackEvent(event: string, duration: number): void {
+    // Track event count and duration
+    // Alert if duration > threshold
+  }
+
+  public getMetrics(): MetricsData {
+    // Return current metrics
+  }
+
+  public setupMetricsEndpoint(app: Express): void {
+    // Add /metrics/sockets endpoint
+  }
+}
+8. Security Implementation
+Create src/sockets/security/SocketSecurity.ts:
+
+typescript
+export class SocketSecurity {
+  // Event validation schemas
+  private validators: Map<string, ValidationSchema>;
+  
+  // Rate limiting per event type
+  private rateLimits: Map<string, RateLimitConfig> = new Map([
+    ['chat:message', { points: 10, duration: 60 }],
+    ['character:move', { points: 30, duration: 60 }],
+    ['combat:action', { points: 20, duration: 60 }]
+  ]);
+
+  public validateEvent(event: string, data: any): ValidationResult {
+    // Validate against schema
+    // Sanitize input
+    // Check for injection attempts
+  }
+
+  public async checkRateLimit(socket: Socket, event: string): Promise<boolean> {
+    // Check rate limit for socket + event
+    // Use Redis for distributed rate limiting
+  }
+
+  public checkRoomAccess(socket: Socket, room: string): boolean {
+    // Verify user has access to room
+    // Check guild membership, combat participation, etc.
+  }
+}
+📋 Implementation Checklist
+Core Setup
+ Socket.io server with Redis adapter
+ CORS configuration matching Express
+ Transport upgrade configuration
+ Graceful shutdown handling
+Authentication
+ JWT verification on connect
+ User metadata attachment
+ Failed attempt rate limiting
+ Token expiry handling
+Room System
+ All room types implemented
+ Room access validation
+ Automatic cleanup on disconnect
+ Room presence tracking
+Event Handlers
+ Connection lifecycle events
+ Character events with validation
+ Combat events with state sync
+ Chat with rate limiting
+State & Presence
+ Redis presence storage
+ Reconnection state restore
+ Activity tracking
+ Online/offline broadcasts
+Monitoring
+ Connection metrics
+ Event performance tracking
+ Error logging
+ Metrics endpoint
+Security
+ Input validation
+ Rate limiting per event
+ Room access control
+ Injection prevention
+Testing
+ Unit tests for handlers
+ Integration tests for rooms
+ Load testing for 1000+ connections
+ Security penetration tests
+🚀 Start Implementation
+Begin by creating the core SocketServer class, then implement authentication, followed by handlers in order of complexity. Ensure each component is fully tested before moving to the next.
+
+Use TypeScript strict mode and follow the existing codebase patterns. All socket events should be strongly typed with interfaces.
+
+Log all significant events to Winston and track metrics for monitoring. Implement graceful error handling with appropriate client notifications.
+

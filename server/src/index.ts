@@ -3,9 +3,12 @@
  * Production-ready Express API with enterprise-grade middleware and error handling
  */
 
+import { createServer } from 'http';
 import { config, validateCriticalEnvVars } from './config/environment';
 import { logger } from './utils/logger';
 import { createApp } from './app';
+import { SocketServer } from './sockets/SocketServer';
+import { RealtimeService } from './services/RealtimeService';
 import { 
   initializeDatabase, 
   testDatabaseConnection, 
@@ -53,8 +56,21 @@ const startServer = async (): Promise<void> => {
     // Create Express application
     const app = createApp();
 
+    // Create HTTP server
+    const httpServer = createServer(app);
+
+    // Initialize Socket.io server
+    const socketServer = new SocketServer(httpServer);
+    await socketServer.start();
+
+    // Initialize Realtime Service
+    const realtimeService = new RealtimeService(socketServer.getIO());
+
+    // Make realtime service globally available
+    (global as any).realtimeService = realtimeService;
+
     // Start HTTP server
-    const server = app.listen(config.PORT, config.HOST, () => {
+    const server = httpServer.listen(config.PORT, config.HOST, () => {
       logger.info('🚀 Aeturnis Online Server started successfully', {
         port: config.PORT,
         host: config.HOST,
@@ -67,10 +83,13 @@ const startServer = async (): Promise<void> => {
 
       // Log available endpoints
       const baseUrl = `http://${config.HOST}:${config.PORT}`;
+      const wsUrl = `ws://${config.HOST}:${config.PORT}`;
       logger.info('📡 Server endpoints available:', {
         api: `${baseUrl}/`,
         health: `${baseUrl}/health`,
         auth: `${baseUrl}/api/auth`,
+        websocket: `${wsUrl}/socket.io/`,
+        realtime: 'Socket.io enabled',
         ...(config.ENABLE_SWAGGER && { docs: `${baseUrl}/docs` }),
       });
 

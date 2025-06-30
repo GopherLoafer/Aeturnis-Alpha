@@ -41,6 +41,7 @@ import { sanitizeRequestBody, validateContentType } from './middleware/validatio
 // Routes
 import healthRoutes from './routes/health.routes';
 import authRoutes from './routes/auth.routes';
+import realtimeRoutes from './routes/realtime.routes';
 
 /**
  * Create and configure Express application
@@ -386,6 +387,9 @@ export const createApp = (): express.Application => {
 
   // Authentication routes
   app.use('/api/auth', authRoutes);
+  
+  // Realtime routes
+  app.use('/api/realtime', realtimeRoutes);
 
   // API routes will be added here
   // app.use('/api/users', userRoutes);
