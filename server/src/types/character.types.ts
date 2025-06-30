@@ -215,6 +215,7 @@ export const CHARACTER_CONSTANTS = {
     current_weight: 0.00,
   },
   MAX_SESSIONS_PER_USER: 5,
+  MAX_CHARACTERS_PER_USER: 5, // Alias for clarity
   EXPERIENCE_SCALE_FACTOR: 1.5, // For calculating next level experience
 } as const;
 
