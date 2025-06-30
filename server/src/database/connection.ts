@@ -37,12 +37,28 @@ export const pool = new Pool({
 // Redis connection - optional for development
 export let redis: any = null;
 
-try {
-  // Import Redis dynamically to avoid initialization issues
-  const Redis = require('ioredis');
-  redis = new Redis(process.env.REDIS_URL || 'redis://localhost:6379');
-} catch (error) {
-  logger.warn('Redis connection failed, continuing without cache');
+// Only initialize Redis if URL is provided
+if (process.env.REDIS_URL) {
+  try {
+    const Redis = require('ioredis');
+    redis = new Redis(process.env.REDIS_URL, {
+      retryDelayOnFailover: 100,
+      maxRetriesPerRequest: 1,
+      lazyConnect: true,
+      connectTimeout: 2000,
+      commandTimeout: 2000,
+    });
+
+    redis.on('error', (error: any) => {
+      logger.warn('Redis connection error, disabling cache:', error.message);
+      redis = null;
+    });
+  } catch (error) {
+    logger.warn('Redis initialization failed, continuing without cache');
+    redis = null;
+  }
+} else {
+  logger.info('Redis not configured, authentication will work without refresh tokens');
 }
 
 // Database connection test
