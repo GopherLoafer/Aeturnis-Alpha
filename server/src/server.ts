@@ -3,6 +3,7 @@ import cors from 'cors';
 import helmet from 'helmet';
 import dotenv from 'dotenv';
 import { testDatabaseConnection, testRedisConnection, closeConnections, logger } from '@/database/connection';
+import { DatabaseInitializer } from '@/database/initialization';
 import routes from '@/routes';
 
 // Load environment variables
@@ -79,6 +80,24 @@ async function startServer() {
     if (!dbStatus.isConnected) {
       logger.error('Failed to connect to database:', dbStatus.lastError);
       process.exit(1);
+    }
+
+    // Initialize database with migrations
+    logger.info('Initializing database schema...');
+    const initResult = await DatabaseInitializer.initializeDatabase();
+    if (!initResult.success) {
+      logger.error('Database initialization failed:', initResult.errors);
+      process.exit(1);
+    }
+
+    // Verify database integrity
+    const integrityCheck = await DatabaseInitializer.verifyDatabaseIntegrity();
+    if (!integrityCheck.valid) {
+      logger.warn('Database integrity issues found:', integrityCheck.issues);
+      if (process.env.NODE_ENV === 'production') {
+        logger.error('Database integrity check failed in production, exiting');
+        process.exit(1);
+      }
     }
 
     // Test Redis connection (optional)
