@@ -1,0 +1,42 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+    "strict": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "outDir": "./dist",
+    "rootDir": "./server/src",
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["server/src/*"],
+      "@controllers/*": ["server/src/controllers/*"],
+      "@services/*": ["server/src/services/*"],
+      "@repositories/*": ["server/src/repositories/*"],
+      "@middleware/*": ["server/src/middleware/*"],
+      "@routes/*": ["server/src/routes/*"],
+      "@database/*": ["server/src/database/*"],
+      "@types/*": ["server/src/types/*"],
+      "@utils/*": ["server/src/utils/*"],
+      "@config/*": ["server/src/config/*"],
+      "@sockets/*": ["server/src/sockets/*"]
+    },
+    "declaration": true,
+    "sourceMap": true,
+    "experimentalDecorators": true,
+    "emitDecoratorMetadata": true
+  },
+  "include": [
+    "server/src/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "client"
+  ]
+}
