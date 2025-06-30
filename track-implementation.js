@@ -52,7 +52,7 @@ class ImplementationTracker {
   }
 
   // Complete tracking and generate report
-  complete(additionalNotes = '') {
+  complete(additionalNotes = '', options = {}) {
     if (!this.generator) {
       colorLog('❌ No active tracking session found', 'yellow');
       return;
@@ -67,11 +67,44 @@ class ImplementationTracker {
       this.appendNotes(reportFile, additionalNotes);
     }
     
+    // Git integration option
+    if (options.autoCommit || process.argv.includes('--git')) {
+      this.handleGitIntegration(reportFile, additionalNotes);
+    }
+    
     // Clean up session
     this.clearSession();
     
     colorLog('🎉 Implementation tracking completed!', 'green');
     return reportFile;
+  }
+
+  // Handle Git integration
+  async handleGitIntegration(reportFilename, notes) {
+    try {
+      const GitAutomation = require('./git-automation.js');
+      const gitAuto = new GitAutomation();
+      
+      colorLog('🔄 Integrating with Git...', 'blue');
+      
+      const implementationData = {
+        title: this.generator.taskTitle || 'Implementation update',
+        notes: notes,
+        reportFile: reportFilename
+      };
+      
+      const success = await gitAuto.commitImplementation(implementationData);
+      
+      if (success) {
+        colorLog('✅ Changes committed to Git successfully', 'green');
+      } else {
+        colorLog('⚠️  Git integration completed with warnings', 'yellow');
+      }
+      
+    } catch (error) {
+      colorLog('⚠️  Git integration failed (optional):', 'yellow');
+      colorLog(`   ${error.message}`, 'yellow');
+    }
   }
 
   // Save current session
