@@ -1,0 +1,60 @@
+# 🧪 Step 2.2 – Self-Audit: Character Management System
+
+Please audit the implementation of Step 2.2: Character Management System. This includes service logic, controller endpoints, validation, and integration.
+
+---
+
+## ✅ Audit Checklist
+
+### 1. CharacterService
+- [ ] `createCharacter` properly validates name, race, and user limits
+- [ ] Race modifiers are applied to base stats
+- [ ] Starting zone and gold from race are set
+- [ ] `getUserCharacters` only returns undeleted characters for user
+- [ ] `getCharacter` validates ownership and returns full character
+- [ ] `selectCharacter` updates session and prepares Socket.io rooms
+- [ ] `deleteCharacter` performs soft deletion (sets `deleted_at`)
+- [ ] Uses transactions where needed
+
+### 2. CharacterController
+- [ ] All 5 endpoints implemented (create, list, get, select, delete)
+- [ ] Route validation is enforced (express-validator or equivalent)
+- [ ] Proper status codes and error messages returned
+
+### 3. Input Validation
+- [ ] Name: 3–20 chars, alphanumeric, no duplicates
+- [ ] Race: UUID, must exist
+- [ ] Gender: enum enforced
+- [ ] Appearance: optional, well-formed object
+
+### 4. Session & Socket Integration
+- [ ] `selectCharacter` updates user session with `characterId`
+- [ ] Character joins appropriate Socket.io rooms
+- [ ] Zone entry is validated
+
+### 5. Audit Logging
+- [ ] Character creation and deletion logged to `audit_log`
+- [ ] Includes userId, action, resource type, characterId, timestamp
+
+### 6. File Organization
+- [ ] Code is modular and located in proper directories:
+  - `/services/CharacterService.ts`
+  - `/controllers/CharacterController.ts`
+  - `/types/character.types.ts`
+- [ ] Routes integrated properly
+
+---
+
+## 📤 Deliverable Check
+- [ ] Characters can be created and selected by users
+- [ ] Deletion hides characters (soft delete)
+- [ ] System uses validated, typed DTOs
+- [ ] Full error handling present
+
+---
+
+## 📎 Return Format
+Respond with:
+- ✅ What passed
+- 🛠 What was partial or missing
+- 📎 Suggestions for improvement
