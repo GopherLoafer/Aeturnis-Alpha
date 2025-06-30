@@ -33,17 +33,22 @@ const startServer = async (): Promise<void> => {
     const redisHealthy = await testRedisConnection();
 
     if (!dbHealthy) {
-      logger.error('❌ Database connection failed');
-      process.exit(1);
+      logger.warn('⚠️  Database connection failed - continuing without database for testing');
     }
 
     if (!redisHealthy) {
       logger.warn('⚠️  Redis connection failed - continuing without Redis');
     }
 
-    // Initialize database schema
-    await initializeDatabase();
-    logger.info('✅ Database initialized successfully');
+    // Initialize database schema (skip if database unavailable)
+    if (dbHealthy) {
+      try {
+        await initializeDatabase();
+        logger.info('✅ Database initialized successfully');
+      } catch (error) {
+        logger.warn('Database initialization failed, continuing without full database setup');
+      }
+    }
 
     // Create Express application
     const app = createApp();

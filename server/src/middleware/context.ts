@@ -148,7 +148,7 @@ export const apiVersionMiddleware = (
   // Validate version
   const supportedVersions = ['v1'];
   if (!supportedVersions.includes(apiVersion)) {
-    return res.status(400).json({
+    res.status(400).json({
       success: false,
       error: {
         code: 'UNSUPPORTED_API_VERSION',
@@ -156,6 +156,7 @@ export const apiVersionMiddleware = (
         supportedVersions,
       },
     });
+    return;
   }
   
   // Add version to request

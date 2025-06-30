@@ -348,7 +348,7 @@ export const createApp = (): express.Application => {
           { apiKeyAuth: [] },
         ],
       },
-      apis: ['./src/routes/*.ts', './src/middleware/*.ts'], // Include all route files
+      apis: ['./routes/*.ts', './middleware/*.ts'], // Include all route files
     };
 
     const swaggerSpec = swaggerJsdoc(swaggerOptions);
@@ -372,7 +372,7 @@ export const createApp = (): express.Application => {
     }));
     
     // JSON endpoint for API spec
-    app.get('/api-docs.json', (req, res) => {
+    app.get('/api-docs', (req, res) => {
       res.setHeader('Content-Type', 'application/json');
       res.json(swaggerSpec);
     });
