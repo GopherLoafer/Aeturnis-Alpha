@@ -17,6 +17,7 @@ interface RateLimitConfig {
 
 interface RateLimitData {
   points: number;
+  remainingPoints: number;
   totalHits: number;
   totalRequestsInWindow: number;
   msBeforeNext: number;

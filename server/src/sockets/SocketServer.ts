@@ -67,10 +67,10 @@ export class SocketServer {
       await this.setupRedisAdapter();
       
       // Apply authentication middleware
-      this.io.use(authenticateSocket);
+      this.io.use(authenticateSocket as any);
       
       // Apply rate limiting middleware
-      this.io.use(rateLimitMiddleware);
+      this.io.use(rateLimitMiddleware as any);
       
       // Attach all event handlers
       attachHandlers(this.io);
@@ -104,9 +104,6 @@ export class SocketServer {
       this.redisClient = createClient({
         url: config.REDIS_URL || `redis://${config.REDIS_HOST}:${config.REDIS_PORT}`,
         password: config.REDIS_PASSWORD,
-        retryDelayOnFailover: 100,
-        enableReadyCheck: true,
-        maxRetriesPerRequest: 3,
       });
 
       this.redisSub = this.redisClient.duplicate();
