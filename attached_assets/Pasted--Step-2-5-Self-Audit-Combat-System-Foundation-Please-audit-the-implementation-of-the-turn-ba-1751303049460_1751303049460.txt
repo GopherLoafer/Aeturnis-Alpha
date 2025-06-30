@@ -1,0 +1,54 @@
+# 🧪 Step 2.5 – Self‑Audit: Combat System Foundation
+
+Please audit the implementation of the turn‑based Combat System. Verify schema, service logic, real‑time hooks, and API layer.
+
+---
+
+## ✅ Audit Checklist
+
+### 1. Schema
+- [ ] `combat_sessions` table with state, round, turn, timestamps
+- [ ] `combat_participants` with initiative, current/max HP, status
+- [ ] `combat_actions_log` capturing action, target, value, crit
+- [ ] Indexes on session state, zone, participant_id
+
+### 2. CombatService
+- [ ] `startEncounter` rolls initiative, populates participants, broadcasts `combat:start`
+- [ ] `performAction` checks turn order, cooldowns, status (alive), computes damage & crit
+- [ ] `getSession` returns full session with participants & turn info (cached)
+- [ ] `endEncounter` sets state completed, distributes XP/loot placeholders
+- [ ] All DB operations transactional; logs written to `combat_actions_log`
+
+### 3. Damage & Crit Formula
+- [ ] Base formula: `(STR − VIT) * weaponCoef` with floor ≥ 1
+- [ ] Crit chance: `5 % + DEX / 200`; crit damage ×1.5
+- [ ] Respects participant buffs / debuffs stubs
+
+### 4. Cooldowns & Validation
+- [ ] 1 action / second per participant (Redis rate limiter)
+- [ ] Only active participant may act
+- [ ] Blocks if session ended or participant dead/busy
+
+### 5. API Endpoints
+- [ ] `/api/combat/start` starts encounter (auth, active character)
+- [ ] `/api/combat/:id/action` performs action with DTO validation
+- [ ] `/api/combat/:id` returns session snapshot
+- [ ] Proper status codes & error format
+
+### 6. Socket Events
+- [ ] Room `combat:{sessionId}` created
+- [ ] Broadcast `combat:update` on each action & HP change
+- [ ] Broadcast `combat:end` when encounter finishes
+
+### 7. Logging & Monitoring
+- [ ] Each action logged with value, crit flag, round/turn
+- [ ] Level‑up / XP placeholder hooks included
+- [ ] Performance metrics or winston logging added
+
+---
+
+## 📎 Return Format
+Respond with:
+- ✅ What passed
+- 🛠 What is incomplete or incorrect
+- 📎 Recommendations / improvements
