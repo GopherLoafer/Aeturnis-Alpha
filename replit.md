@@ -6,14 +6,15 @@ This is a Node.js/TypeScript backend application built with Express.js. The proj
 
 ## System Architecture
 
-The application follows a typical backend API architecture with the following stack:
+The application follows a modern MMORPG backend architecture with the following stack:
 - **Runtime**: Node.js with TypeScript
-- **Web Framework**: Express.js
-- **Database**: PostgreSQL (pg driver)
-- **Caching**: Redis (ioredis)
-- **Authentication**: JWT with password hashing (Argon2/bcrypt)
-- **Validation**: Zod for schema validation
-- **Logging**: Winston for structured logging
+- **Web Framework**: Express.js with comprehensive security middleware
+- **Database**: PostgreSQL with migration system and repository pattern
+- **Caching**: Redis for session management and rate limiting
+- **Authentication**: JWT with Argon2id password hashing and dual tokens
+- **Validation**: Zod for schema validation and input sanitization
+- **Logging**: Winston for structured logging and audit trails
+- **Migration System**: Custom PostgreSQL migration runner with up/down support
 
 ## Key Components
 
@@ -77,10 +78,27 @@ The application is configured for flexible deployment with:
 
 The setup suggests preparation for containerized deployment or cloud platform hosting.
 
+## Recent Changes
+
+### Database Schema & Migration System (June 30, 2025)
+- Implemented comprehensive PostgreSQL migration system with up/down support
+- Created 4 core database tables: users, user_security, audit_log, user_sessions
+- Built BaseRepository pattern with CRUD operations, pagination, and audit trails
+- Added connection pooling, retry logic, and performance monitoring
+- Migration CLI tools for database management
+
+### Authentication System (June 30, 2025)
+- Complete JWT authentication with Argon2id password hashing
+- Dual token system (15min access, 7-day refresh) with Redis storage
+- Rate limiting, account locking, and comprehensive security middleware
+- 8 authentication API endpoints with production-ready error handling
+
 ## Changelog
 
 ```
 Changelog:
+- June 30, 2025. Database schema and migration system implemented
+- June 30, 2025. JWT authentication system completed
 - June 30, 2025. Initial setup
 ```
 

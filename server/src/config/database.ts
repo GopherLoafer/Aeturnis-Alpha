@@ -32,7 +32,7 @@ export const getDatabaseConfig = (): DatabaseConfig => {
     database: process.env.PGDATABASE || 'aeturnis_online',
     user: process.env.PGUSER || 'postgres',
     password: process.env.PGPASSWORD || '',
-    ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
+    ssl: process.env.DATABASE_URL?.includes('localhost') ? undefined : { rejectUnauthorized: false },
     max: 20, // Maximum number of connections in the pool
     idleTimeoutMillis: 30000, // Close idle connections after 30 seconds
     connectionTimeoutMillis: 2000, // Return error after 2 seconds if connection could not be established
