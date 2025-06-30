@@ -2,25 +2,25 @@
  * Cache Manager Unit Tests
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+// Jest testing framework is globally available
 import { CacheManager } from '../../src/services/CacheManager';
 import { redisService } from '../../src/services/RedisService';
 
 // Mock Redis service
-vi.mock('../../src/services/RedisService', () => ({
+jest.mock('../../src/services/RedisService', () => ({
   redisService: {
-    getClient: vi.fn(),
-    isHealthy: vi.fn().mockReturnValue(true)
+    getClient: jest.fn(),
+    isHealthy: jest.fn().mockReturnValue(true)
   }
 }));
 
 // Mock logger
-vi.mock('../../src/utils/logger', () => ({
+jest.mock('../../src/utils/logger', () => ({
   logger: {
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn()
+    debug: jest.fn(),
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn()
   }
 }));
 
@@ -30,44 +30,44 @@ describe('CacheManager', () => {
 
   beforeEach(() => {
     // Reset mocks
-    vi.clearAllMocks();
+    jest.clearAllMocks();
     
     // Create mock Redis client
     mockRedisClient = {
-      get: vi.fn(),
-      setex: vi.fn(),
-      del: vi.fn(),
-      exists: vi.fn(),
-      mget: vi.fn(),
-      pipeline: vi.fn(),
-      scan: vi.fn(),
-      incrby: vi.fn(),
-      decrby: vi.fn(),
-      sadd: vi.fn(),
-      smembers: vi.fn(),
-      lpush: vi.fn(),
-      lrange: vi.fn(),
-      expire: vi.fn(),
-      ttl: vi.fn(),
-      keys: vi.fn(),
-      info: vi.fn()
+      get: jest.fn(),
+      setex: jest.fn(),
+      del: jest.fn(),
+      exists: jest.fn(),
+      mget: jest.fn(),
+      pipeline: jest.fn(),
+      scan: jest.fn(),
+      incrby: jest.fn(),
+      decrby: jest.fn(),
+      sadd: jest.fn(),
+      smembers: jest.fn(),
+      lpush: jest.fn(),
+      lrange: jest.fn(),
+      expire: jest.fn(),
+      ttl: jest.fn(),
+      keys: jest.fn(),
+      info: jest.fn()
     };
 
     // Setup pipeline mock
     const mockPipeline = {
-      setex: vi.fn().mockReturnThis(),
-      exec: vi.fn().mockResolvedValue([[null, 'OK'], [null, 'OK']])
+      setex: jest.fn().mockReturnThis(),
+      exec: jest.fn().mockResolvedValue([[null, 'OK'], [null, 'OK']])
     };
     mockRedisClient.pipeline.mockReturnValue(mockPipeline);
 
     // Mock redisService.getClient to return our mock
-    vi.mocked(redisService.getClient).mockReturnValue(mockRedisClient);
+    jest.mocked(redisService.getClient).mockReturnValue(mockRedisClient);
     
     cacheManager = CacheManager.getInstance();
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    jest.restoreAllMocks();
   });
 
   describe('get', () => {

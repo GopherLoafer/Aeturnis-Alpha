@@ -6,9 +6,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { logger } from '../utils/logger';
 import { config } from '../config/environment';
+import { AppError as AppErrorNew, isOperationalError } from '../utils/AppError';
 
 /**
- * Base Application Error Class
+ * Base Application Error Class (Legacy - use AppErrorNew instead)
+ * @deprecated Use AppError from utils/AppError.ts
  */
 export class AppError extends Error {
   public readonly statusCode: number;

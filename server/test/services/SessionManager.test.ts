@@ -7,26 +7,26 @@ import { SessionManager } from '../../src/services/SessionManager';
 import { redisService } from '../../src/services/RedisService';
 
 // Mock Redis service
-vi.mock('../../src/services/RedisService', () => ({
+jest.mock('../../src/services/RedisService', () => ({
   redisService: {
-    getClient: vi.fn(),
-    isHealthy: vi.fn().mockReturnValue(true)
+    getClient: jest.fn(),
+    isHealthy: jest.fn().mockReturnValue(true)
   }
 }));
 
 // Mock logger
-vi.mock('../../src/utils/logger', () => ({
+jest.mock('../../src/utils/logger', () => ({
   logger: {
-    debug: vi.fn(),
-    info: vi.fn(),
-    warn: vi.fn(),
-    error: vi.fn()
+    debug: jest.fn(),
+    info: jest.fn(),
+    warn: jest.fn(),
+    error: jest.fn()
   }
 }));
 
 // Mock uuid
-vi.mock('uuid', () => ({
-  v4: vi.fn().mockReturnValue('test-session-id')
+jest.mock('uuid', () => ({
+  v4: jest.fn().mockReturnValue('test-session-id')
 }));
 
 describe('SessionManager', () => {
@@ -35,28 +35,28 @@ describe('SessionManager', () => {
 
   beforeEach(() => {
     // Reset mocks
-    vi.clearAllMocks();
+    jest.clearAllMocks();
     
     // Create mock Redis client
     mockRedisClient = {
-      setex: vi.fn(),
-      get: vi.fn(),
-      del: vi.fn(),
-      sadd: vi.fn(),
-      expire: vi.fn(),
-      smembers: vi.fn(),
-      srem: vi.fn(),
-      scan: vi.fn()
+      setex: jest.fn(),
+      get: jest.fn(),
+      del: jest.fn(),
+      sadd: jest.fn(),
+      expire: jest.fn(),
+      smembers: jest.fn(),
+      srem: jest.fn(),
+      scan: jest.fn()
     };
 
     // Mock redisService.getClient to return our mock
-    vi.mocked(redisService.getClient).mockReturnValue(mockRedisClient);
+    jest.mocked(redisService.getClient).mockReturnValue(mockRedisClient);
     
     sessionManager = SessionManager.getInstance();
   });
 
   afterEach(() => {
-    vi.restoreAllMocks();
+    jest.restoreAllMocks();
   });
 
   describe('createSession', () => {
