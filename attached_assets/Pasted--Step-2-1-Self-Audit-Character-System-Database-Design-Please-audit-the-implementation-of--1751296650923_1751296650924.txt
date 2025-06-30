@@ -1,0 +1,67 @@
+## 🧪 Step 2.1 – Self-Audit: Character System Database Design
+
+Please audit the implementation of Step 2.1: Character System DB Design. This includes schema definitions, race data, stats view, and TypeScript repository integration.
+
+---
+
+### ✅ Audit Checklist
+
+#### 📁 Migrations
+- [ ] `races` table includes:
+  - [ ] Name, lore, description fields
+  - [ ] Stat modifiers: strength, vitality, dexterity, intelligence, wisdom
+  - [ ] Progression bonuses: experience, weapon_affinity, magic_affinity
+  - [ ] Starting values: health, mana, zone, gold
+  - [ ] JSONB fields: traits, restrictions, abilities
+  - [ ] Constraints: numeric ranges, default values
+- [ ] `characters` table includes:
+  - [ ] Progression: level, experience, next_level_exp
+  - [ ] Stats: strength, etc.
+  - [ ] Resources: current/max health & mana
+  - [ ] Location: current zone, x/y, spawn zone
+  - [ ] Inventory: gold, slots, capacity
+  - [ ] Customization: appearance, active title
+  - [ ] Lifecycle fields: created_at, last_active, soft delete
+  - [ ] Constraints: `level >= 1`, `health <= max_health`, enum status
+
+#### 📈 View
+- [ ] `character_stats` view joins races and characters
+- [ ] Derived columns: `total_strength`, etc.
+- [ ] Includes race name and experience bonus
+
+#### 🧱 Indexing
+- [ ] Indexes on: `user_id`, `zone`, `level`, `last_active`
+- [ ] Partial index for `deleted_at IS NULL`
+
+#### 🧩 Repository Layer
+- [ ] `CharacterRepository.ts` includes:
+  - `create`, `findById`, `findByUserId`
+  - `updateStats`, `updateLocation`, `updateResources`
+  - `softDelete`
+- [ ] Uses parameterized queries
+- [ ] Type-safe inputs and returns
+
+#### 🔐 Best Practices
+- [ ] Foreign keys enforced on `user_id`, `race_id`
+- [ ] TypeScript types match DB schema
+- [ ] SQL fields include comments for clarity
+- [ ] All critical fields defaulted or validated
+
+---
+
+### 📤 Deliverables Check
+
+- [ ] SQL migrations placed in `/src/database/migrations/`
+- [ ] View file in `/src/database/views/`
+- [ ] TypeScript repo in `/src/repositories/`
+- [ ] Ready for next-step integration
+
+---
+
+### 🧾 Return Format
+
+Please respond with:
+
+- ✅ What passed
+- 🛠 What is incomplete or incorrect
+- 📎 Suggestions for improvements or naming/style refinements
