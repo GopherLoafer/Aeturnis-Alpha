@@ -134,6 +134,20 @@ The setup suggests preparation for containerized deployment or cloud platform ho
 - Redis-based caching for zone information with 5-minute TTL and automatic cache invalidation
 - Real-time movement broadcasting preparation for Socket.io integration with zone entry/exit events
 
+### Combat System Foundation (June 30, 2025) - Step 2.5
+- Complete turn-based combat engine with initiative system, turn order management, and damage calculation
+- 3 core database tables (combat_sessions, combat_participants, combat_actions_log) with PostgreSQL stored procedures
+- Initiative-based turn system using Dexterity + Level + 1d20 roll for fair turn order determination
+- Advanced damage calculation with critical hits (5% chance, 2x damage), blocks (10% chance, 30% damage), and misses
+- Comprehensive status effects system supporting poison, burn, freeze, stun, regeneration, and buffs/debuffs
+- Action cooldown system preventing spam with type-specific cooldowns (1-5 seconds based on action complexity)
+- CombatService with 25+ methods handling encounter creation, action processing, and state management
+- 7 REST API endpoints with combat-specific rate limiting (20 actions per 5 seconds) and comprehensive validation
+- Real-time Socket.io integration with combat rooms and event broadcasting for live combat updates
+- Combat statistics tracking with per-participant metrics, damage/healing totals, and performance analytics
+- Extensible architecture ready for PvE monsters, PvP encounters, spells, items, and advanced mechanics
+- Production-ready error handling with 12 specific combat error codes and graceful degradation
+
 ### Caching and Session Management System (June 30, 2025)
 - Production-ready Redis connection service with automatic reconnection and health monitoring
 - Comprehensive cache manager with JSON serialization, bulk operations, and statistics
@@ -186,6 +200,10 @@ The setup suggests preparation for containerized deployment or cloud platform ho
 
 ```
 Changelog:
+- June 30, 2025. Combat System Foundation implemented (Step 2.5) 
+- June 30, 2025. Zone and Movement System implemented (Step 2.4)
+- June 30, 2025. Infinite Progression System implemented (Step 2.3)
+- June 30, 2025. Character Management System implemented (Step 2.2)
 - June 30, 2025. Character System Database Design implemented (Step 2.1)
 - June 30, 2025. Caching and Session Management System implemented (Step 1.6)
 - June 30, 2025. Real-Time Communication Layer implemented - Socket.io with Redis scaling

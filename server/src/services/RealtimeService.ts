@@ -278,4 +278,58 @@ export class RealtimeService {
     // TODO: Implement guild existence check
     return true; // Placeholder
   }
+
+  /**
+   * Combat room management methods
+   */
+
+  public async joinCombatRoom(socketId: string, sessionId: string): Promise<void> {
+    try {
+      const roomName = `combat:${sessionId}`;
+      const socket = this.io?.sockets.sockets.get(socketId);
+      
+      if (socket) {
+        await socket.join(roomName);
+        
+        logger.debug('Socket joined combat room', {
+          socketId,
+          sessionId,
+          roomName
+        });
+      }
+      
+    } catch (error) {
+      logger.error('Failed to join combat room', {
+        socketId,
+        sessionId,
+        error: error instanceof Error ? error.message : error,
+      });
+      throw error;
+    }
+  }
+
+  public async leaveCombatRoom(socketId: string, sessionId: string): Promise<void> {
+    try {
+      const roomName = `combat:${sessionId}`;
+      const socket = this.io?.sockets.sockets.get(socketId);
+      
+      if (socket) {
+        await socket.leave(roomName);
+        
+        logger.debug('Socket left combat room', {
+          socketId,
+          sessionId,
+          roomName
+        });
+      }
+      
+    } catch (error) {
+      logger.error('Failed to leave combat room', {
+        socketId,
+        sessionId,
+        error: error instanceof Error ? error.message : error,
+      });
+      throw error;
+    }
+  }
 }
