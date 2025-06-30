@@ -155,9 +155,8 @@ export class RealtimeService {
         message,
         priority,
         timestamp: Date.now(),
-        type: 'announcement',
-        return;
-};
+        type: 'announcement'
+      };
 
       await this.broadcastGlobal('system:announcement', announcement);
       
@@ -187,9 +186,8 @@ export class RealtimeService {
       
       logger.debug('Bulk user notification sent', {
         userCount: userIds.length,
-        event,
-        return;
-});
+        event
+      });
       
     } catch (error) {
       logger.error('Failed to notify users', {
@@ -208,9 +206,8 @@ export class RealtimeService {
     try {
       await this.broadcastToZone(zoneName, 'game:state_update', {
         updates,
-        timestamp: Date.now(),
-        return;
-});
+        timestamp: Date.now()
+      });
       
     } catch (error) {
       logger.error('Failed to send game state update', {

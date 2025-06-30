@@ -1,7 +1,8 @@
+
 #!/usr/bin/env node
 
 /**
- * TypeScript Error Fix Script - Comprehensive Edition
+ * TypeScript Error Fix Script v2 - Comprehensive Edition
  * Systematically resolves template literal corruption and other TS issues
  */
 
@@ -34,29 +35,80 @@ function fixTemplateStrings(content) {
   // Fix malformed template strings with embedded return statements
   content = content.replace(/`([^`]*)\$\{([^}]*)\s+return;\s*\}([^`]*)`;/g, '`$1${$2}$3`;');
   
-  return content;
-}
-
-function fixImportPaths(content) {
-  // Fix malformed import statements with proper escaping
-  content = content.replace(/import { getErrorMessage } from '\.\.\/utils\/errorUtils';\s*from/g, "import { getErrorMessage } from '../utils/errorUtils';");
+  // Fix broken template literals in log statements
+  content = content.replace(/`([^`]*)\$\{([^}]*)\s+return;\s*\}/g, '`$1${$2}');
   
-  // Fix path-mapping issues
-  content = content.replace(/from '@\/([^']+)'/g, "from '../$1'");
-  content = content.replace(/from '@shared\/([^']+)'/g, "from '../../shared/$1'");
+  // Fix template literals with incomplete variable references
+  content = content.replace(/\$\{([^}]*)\s+return;\s*\}/g, '${$1}');
   
   return content;
 }
 
-function fixOtherSyntaxIssues(content) {
-  // Fix unterminated template literals at end of files
-  content = content.replace(/`[^`]*$/g, '');
+function fixImportStatements(content) {
+  // Fix broken import statements with "from" duplications
+  content = content.replace(/import\s+\{([^}]+)\}\s+from\s+'([^']+)';\s+from/g, "import { $1 } from '$2';");
   
-  // Fix missing semicolons after template literals
-  content = content.replace(/`([^`]*)`(?=\s*$)/gm, '`$1`;');
+  // Fix import statements with malformed paths
+  content = content.replace(/import\s+\{([^}]+)\}\s+from\s+'([^']+)'\s+from/g, "import { $1 } from '$2';");
   
-  // Fix broken object syntax
-  content = content.replace(/,\s*}/g, '}');
+  // Fix missing semicolons in imports
+  content = content.replace(/import\s+\{([^}]+)\}\s+from\s+'([^']+)'(?!;)/g, "import { $1 } from '$2';");
+  
+  return content;
+}
+
+function fixTypeAnnotations(content) {
+  // Add error type annotations
+  content = content.replace(/catch\s*\(\s*error\s*\)/g, 'catch (error: unknown)');
+  
+  // Fix implicit any parameters in arrow functions
+  content = content.replace(/\(\s*delay\s*\)\s*=>/g, '(delay: number) =>');
+  content = content.replace(/\(\s*data\s*\)\s*=>/g, '(data: any) =>');
+  content = content.replace(/\(\s*req\s*,\s*res\s*\)\s*=>/g, '(req: any, res: any) =>');
+  content = content.replace(/\(\s*socket\s*\)\s*=>/g, '(socket: any) =>');
+  
+  // Fix function parameter types
+  content = content.replace(/function\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\(\s*([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\)/g, 
+    'function $1($2: any)');
+  
+  return content;
+}
+
+function fixReturnStatements(content) {
+  // Fix orphaned return statements in template literals
+  content = content.replace(/return;\s*\}/g, '}');
+  content = content.replace(/return;\s*`;/g, '`;');
+  content = content.replace(/return;\s*$/gm, '');
+  
+  // Fix void return type issues
+  content = content.replace(/return;(\s*\/\/.*)?$/gm, 'return;$1');
+  
+  return content;
+}
+
+function fixErrorHandling(content) {
+  // Import getErrorMessage if not already imported and error.message is used
+  if (content.includes('error.message') && !content.includes("import { getErrorMessage")) {
+    const importIndex = content.lastIndexOf("import ");
+    if (importIndex !== -1) {
+      const lineEnd = content.indexOf('\n', importIndex);
+      content = content.slice(0, lineEnd + 1) + 
+        "import { getErrorMessage } from '../utils/errorUtils';\n" +
+        content.slice(lineEnd + 1);
+    }
+  }
+  
+  // Replace error.message with getErrorMessage(error)
+  content = content.replace(/error\.message/g, 'getErrorMessage(error)');
+  
+  return content;
+}
+
+function fixSessionAccess(content) {
+  // Fix session property access with optional chaining
+  content = content.replace(/req\.session\.characterId/g, 'req.session?.characterId || ""');
+  content = content.replace(/req\.session\.userId/g, 'req.session?.userId || ""');
+  content = content.replace(/req\.session\.username/g, 'req.session?.username || ""');
   
   return content;
 }
@@ -66,14 +118,16 @@ function fixFile(filePath) {
     let content = fs.readFileSync(filePath, 'utf8');
     const originalContent = content;
     
-    // Apply fixes
+    // Apply all fixes
     content = fixTemplateStrings(content);
-    content = fixImportPaths(content);
-    content = fixOtherSyntaxIssues(content);
+    content = fixImportStatements(content);
+    content = fixTypeAnnotations(content);
+    content = fixReturnStatements(content);
+    content = fixErrorHandling(content);
+    content = fixSessionAccess(content);
     
-    // Only write if changes were made
     if (content !== originalContent) {
-      fs.writeFileSync(filePath, content);
+      fs.writeFileSync(filePath, content, 'utf8');
       colorLog(`✅ Fixed: ${filePath}`, 'green');
       return true;
     }
@@ -95,9 +149,9 @@ function findTsFiles(dir) {
       const fullPath = path.join(currentDir, item);
       const stat = fs.statSync(fullPath);
       
-      if (stat.isDirectory() && item !== 'node_modules' && item !== '.git') {
+      if (stat.isDirectory() && item !== 'node_modules' && item !== '.git' && item !== 'dist') {
         scan(fullPath);
-      } else if (stat.isFile() && (item.endsWith('.ts') || item.endsWith('.js'))) {
+      } else if (stat.isFile() && (item.endsWith('.ts') && !item.endsWith('.d.ts'))) {
         files.push(fullPath);
       }
     }
@@ -108,10 +162,12 @@ function findTsFiles(dir) {
 }
 
 async function main() {
-  colorLog('🔧 Starting TypeScript Error Fix Script', 'cyan');
+  colorLog('🔧 Starting TypeScript Error Fix Script v2', 'cyan');
   
   const serverDir = './server/src';
-  const tsFiles = findTsFiles(serverDir);
+  const testDir = './server/test';
+  
+  const tsFiles = [...findTsFiles(serverDir), ...findTsFiles(testDir)];
   
   colorLog(`📁 Found ${tsFiles.length} TypeScript files`, 'blue');
   
@@ -130,14 +186,23 @@ async function main() {
   const { execSync } = require('child_process');
   
   try {
-    execSync('cd server && npx tsc --noEmit', { stdio: 'pipe' });
+    const output = execSync('npm run lint:ts', { stdio: 'pipe', encoding: 'utf8' });
     colorLog('✅ TypeScript check passed!', 'green');
+    return true;
   } catch (error) {
-    colorLog('⚠️  TypeScript errors remain, manual fixes needed', 'yellow');
-    console.log(error.stdout?.toString() || '');
+    colorLog('⚠️  TypeScript errors remain:', 'yellow');
+    console.log(error.stdout?.toString() || error.stderr?.toString() || '');
+    return false;
   }
 }
 
 if (require.main === module) {
-  main().catch(console.error);
+  main().then(success => {
+    process.exit(success ? 0 : 1);
+  }).catch(error => {
+    console.error('Script failed:', error);
+    process.exit(1);
+  });
 }
+
+module.exports = { main, fixFile, findTsFiles };

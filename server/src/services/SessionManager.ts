@@ -451,8 +451,7 @@ export class SessionManager {
     
     await redis.sadd(userSessionsKey, sessionId);
     await redis.expire(userSessionsKey, ttl + 3600); // Extra hour for cleanup
-    return;
-}
+  }
 
   /**
    * Remove session from user's active sessions
@@ -462,8 +461,7 @@ export class SessionManager {
     const userSessionsKey = this.buildUserSessionsKey(userId);
     
     await redis.srem(userSessionsKey, sessionId);
-    return;
-}
+  }
 
   /**
    * Cleanup old sessions for a user (keep only max allowed)

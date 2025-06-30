@@ -1,61 +1,66 @@
 /**
- * Error Handling Utilities
- * Type-safe error handling for catch blocks and unknown errors
+ * Error handling utilities for type-safe error management
  */
 
 /**
- * Type guard to check if an error is an Error instance
+ * Type guard to check if a value is an Error object
  */
 export function isError(error: unknown): error is Error {
   return error instanceof Error;
 }
 
 /**
- * Type guard to check if an error has a message property
- */
-export function hasMessage(error: unknown): error is { message: string } {
-  return typeof error === 'object' && error !== null && 'message' in error;
-}
-
-/**
- * Safely extract error message from unknown error
+ * Get error message from unknown error type
  */
 export function getErrorMessage(error: unknown): string {
   if (isError(error)) {
-    return getErrorMessage(error);
+    return error.message;
   }
-  
-  if (hasMessage(error)) {
-    return String(getErrorMessage(error));
-  }
-  
+
   if (typeof error === 'string') {
     return error;
   }
-  
-  return 'Unknown error occurred';
+
+  if (error && typeof error === 'object' && 'message' in error) {
+    return String((error as any).message);
+  }
+
+  return 'An unknown error occurred';
 }
 
 /**
- * Safely extract error stack from unknown error
+ * Convert unknown error to Error object
+ */
+export function toError(error: unknown): Error {
+  if (isError(error)) {
+    return error;
+  }
+
+  return new Error(getErrorMessage(error));
+}
+
+/**
+ * Create error with stack trace preservation
+ */
+export function createError(message: string, originalError?: unknown): Error {
+  const error = new Error(message);
+
+  if (originalError && isError(originalError)) {
+    error.stack = originalError.stack;
+    error.cause = originalError;
+  }
+
+  return error;
+}
+
+/**
+ * Safely get error stack trace
  */
 export function getErrorStack(error: unknown): string | undefined {
   if (isError(error)) {
     return error.stack;
   }
   return undefined;
-}
-
-/**
- * Convert unknown error to Error instance
- */
-export function toError(error: unknown): Error {
-  if (isError(error)) {
-    return error;
-  }
-  
-  const message = getErrorMessage(error);
-  return new Error(message);
 }
 
 /**
